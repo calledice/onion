@@ -151,12 +151,16 @@ onion_train.py
 ```
 模型最终保存pt文件，模型结构文件，模型config文件,loss曲线等
 ## 结果评估与可视化
-output_show_compare.py
+output_show_compare.py和see_dataset.py
 ### 用途
-用于可视化test结果，包括output和label的对比，input和result的对比
+output_show_compare.py用于可视化test结果，包括output和label的对比，input和result的对比 <br />
+see_dataset.py用于检查数据是否合理
 ### 实现方式
+#### output_show_compare.py
 运行Phantomdata_generation.py文件 <br />
 输入模型结构路径，配置文件路径，测试数据集路径<br />
 predict()会生成多个csv文件并且返回各文件的路径 <br />
 plot_save()读入个csv文件并且保存画图
 若已获得输出的csv文件，则test = False
+#### see_dataset.py
+输入文件路径后可以直接运行
