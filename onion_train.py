@@ -57,9 +57,7 @@ def training(model_name, config, train_input_path,val_input_path, num_train_epoc
     tb_save_path = os.path.join(out_path, tb_save_path)
 
     os.makedirs(out_path, exist_ok=True)
-    if not os.path.exists(tb_save_path):
-        os.mkdir(tb_save_path)
-    os.makedirs(tb_save_path, exist_ok=True)
+    os.makedirs(tb_save_path)
 
     train_model(model, model_name, num_train_epochs, weight_decay, learning_rate, scheduler_step, train_iter, val_iter,
                 check_every,
