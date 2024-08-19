@@ -100,7 +100,8 @@ def predict(config, model_load_path, model_name, test_iter,model_path):
     return pre_path, gt_path, info_path,input_path,result_path
 
 def plot_save(df_pre,df_gt,df_info,df_input,df_result,path):
-    for i in range(len(df_info)):
+    num = len(df_info)
+    for i in range(10):
         insize = df_info[i][0]
         r = df_info[i][1]
         z = df_info[i][2]
@@ -134,7 +135,7 @@ if __name__ == '__main__':
     # 加载模型进行test
     if test:
         model_name = "Onion_4"
-        model_path = "model_attn_data/Onion2024-08-15-08:59:11/"
+        model_path = "model_attn_data/Onion2024-08-16-13:08:24/"
         modelPath =  model_path + model_name + ".pth"
         json_file_name = "config_and_args_4L_norm_2loss_2048.json"
 
