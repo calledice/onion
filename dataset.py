@@ -62,8 +62,7 @@ class OnionDataset(Dataset):
         regi_list = [regi[str(i)][:] for i in range(len(regi))]  # 收集regi信息
         posi_list = [posi[str(i)][:] for i in range(len(posi))]  # 收集posi信息
         self.max_input_len = max_input_len
-        self.info_list = [x[dkey][:][-3:].flatten() for dkey in x.keys()]  # 收集输入数据
-        self.info_list_ = [x[str(i)][:][-3:].flatten() for i in range(len(x))]  # 收集输入数据
+        self.info_list = [x[str(i)][:][-3:].flatten() for i in range(len(x))]  # 收集输入数据
         self.padded_input, self.input_len_org = pad_arrays_to_length(inputs_list, max_input_len)
         self.padded_output, _ = pad_arrays_to_length(outputs_list, max_rz_len)
         self.padded_regi, _ = pad_arrays_to_length(regi_list, max_rz_len)
