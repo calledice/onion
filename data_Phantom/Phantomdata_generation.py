@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import math
 import random
@@ -232,6 +234,7 @@ def plot_data(data):
     plt.show
 
 def generate_dataset(name,num_region,num_value):
+    os.makedirs("./phantomdata", exist_ok=True)
     with h5py.File(f"./phantomdata/mini_1_{name}_database.h5", 'a') as data:
         data_input_group = data.create_group("x")
         data_label_group = data.create_group("y")
