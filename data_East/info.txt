@@ -1,0 +1,2 @@
+input n=92
+output 75*50
