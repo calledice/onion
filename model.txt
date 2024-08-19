@@ -1,0 +1,68 @@
+Onion(
+  (conv_emb): ConvEmbModel(
+    (conv): Conv1d(1, 2048, kernel_size=(1,), stride=(1,))
+  )
+  (block_stack): ModuleList(
+    (0-3): 4 x Encoder_Block(
+      (ln_1): LayerNorm()
+      (attn): CausalSelfAttention(
+        (c_attn): Linear(in_features=2048, out_features=6144, bias=True)
+        (c_proj): Linear(in_features=2048, out_features=2048, bias=True)
+        (attn_dropout): Dropout(p=0.0, inplace=False)
+        (resid_dropout): Dropout(p=0.0, inplace=False)
+      )
+      (ln_2): LayerNorm()
+      (mlp): MLP(
+        (c_fc): Linear(in_features=2048, out_features=8192, bias=True)
+        (relu): ReLU()
+        (c_proj): Linear(in_features=8192, out_features=2048, bias=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+    )
+  )
+  (LN): LayerNorm((2048,), eps=1e-05, elementwise_affine=True)
+  (scale_linear): Linear(in_features=2048, out_features=2048, bias=True)
+  (out_head): Out_head(
+    (c_fc): Linear(in_features=2048, out_features=8192, bias=True)
+    (relu): ReLU()
+    (c_proj): Linear(in_features=8192, out_features=2048, bias=True)
+    (dropout): Dropout(p=0.0, inplace=False)
+  )
+)
+Onion(
+  (conv_emb): ConvEmbModel(
+    (conv): Conv1d(1, 2048, kernel_size=(1,), stride=(1,))
+  )
+  (block_stack): ModuleList(
+    (0-3): 4 x Encoder_Block(
+      (ln_1): LayerNorm()
+      (attn): CausalSelfAttention(
+        (c_attn): Linear(in_features=2048, out_features=6144, bias=True)
+        (c_proj): Linear(in_features=2048, out_features=2048, bias=True)
+        (attn_dropout): Dropout(p=0.0, inplace=False)
+        (resid_dropout): Dropout(p=0.0, inplace=False)
+      )
+      (ln_2): LayerNorm()
+      (mlp): MLP(
+        (c_fc): Linear(in_features=2048, out_features=8192, bias=True)
+        (relu): ReLU()
+        (c_proj): Linear(in_features=8192, out_features=2048, bias=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+    )
+  )
+  (LN): LayerNorm((2048,), eps=1e-05, elementwise_affine=True)
+  (scale_linear): Linear(in_features=2048, out_features=2048, bias=True)
+  (out_head): Out_head(
+    (c_fc): Linear(in_features=2048, out_features=8192, bias=True)
+    (relu): ReLU()
+    (c_proj): Linear(in_features=8192, out_features=2048, bias=True)
+    (dropout): Dropout(p=0.0, inplace=False)
+  )
+  (multihead_atten): MultiHeadAttention(
+    (query_proj): Linear(in_features=2048, out_features=2048, bias=True)
+    (key_proj): Linear(in_features=2048, out_features=2048, bias=True)
+    (value_proj): Linear(in_features=2048, out_features=2048, bias=True)
+    (out_proj): Linear(in_features=2048, out_features=2048, bias=True)
+  )
+)

@@ -1,0 +1,1 @@
+tensorboard --logdir=./data/Onion2024-05-31-12:13:40/TensorBoard_logs/
