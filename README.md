@@ -164,3 +164,17 @@ plot_save()读入个csv文件并且保存画图
 若已获得输出的csv文件，则test = False
 #### see_dataset.py
 输入文件路径后可以直接运行
+
+## merge code
+git checkout cong
+git add .
+git commit -m "commit"
+git push
+git checkout main
+git pull
+git merge cong
+解决冲突，重新提交
+git push
+git checkout cong
+git merge main
+push
