@@ -20,6 +20,7 @@ git commit -m "commit"
 git push
 
 if [ $? -ne 0 ]; then
+  echo "==================================================="
   echo "git checkout $branch
 git add .
 git commit -m "commit"
@@ -33,12 +34,14 @@ git checkout $branch
 git merge main
 git push"
   echo "个人分支的push出问题了，解决问题之后重新提交。"
+  echo "==================================================="
   exit 1
-fi 
-  
+fi
+
 git checkout main
 git pull
 if [ $? -ne 0 ]; then
+  echo "==================================================="
   echo "git checkout $branch
 git add .
 git commit -m "commit"
@@ -51,12 +54,14 @@ git push
 git checkout $branch
 git merge main
 git push"
-  echo "pull main分支时候出问题，解决问题之后重新提交。"
+  echo "pull main分支时候出问题，解决问题之后重新提交。注意，当前在main分支上。"
+  echo "==================================================="
   exit 1
-fi 
+fi
 
 git merge $branch
 if [ $? -ne 0 ]; then
+  echo "==================================================="
   echo "git checkout $branch
 git add .
 git commit -m "commit"
@@ -69,12 +74,14 @@ git push
 git checkout $branch
 git merge main
 git push"
-  echo "在main分支merge个人分支的提交时候出问题，解决问题之后重新merge。"
+  echo "在main分支merge个人分支的提交时候出问题，解决问题之后重新merge。注意，当前在main分支上。"
+  echo "==================================================="
   exit 1
 fi
 
 git push
 if [ $? -ne 0 ]; then
+  echo "==================================================="
   echo "git checkout $branch
 git add .
 git commit -m "commit"
@@ -87,13 +94,15 @@ git merge $branch
 git checkout $branch
 git merge main
 git push"
-  echo "在main分支merge个人分支完成之后，push出问题，解决问题之后重新push。"
+  echo "在main分支merge个人分支完成之后，push出问题，解决问题之后重新push。注意，当前在main分支上。"
+  echo "==================================================="
   exit 1
 fi
 
 git checkout $branch
 git merge main
 if [ $? -ne 0 ]; then
+  echo "==================================================="
   echo "git checkout $branch
 git add .
 git commit -m "commit"
@@ -107,11 +116,13 @@ git checkout $branch
 >> git merge main
 git push"
   echo "在个人分支merge个main支完时候出问题，解决问题之后重新merge。"
+  echo "==================================================="
   exit 1
 fi
 
 git push
 if [ $? -ne 0 ]; then
+  echo "==================================================="
   echo "git checkout $branch
 git add .
 git commit -m "commit"
@@ -125,5 +136,6 @@ git checkout $branch
 >> git merge main
 git push"
   echo "在个人分支merge个main支完时候出问题，解决问题之后重新merge。"
+  echo "==================================================="
   exit 1
 fi
