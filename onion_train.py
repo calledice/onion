@@ -56,8 +56,7 @@ def training(model_name, config, train_input_path,val_input_path, num_train_epoc
     log_path = os.path.join(out_path, "result.txt")
     tb_save_path = os.path.join(out_path, tb_save_path)
 
-    if not os.path.exists(out_path):
-        os.mkdir(out_path)
+    os.makedirs(out_path, exist_ok=True)
     if not os.path.exists(tb_save_path):
         os.mkdir(tb_save_path)
 
