@@ -9,7 +9,7 @@ if [ $# -ne 2 ]; then
   exit 1
 fi
 
-if [ "$1" != "gavin" ] || [ "$1" != "$branch"]; then
+if [ "$1" != "gavin" ] || [ "$1" != "$branch" ]; then
   echo "branch只能是cong或者gavin"
   exit 1
 fi
