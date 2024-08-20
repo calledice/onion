@@ -114,12 +114,12 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
                 # torch.save(model.state_dict(), model_params_path)
                 torch.save(model, model_path)
 
-        if epoch % 1 == 0:
+        if step % check_every == 0:
             val_loss = evaluate(model, model_name, val_iter, loss_mse)
             val_loss_list.append((step - 1, val_loss))
-            writer.add_scalar("val_loss", val_loss, epoch, double_precision=True)
+            writer.add_scalar("val_loss", val_loss, step, double_precision=True)
             with open(log_path, "a") as f:
-                f.write("\n epoch:{}, val_loss:{:.10f}".format(epoch, val_loss))
+                f.write("\n epoch:{}, val_loss:{:.10f}".format(step, val_loss))
 
     loss_str = ["step {}: {}".format(*el) for el in train_loss_list]
     with open(os.path.join(out_path, "train_loss.txt"), "w") as fw:
@@ -173,17 +173,17 @@ if __name__ == "__main__":
     paser.add_argument("--model_name", help="选择模型", default="Onion")
     paser.add_argument("--train_input_path", help="训练集输入数据路径", default="./data_Phantom/phantomdata/mini_1_train_database.h5")
     paser.add_argument("--val_input_path", help="验证集输入数据路径", default="./data_Phantom/phantomdata/mini_1_valid_database.h5")
-    paser.add_argument("--num_train_epochs", help="num_train_epochs", type=int, default=5)
+    paser.add_argument("--num_train_epochs", help="num_train_epochs", type=int, default=10)
     paser.add_argument("--weight_decay", help="weight_decay", type=float, default=0.005)
     paser.add_argument("--learning_rate", help="learning_rate", type=float, default=5e-4)
     paser.add_argument("--scheduler_step", help="lr更新步长", type=int, default=500)
-    paser.add_argument("--check_every", help="每多少步validate一次", type=int, default=200)
+    paser.add_argument("--check_every", help="每多少步validate一次", type=int, default=500)
     # paser.add_argument("--out_path", help="输出路径", default="./model_data")
     paser.add_argument("--out_path", help="输出路径", default="./model_attn_data")
     paser.add_argument("--tb_save_path", help="TensorBoard 保存路径", default="TensorBoard_logs")
     args = paser.parse_args()
 
-    config = Config(4, 32, 0.0, True, torch.float32, 4,100,2048)
+    config = Config(4, 8, 0.0, True, torch.float32, 4,100,2048)
     config_dict = {
         "n_layer": config.n_layer,
         "n_head": config.n_head,

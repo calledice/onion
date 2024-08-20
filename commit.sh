@@ -4,12 +4,13 @@
 # 用法: ./commit.sh branch "commit message"
 
 branch="$1"
+commit_message="$2"
 if [ $# -ne 2 ]; then
   echo "输入两个参数: branch commit_message"
   exit 1
 fi
 
-if [ "$1" != "gavin" ] || [ "$1" != "$branch"]; then
+if [ "$branch" != "gavin" ] && [ "$branch" != "cong" ]; then
   echo "branch只能是cong或者gavin"
   exit 1
 fi
