@@ -283,7 +283,7 @@ class Onion(nn.Module):
         # x_in = torch.sum(vec, dim=1, dtype=torch.float32)##很不合适！！！展平过MLP合适
         # vec_out =self.vec_compress(vec.view(4, -1).unsqueeze(1))
         #output = self.out_head(vec_out).unsqueeze(1) * regi[:, 0, :].unsqueeze(1)
-        vec_out =self.vec_compress(vec)
+        vec_out =self.vec_compress(vec)* regi[:, 0, :].unsqueeze(1)
         output = self.out_head(vec_out)
         return output
 
