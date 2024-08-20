@@ -102,24 +102,26 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
             train_loss_epoch.append(loss_value)
             writer.add_scalar("train_loss", loss_value, step)
             step += 1
+
+            if step % check_every == 0:
+                val_loss = evaluate(model, model_name, val_iter, loss_mse)
+                val_loss_list.append((step - 1, val_loss))
+                writer.add_scalar("val_loss", val_loss, step, double_precision=True)
+                with open(log_path, "a") as f:
+                    f.write("\n epoch:{}, val_loss:{:.10f}".format(step, val_loss))
+
         scheduler.step()
         print(f'sigmoid_n = {sigmoid_n}')
         epoch_loss = sum(train_loss_epoch) / len(train_loss_epoch)
         print("\ntrain_loss------>:", epoch_loss)
-        if (epoch+1) % 5 == 0:
+
+        if (epoch + 1) % 5 == 0:
             with open(log_path, "a") as f:
                 f.write("\n epoch:{}, train_loss:{:.10f}".format(epoch, epoch_loss))
                 # model_params_path = os.path.join(out_path, model_name + "_params" + str(epoch) + ".pth")
                 model_path = os.path.join(out_path, model_name + "_" + str(epoch) + ".pth")
                 # torch.save(model.state_dict(), model_params_path)
                 torch.save(model, model_path)
-
-        if step % check_every == 0:
-            val_loss = evaluate(model, model_name, val_iter, loss_mse)
-            val_loss_list.append((step - 1, val_loss))
-            writer.add_scalar("val_loss", val_loss, step, double_precision=True)
-            with open(log_path, "a") as f:
-                f.write("\n epoch:{}, val_loss:{:.10f}".format(step, val_loss))
 
     loss_str = ["step {}: {}".format(*el) for el in train_loss_list]
     with open(os.path.join(out_path, "train_loss.txt"), "w") as fw:
@@ -177,7 +179,7 @@ if __name__ == "__main__":
     paser.add_argument("--weight_decay", help="weight_decay", type=float, default=0.005)
     paser.add_argument("--learning_rate", help="learning_rate", type=float, default=5e-4)
     paser.add_argument("--scheduler_step", help="lr更新步长", type=int, default=500)
-    paser.add_argument("--check_every", help="每多少步validate一次", type=int, default=500)
+    paser.add_argument("--check_every", help="每多少步validate一次", type=int, default=2000)
     # paser.add_argument("--out_path", help="输出路径", default="./model_data")
     paser.add_argument("--out_path", help="输出路径", default="./model_attn_data")
     paser.add_argument("--tb_save_path", help="TensorBoard 保存路径", default="TensorBoard_logs")
