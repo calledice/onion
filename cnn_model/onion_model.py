@@ -58,7 +58,7 @@ class Onion(nn.Module):
         )
 
         conv_out_dim = channels * 2 * 10 * 10
-        fc_out_dim = n
+        fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
@@ -87,6 +87,7 @@ for (input, regi, posi, info), label in train_loader:
     pred = onion(input, regi, posi)
     optim.zero_grad()
     loss = loss_fn(pred, label)
+    loss.backward()
     optim.step()
     print(loss)
 
