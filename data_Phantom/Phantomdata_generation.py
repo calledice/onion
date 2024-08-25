@@ -4,11 +4,7 @@ import numpy as np
 import math
 import random
 import h5py
-import pandas as pd
-import csv
-from scipy import sparse
 import matplotlib.pyplot as plt
-import matplotlib
 
 class BeamDef:
     def __init__(self, beams):
@@ -206,17 +202,6 @@ def load_los(numgridr, numgridz, rdm_point_num, rdm_chord_num,grid_defr,grid_def
 
     return position, angle
 
-
-# def generate(minr, maxr, numgridr, minz, maxz, numgridz,grid_defr, grid_defz, los_pos, los_angle,randn_indexr, randn_indexz, value):
-#     grid = grid_generate(minr, maxr, numgridr, minz, maxz, numgridz)
-#     # # 后续加grid的筛选命令#
-#     edgepixel_index = find_edgebeams(grid)
-#     c_matrix = get_cmatrix(grid_defr, grid_defz, los_pos, los_angle, grid)
-#     label = label_generate(randn_indexr, randn_indexz, value, numgridr, numgridz, grid)
-#     input = input_generate(c_matrix, label)
-#
-#     return c_matrix,label,input
-
 def save_to_dataframe():
     return 0
 
@@ -231,75 +216,122 @@ def plot_data(data):
     plt.savefig("."+"/see_label_contour")
     plt.pcolor(data, cmap='jet')
     plt.savefig("."+"/see_label_pcolor")
-    plt.show
+    plt.show()
 
 def generate_dataset(name,num_region,num_value):
     os.makedirs("./phantomdata", exist_ok=True)
-    with h5py.File(f"./phantomdata/mini_1_{name}_database.h5", 'a') as data:
-        data_input_group = data.create_group("x")
-        data_label_group = data.create_group("y")
-        data_posi_group = data.create_group("posi")
-        data_region_group = data.create_group("regi")
-        k_data = 0
-        for i in range(num_region):
-            print(f'start {i} case:')
-            input_df = []
-            label_df = []
-            size_ratio = random.randint(5, 10)
-            size_ratio = size_ratio/(10.0)
-            numgridz = random.randint(20, 40)
-            numgridr = math.floor(numgridz * size_ratio)
-            minr, maxr = 0, numgridr/numgridr
-            minz, maxz = 0, numgridz/numgridz
-            grid_defr = np.linspace(minr, maxr, numgridr)  # 每列网格的r坐标
-            grid_defz = np.linspace(minz, maxz, numgridz)  # 每行网格的z坐标
-            center_up = int(0.7 * (numgridz - 1))
-            center_down = int(0.3 * (numgridz - 1))
-            center_left = int(0.3 * (numgridr - 1))
-            center_right = int(0.7 * (numgridr - 1))
-            randn_indexr = random.randint(center_left, center_right)
-            randn_indexz = random.randint(center_down, center_up)
-            rdm_point_num = random.randint(1, 3)
-            rdm_chord_num = random.randint(10, 60)
-            los_pos, los_angle = load_los(numgridr, numgridz, rdm_point_num, rdm_chord_num,grid_defr,grid_defz)
-            grid = grid_generate(minr, maxr, numgridr, minz, maxz, numgridz)  # 为网格中心的坐标
-            edgepixel_index = find_edgebeams(grid)
-            c_matrix = get_cmatrix(grid_defr, grid_defz, los_pos, los_angle, grid)
-            c_matrix_flatten = np.array(c_matrix).flatten()
-            region, grad_coff, threshhold_coff = region_generate(randn_indexr, randn_indexz, numgridr, numgridz, grid)
-            print(f'grad_coff = {grad_coff}')
-            print(f'threshhold_coff = {threshhold_coff}')
-            data_posi_group.create_dataset(str(i), data=c_matrix)
-            data_region_group.create_dataset(str(i), data=region)
+    c_matrix_list = []
+    region_list = []
+    input_list = []
+    label_list = []
+    for i in range(num_region):
+        print(f'start {i} case:')
+        size_ratio = random.randint(5, 10)
+        size_ratio = size_ratio/(10.0)
+        numgridz = random.randint(20, 40)
+        numgridr = math.floor(numgridz * size_ratio)
+        minr, maxr = 0, numgridr/numgridr
+        minz, maxz = 0, numgridz/numgridz
+        grid_defr = np.linspace(minr, maxr, numgridr)  # 每列网格的r坐标
+        grid_defz = np.linspace(minz, maxz, numgridz)  # 每行网格的z坐标
+        center_up = int(0.7 * (numgridz - 1))
+        center_down = int(0.3 * (numgridz - 1))
+        center_left = int(0.3 * (numgridr - 1))
+        center_right = int(0.7 * (numgridr - 1))
+        randn_indexr = random.randint(center_left, center_right)
+        randn_indexz = random.randint(center_down, center_up)
+        rdm_point_num = random.randint(1, 3)
+        rdm_chord_num = random.randint(10, 60)
+        los_pos, los_angle = load_los(numgridr, numgridz, rdm_point_num, rdm_chord_num,grid_defr,grid_defz)
+        grid = grid_generate(minr, maxr, numgridr, minz, maxz, numgridz)  # 为网格中心的坐标
+        c_matrix = get_cmatrix(grid_defr, grid_defz, los_pos, los_angle, grid)
+        region, grad_coff, threshhold_coff = region_generate(randn_indexr, randn_indexz, numgridr, numgridz, grid)
+        print(f'grad_coff = {grad_coff}')
+        print(f'threshhold_coff = {threshhold_coff}')
+        c_matrix_list.append(c_matrix)
+        region_list.append(region)
 
-            for j in range(num_value):
-                l = random.randint(0, 9)
-                value = random.uniform(0.5, 1)
-                label = label_generate(randn_indexr, randn_indexz, value, numgridr, numgridz, grid, grad_coff,
-                                       threshhold_coff)
-                # plot_data(label.T[0].reshape(numgridr,numgridz))
-                input = input_generate(c_matrix, label)
-                new_columns = np.array([[i, numgridr, numgridz]], dtype=np.float64)
-                # 将id和网格数量拼接，用于后续可视化
-                input_contact = np.column_stack((np.array(input.T), new_columns))
+        for j in range(num_value):
+            value = random.uniform(0.5, 1)
+            label = label_generate(randn_indexr, randn_indexz, value, numgridr, numgridz, grid, grad_coff,
+                                   threshhold_coff)
+            # plot_data(label.T[0].reshape(numgridr,numgridz))
+            input = input_generate(c_matrix, label)
+            new_columns = np.array([[i, numgridr, numgridz]], dtype=np.float64)
+            # 将id和网格数量拼接，用于后续可视化
+            input_contact = np.column_stack((np.array(input.T), new_columns))
+            input_list.append(input_contact[0])
+            label_list.append(label.T[0])
+    assert len(input_list) == len(label_list), "输入列表和标签列表长度必须相同"
 
-                data_input_group.create_dataset(str(k_data),data = input_contact[0])
-                data_label_group.create_dataset(str(k_data),data = label.T[0])
-                k_data +=1
-        print("finish")
+    # 合并输入和标签
+    combined = list(zip(input_list, label_list))
+    # 设置随机种子以保证实验的可重复性
+    np.random.seed(42)
+    # 打乱合并后的列表
+    np.random.shuffle(combined)
+    # 解压回原来的列表
+    shuffled_inputs, shuffled_labels = zip(*combined)
+    # 转换成numpy数组以便更容易处理
+    shuffled_inputs = list(shuffled_inputs)
+    shuffled_labels = list(shuffled_labels)
+    # 数据集大小
+    data_size = len(shuffled_inputs)
+    # 划分比例
+    train_split = 0.7
+    val_split = 0.2
+    test_split = 0.1
+    # 计算分割索引
+    train_end = int(train_split * data_size)
+    val_end = int((train_split + val_split) * data_size)
+    # 分割数据集
+    train_inputs, train_labels = shuffled_inputs[:train_end], shuffled_labels[:train_end]
+    val_inputs, val_labels = shuffled_inputs[train_end:val_end], shuffled_labels[train_end:val_end]
+    test_inputs, test_labels = shuffled_inputs[val_end:], shuffled_labels[val_end:]
+
+    with h5py.File(f"./phantomdata/mini_2_{name[0]}_database.h5", 'a') as data0:
+        data_input_group = data0.create_group("x")
+        data_label_group = data0.create_group("y")
+        data_posi_group = data0.create_group("posi")
+        data_region_group = data0.create_group("regi")
+        for i in range(len(c_matrix_list)):
+            data_posi_group.create_dataset(str(i), data=c_matrix_list[i])
+            data_region_group.create_dataset(str(i), data=region_list[i])
+        for j in range(len(train_inputs)):
+            data_input_group.create_dataset(str(j), data=train_inputs[j])
+            data_label_group.create_dataset(str(j), data=train_labels[j])
+    with h5py.File(f"./phantomdata/mini_2_{name[1]}_database.h5", 'a') as data1:
+        data_input_group = data1.create_group("x")
+        data_label_group = data1.create_group("y")
+        data_posi_group = data1.create_group("posi")
+        data_region_group = data1.create_group("regi")
+        for i in range(len(c_matrix_list)):
+            data_posi_group.create_dataset(str(i), data=c_matrix_list[i])
+            data_region_group.create_dataset(str(i), data=region_list[i])
+        for j in range(len(val_inputs)):
+            data_input_group.create_dataset(str(j), data=val_inputs[j])
+            data_label_group.create_dataset(str(j), data=val_labels[j])
+    with h5py.File(f"./phantomdata/mini_2_{name[2]}_database.h5", 'a') as data2:
+        data_input_group = data2.create_group("x")
+        data_label_group = data2.create_group("y")
+        data_posi_group = data2.create_group("posi")
+        data_region_group = data2.create_group("regi")
+        for i in range(len(c_matrix_list)):
+            data_posi_group.create_dataset(str(i), data=c_matrix_list[i])
+            data_region_group.create_dataset(str(i), data=region_list[i])
+        for j in range(len(test_inputs)):
+            data_input_group.create_dataset(str(j), data=test_inputs[j])
+            data_label_group.create_dataset(str(j), data=test_labels[j])
+    print("finish")
 ##################################################################
 
 
 if __name__ == '__main__':
     # 定义列名称
     name = ['train','valid','test']
-    num_region = [20,10,2]
-    num_value = [4000,2000,1000]
-    for i in range(len(name)):
-        name_=name[i]
-        num_region_ = num_region[i]
-        num_value_ = num_value[i]
-        generate_dataset(name_,num_region_,num_value_)
+    num_region = 50
+    num_value = 2000
+    generate_dataset(name,num_region,num_value)
 
 
 
