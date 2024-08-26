@@ -77,13 +77,16 @@ class Onion(nn.Module):
         out = self.fc(conv_out)
         return out
 
-
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 dataset = OnionDataset("../data_Phantom/phantomdata/mini_1_test_database.h5")
 train_loader = DataLoader(dataset, batch_size=4, shuffle=False)
 onion = Onion()
+onion.to(device)
 loss_fn = nn.MSELoss()
 optim = torch.optim.Adam(params=onion.parameters(), lr=0.01)
 for (input, regi, posi, info), label in train_loader:
+    input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
     pred = onion(input, regi, posi)
     optim.zero_grad()
     loss = loss_fn(pred, label)
