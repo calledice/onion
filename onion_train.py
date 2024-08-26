@@ -74,6 +74,18 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, num_train_epochs,
                                                            eta_min=0, last_epoch=-1, verbose=False)
     writer = SummaryWriter(tb_save_path)
+    # 定义输出配置文件路径
+    output_json = f"config_and_args_{config.n_layer}L_norm_2loss_{config.max_rz_len}.json"
+    output_file = os.path.join(out_path,  output_json)
+    # 使用 json 保存
+    data_to_dump = {
+        'args': args.__dict__,
+        'config': config_dict
+    }
+    with open(output_file, 'w') as f:
+        json.dump(data_to_dump, f, indent=4)
+    with open(out_path + '/' + 'model.txt', 'a') as file0:
+        print(model, file=file0)
 
     global_step = 0
     train_loss = 0.0
@@ -108,7 +120,7 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
                 val_loss_list.append((step - 1, val_loss))
                 writer.add_scalar("val_loss", val_loss, step, double_precision=True)
                 with open(log_path, "a") as f:
-                    f.write("\n epoch:{}, val_loss:{:.10f}".format(step, val_loss))
+                    f.write("\n step:{}, val_loss:{:.10f}".format(step, val_loss))
 
         scheduler.step()
         print(f'sigmoid_n = {sigmoid_n}')
@@ -127,18 +139,6 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
     with open(os.path.join(out_path, "train_loss.txt"), "w") as fw:
         fw.write("\n".join(loss_str))
 
-    # 定义输出配置文件路径
-    output_json = f"config_and_args_{config.n_layer}L_norm_2loss_{config.max_rz_len}.json"
-    output_file = os.path.join(out_path,  output_json)
-    # 使用 json 保存
-    data_to_dump = {
-    'args': args.__dict__,
-    'config': config_dict
-}
-    with open(output_file, 'w') as f:
-        json.dump(data_to_dump, f, indent=4)
-    with open(out_path+'/'+'model.txt','a') as file0:
-        print(model,file=file0)
     output_fig = f"{config.n_layer}L_norm_2loss_{config.max_rz_len}.png"
     output_path = os.path.join(out_path, output_fig)
     draw_loss(train_loss_list, val_loss_list, out_path)
@@ -173,8 +173,8 @@ if __name__ == "__main__":
     paser = argparse.ArgumentParser()
     # paser.add_argument("--model_name", help="选择模型", default="expert_mmoe")
     paser.add_argument("--model_name", help="选择模型", default="Onion")
-    paser.add_argument("--train_input_path", help="训练集输入数据路径", default="./data_Phantom/phantomdata/mini_1_train_database.h5")
-    paser.add_argument("--val_input_path", help="验证集输入数据路径", default="./data_Phantom/phantomdata/mini_1_valid_database.h5")
+    paser.add_argument("--train_input_path", help="训练集输入数据路径", default="./data_Phantom/phantomdata/mini_2_train_database.h5")
+    paser.add_argument("--val_input_path", help="验证集输入数据路径", default="./data_Phantom/phantomdata/mini_2_valid_database.h5")
     paser.add_argument("--num_train_epochs", help="num_train_epochs", type=int, default=10)
     paser.add_argument("--weight_decay", help="weight_decay", type=float, default=0.005)
     paser.add_argument("--learning_rate", help="learning_rate", type=float, default=5e-4)

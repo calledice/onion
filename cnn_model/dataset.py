@@ -6,7 +6,7 @@ import h5py
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 
 def pad_arrays_to_length(arrays, target_length=101, label=0, pos_pad_len=None):
