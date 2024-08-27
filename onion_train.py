@@ -30,9 +30,10 @@ def draw_loss(train_loss_list, val_loss_list, out_path):
     plt.title("loss during training")  # 标题
     plt.xlabel("iter")  # Changed "iter" to "Epoch" assuming epochs are being plotted
     plt.ylabel("Loss")  # Adding a ylabel for clarity
+    plt.yscale("log")
     plt.plot(train_epoch_list, train_loss_list, label="train_loss")
     plt.plot(val_epoch_list, val_loss_list, label="valid_loss", marker="+")
-    plt.ylim(0, 1)
+    # plt.ylim(0, 1)
     plt.legend()
     plt.grid()
     plt.savefig(out_path)
