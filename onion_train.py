@@ -186,7 +186,7 @@ if __name__ == "__main__":
     paser.add_argument("--tb_save_path", help="TensorBoard 保存路径", default="TensorBoard_logs")
     args = paser.parse_args()
 
-    config = Config(4, 8, 0.0, True, torch.float32, 4,100,2048)
+    config = Config(2, 8, 0.0, True, torch.float32, 64,100,2048)
     config_dict = {
         "n_layer": config.n_layer,
         "n_head": config.n_head,
