@@ -6,10 +6,10 @@ import h5py
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 
-def pad_arrays_to_length(arrays, target_length=101, label=0, pos_pad_len=None):
+def pad_arrays_to_length(arrays, target_length=100):
     """
     将列表中的数组padding到指定长度，并记录原始长度。
     参数:
@@ -67,6 +67,7 @@ def pad_arrays_to_rz(arr, max_r, max_z):
 
     return arr
 
+
 class OnionDataset(Dataset):
     def __init__(self, pth_, max_input_len=100, max_r=100, max_z=100):
         '''
@@ -75,6 +76,7 @@ class OnionDataset(Dataset):
         :param max_input_len: 最大输入长度，用于做padding
         :param max_rz_len: 最大r*z的长度
         '''
+        print(111)
         super().__init__()
         self.max_r = max_r
         self.max_z = max_z
@@ -85,16 +87,35 @@ class OnionDataset(Dataset):
         posi = dataset['posi']
         inputs_list = [x[str(i)][:][:-3].flatten() for i in range(len(x))]  # 收集输入数据
         self.info_list = [tuple(x[str(i)][:][-3:].flatten()) for i in range(len(x))]  # 收集输入数据
-        self.outputs_list = [y[str(i)][:].reshape(int(self.info_list[i][1]), int(self.info_list[i][2])) for i in range(len(y))]  # 收集输出数据
+        self.outputs_list = [y[str(i)][:].reshape(int(self.info_list[i][1]), int(self.info_list[i][2])) for i in
+                             range(len(y))]  # 收集输出数据
         self.regi_list = [regi[str(i)][:] for i in range(len(regi))]  # 收集regi信息
         self.posi_list = [posi[str(i)][:] for i in range(len(posi))]  # 收集posi信息
-        for i, r, z in set(self.info_list):
-            i, r, z = int(i), int(r), int(z)
-            self.posi_list[i] = self.posi_list[i].reshape(self.posi_list[i].shape[0], r, z)
-            self.regi_list[i] = self.regi_list[i].reshape(r, z)
 
         self.max_input_len = max_input_len
         self.padded_input, self.input_len_org = pad_arrays_to_length(inputs_list, max_input_len)
+
+        visited_regi = set()
+        self.padded_output = []
+        for i in tqdm(range(len(inputs_list)), desc="Padding ... "):
+            regi_pos_idx, r, z = self.info_list[i]
+            regi_pos_idx, r, z = int(regi_pos_idx), int(r), int(z)
+            input_length = self.input_len_org[i]
+            input = self.padded_input[i]
+            output = pad_arrays_to_rz(self.outputs_list[i], self.max_r, self.max_z)
+            output = output.flatten() + torch.tensor([0.0001], dtype=torch.float32, requires_grad=False)
+            self.padded_output.append(output)
+
+            if regi_pos_idx not in visited_regi:
+                visited_regi.add(regi_pos_idx)
+                self.posi_list[regi_pos_idx] = self.posi_list[regi_pos_idx].reshape(
+                    self.posi_list[regi_pos_idx].shape[0], r, z)
+                self.regi_list[regi_pos_idx] = self.regi_list[regi_pos_idx].reshape(r, z)
+                self.regi_list[regi_pos_idx] = pad_arrays_to_rz(self.regi_list[regi_pos_idx], self.max_r, self.max_z)
+                posi = pad_arrays_to_rz(self.posi_list[regi_pos_idx], self.max_r, self.max_z)
+                pad_shape = (input.size(0) - posi.size(0), posi.size(1), posi.size(2))
+                pad = torch.zeros(pad_shape, dtype=torch.float32, requires_grad=False)
+                self.posi_list[regi_pos_idx] = torch.concat([posi, pad], dim=0)
 
     def __getitem__(self, idx):
         regi_pos_idx, r, z = self.info_list[idx]
@@ -102,19 +123,10 @@ class OnionDataset(Dataset):
         input_length = self.input_len_org[idx]
         input = self.padded_input[idx]
 
-        self.padded_output = pad_arrays_to_rz(self.outputs_list[idx], self.max_r, self.max_z)
-        regi = pad_arrays_to_rz(self.regi_list[regi_pos_idx], self.max_r, self.max_z)
-        posi = pad_arrays_to_rz(self.posi_list[regi_pos_idx], self.max_r, self.max_z)
-        pad_shape = (input.size(0) - posi.size(0), posi.size(1), posi.size(2))
-        pad = torch.zeros(pad_shape, dtype=torch.float32, requires_grad=False)
-        posi = torch.concat([posi, pad], dim=0)
-
-        output = self.padded_output.flatten()
+        output = self.padded_output[idx].flatten()
         info = (input_length, r, z)
-        return (input, regi, posi, info), output
+        return (input, self.regi_list[regi_pos_idx], self.posi_list[regi_pos_idx], info), output
 
     def __len__(self):
         return len(self.padded_input)
 
-onion = OnionDataset("../data_Phantom/phantomdata/mini_1_test_database.h5")
-onion.__getitem__(90)
