@@ -3,9 +3,13 @@ from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
+from tqdm import tqdm
+import os
 import math
+
+
 class Config:
-    def __init__(self, n_layer, n_head, dropout, bias, dtype, batch_size,max_input_len,max_rz_len):
+    def __init__(self, n_layer, n_head, dropout, bias, dtype, batch_size, max_input_len, max_rz_len):
         self.n_layer = n_layer
         self.n_head = n_head
         self.dropout = dropout
@@ -14,13 +18,14 @@ class Config:
         self.batch_size = batch_size
         self.max_input_len = max_input_len
         self.max_rz_len = max_rz_len
+
+
 class ConvEmbModel(nn.Module):
-    def __init__(self, max_r=100, max_z=100, device='cuda' if torch.cuda.is_available() else 'cpu'):
+    def __init__(self, max_r=100, max_z=100):
         super().__init__()
         self.r = max_r
         self.z = max_z
         out_channels = max_r * max_z
-        self.device = device  # Explicitly initialize device
         # self.sigmoid = nn.Sigmoid()  # Corrected typo in the activation function name
         self.conv = nn.Conv1d(in_channels=1, out_channels=out_channels, kernel_size=1)
         # self.batch_norm = nn.BatchNorm1d(input_len)
@@ -30,11 +35,12 @@ class ConvEmbModel(nn.Module):
         x = x.reshape(x.shape[0], x.shape[1], self.r, self.z)
         return x
 
+
 class Onion(nn.Module):
-    def __init__(self, n=100, max_r=100, max_z=100, device='cuda' if torch.cuda.is_available() else 'cpu'):
+    def __init__(self, n=100, max_r=100, max_z=100):
         super(Onion, self).__init__()
-        self.conv_upsample = ConvEmbModel(max_r, max_z, device)
-        channels = max_r + max_z + 1
+        self.conv_upsample = ConvEmbModel(max_r, max_z)
+        channels = n * 2 + 1
 
         self.net = nn.Sequential(
             nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
@@ -49,10 +55,10 @@ class Onion(nn.Module):
             nn.BatchNorm2d(num_features=channels),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(in_channels=channels, out_channels=channels*2, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=channels, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=channels*2, out_channels=channels*2, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels*2),
+            nn.Conv2d(in_channels=channels * 2, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=channels * 2),
             nn.ReLU(inplace=True),
             nn.AdaptiveMaxPool2d(output_size=(10, 10))
         )
@@ -78,16 +84,42 @@ class Onion(nn.Module):
         return out
 
 
-dataset = OnionDataset("../data_Phantom/phantomdata/mini_1_test_database.h5")
-train_loader = DataLoader(dataset, batch_size=4, shuffle=False)
-onion = Onion()
+def weighted_mse_loss(pred, target, weight=None):
+    # 计算均方误差
+    mse_loss = (pred - target) ** 2
+
+    penalty = torch.where((pred == 0) & (target != 0), torch.tensor(100.0), torch.tensor(1.0))
+
+    # 计算损失的平均值
+    return (mse_loss * penalty).mean()
+
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+dataset = OnionDataset("./data_Phantom/phantomdata/mini_2_train_database.h5", max_input_len=49, max_r=19, max_z=32)
+print(len(dataset))
+train_loader = DataLoader(dataset, batch_size=64, shuffle=True)
+onion = Onion(n=49, max_r=19, max_z=32)
+onion.to(device)
 loss_fn = nn.MSELoss()
-optim = torch.optim.Adam(params=onion.parameters(), lr=0.01)
-for (input, regi, posi, info), label in train_loader:
+optim = torch.optim.Adam(params=onion.parameters(), lr=0.001)
+weight = torch.tensor([3.0], requires_grad=True, dtype=torch.float32).to(device)
+losses = []
+for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
+    input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
     pred = onion(input, regi, posi)
     optim.zero_grad()
-    loss = loss_fn(pred, label)
+    print('pred')
+    print(pred[0].sum())
+    print('label')
+    print(label[0].sum())
+    loss = weighted_mse_loss(pred, label, 10)
     loss.backward()
     optim.step()
-    print(loss)
+    losses.append(loss.item())
+    if len(losses) == 100:
+        print(sum(losses) / len(losses))
+        losses = []
+
 
