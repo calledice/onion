@@ -76,7 +76,6 @@ class OnionDataset(Dataset):
         :param max_input_len: 最大输入长度，用于做padding
         :param max_rz_len: 最大r*z的长度
         '''
-        print(111)
         super().__init__()
         self.max_r = max_r
         self.max_z = max_z
@@ -103,7 +102,8 @@ class OnionDataset(Dataset):
             input_length = self.input_len_org[i]
             input = self.padded_input[i]
             output = pad_arrays_to_rz(self.outputs_list[i], self.max_r, self.max_z)
-            output = output.flatten() + torch.tensor([0.0001], dtype=torch.float32, requires_grad=False)
+            output = output.flatten()
+            # output = output.flatten() + torch.tensor([0.0001], dtype=torch.float32, requires_grad=False)
             self.padded_output.append(output)
 
             if regi_pos_idx not in visited_regi:

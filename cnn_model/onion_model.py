@@ -83,8 +83,7 @@ class Onion(nn.Module):
         conv_out = conv_out.reshape(conv_out.size(0), -1)
         out = self.fc(conv_out)
         return out
-
-
+    
 def weighted_mse_loss(pred, target, weight=None):
     # 计算均方误差
     mse_loss = (pred - target) ** 2
@@ -93,41 +92,3 @@ def weighted_mse_loss(pred, target, weight=None):
 
     # 计算损失的平均值
     return (mse_loss * penalty).mean()
-
-
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-n = 34
-r = 21
-z = 31
-
-dataset = OnionDataset("../data_Phantom/phantomdata/mini_2_train_database.h5", max_input_len=n, max_r=r, max_z=z)
-print(len(dataset))
-train_loader = DataLoader(dataset, batch_size=64, shuffle=True)
-onion = Onion(n=n, max_r=r, max_z=z)
-onion.to(device)
-loss_fn = nn.MSELoss()
-optim = torch.optim.Adam(params=onion.parameters(), lr=0.001)
-weight = torch.tensor([3.0], requires_grad=True, dtype=torch.float32).to(device)
-
-
-epochs = 100
-for epoch in epochs:
-    print(f"epoch: {epoch}")
-    losses = []
-    for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
-        input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-        pred = onion(input, regi, posi)
-        optim.zero_grad()
-        loss = weighted_mse_loss(pred, label, 10)
-        loss.backward()
-        optim.step()
-        losses.append(loss.item())
-        print(sum(losses) / len(losses))
-        json.dump(losses, open(f"training_loss{epoch}.json"))
-        torch.save(onion, f"model{epoch}.pth")
-
-
-
-
