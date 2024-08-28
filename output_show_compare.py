@@ -11,6 +11,8 @@ import json
 import torch.nn as nn
 import time
 import h5py
+import os
+import glob
 
 def plot_data(data, title, save_path,i):
     max = data.max()
@@ -132,28 +134,28 @@ if __name__ == '__main__':
     # print("good")
     ######################################################
     test = True
+    model_name = "Onion_9"
+    model_path = "./model_attn_data/Onion2024-08-26-14:15:07/"
+    modelPath = model_path + model_name + ".pth"
+    # json_file = model_path + "config_and_args_4L_norm_2loss_2048.json"
+    json_file = glob.glob(os.path.join(model_path, '*.json'))
     # 加载模型进行test
     if test:
-        model_name = "Onion_4"
-        model_path = "model_attn_data/Onion2024-08-16-13:08:24/"
-        modelPath =  model_path + model_name + ".pth"
-        json_file_name = "config_and_args_4L_norm_2loss_2048.json"
-
-        with open(model_path+json_file_name, 'r', encoding='utf-8') as file:
+        with open(json_file, 'r', encoding='utf-8') as file:
             data = json.load(file)
         config = Config(data['config']["n_layer"], data['config']["n_head"],data['config']["dropout"],data['config']["bias"],
             data['config']["dtype"],data['config']["batch_size"],data['config']["max_input_len"],data['config']["max_rz_len"])
 
-        test_input_path = "./data_Phantom/phantomdata/mini_1_test_database.h5"
+        test_input_path = "./data_Phantom/phantomdata/mini_2_test_database.h5"
         test_set = OnionDataset(test_input_path, max_input_len=config.max_input_len, max_rz_len=config.max_rz_len)
         test_iter = DataLoader(test_set, batch_size=config.batch_size, drop_last=True, shuffle=False)
         pre_path,gt_path,info_path,input_path,result_path = predict(config = config, model_load_path=modelPath, model_name=model_name,test_iter=test_iter,model_path = model_path)
     else:
-        pre_path = "./model_data/Onion2024-08-06-08:51:38/outputs/Onion_0/pre_matrix_.csv"
-        gt_path = "./model_data/Onion2024-08-06-08:51:38/outputs/Onion_0/gt_matrix_.csv"
-        info_path = "./model_data/Onion2024-08-06-08:51:38/outputs/Onion_0/info_matrix_.csv"
-        input_path = "./model_data/Onion2024-08-06-08:51:38/outputs/Onion_0/input_matrix_.csv"
-        result_path = "./model_data/Onion2024-08-06-08:51:38/outputs/Onion_0/result_matrix_.csv" #是弦积分后的结果
+        pre_path = model_path + "outputs/Onion_0/pre_matrix_.csv"
+        gt_path = model_path + "outputs/Onion_0/gt_matrix_.csv"
+        info_path = model_path + "outputs/Onion_0/info_matrix_.csv"
+        input_path = model_path + "outputs/Onion_0/input_matrix_.csv"
+        result_path = model_path + "outputs/Onion_0/result_matrix_.csv" #是弦积分后的结果
 
     path = os.path.split(pre_path)[0]
     df_pre = pd.read_csv(pre_path).values[:,1:]

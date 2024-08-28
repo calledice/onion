@@ -1,9 +1,8 @@
-from dataset import OnionDataset
-from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
 import math
+from torchinfo import summary
 class Config:
 
     def __init__(self, n_layer, n_head, dropout, bias, dtype, batch_size,max_input_len,max_rz_len):
@@ -203,5 +202,11 @@ class Onion(nn.Module):
 #     vec = input + regi + posi
 #     pred = model(vec).squeeze(1)
 #     loss = loss_fn(pred, label)
+if __name__ =="__main__":
+    config = Config(2, 8, 0.0, True, torch.float32, 1, 100, 2048)
+    input_shapes = [(1,100),(1,100,2048),(1,100,2048)]
+    inputs = [torch.randn(*shape) for shape in input_shapes]
+    onion = Onion(config)
+    summary(onion,input_data=inputs)
 
     
