@@ -330,7 +330,7 @@ if __name__ == '__main__':
     # 定义列名称
     name = ['train','valid','test']
     num_region = 1
-    num_maxvalue_posi = 10
+    num_maxvalue_posi = 1
     num_value = 2000
     generate_dataset(name,num_region,num_maxvalue_posi,num_value)
 
