@@ -11,23 +11,22 @@ r = 21
 z = 31
 print(torch.cuda.is_available())
 
-dataset = OnionDataset("./data_Phantom/phantomdata/mini_2_test_database.h5", max_input_len=n, max_r=r, max_z=z)
+dataset = OnionDataset("../data_Phantom/phantomdata/mini_2_valid_database.h5", max_input_len=n, max_r=r, max_z=z)
 print(len(dataset))
 batch_size = 64
 test_loader = DataLoader(dataset, batch_size=64, shuffle=True)
-onion = torch.load('cnn_model/output/train/model4.pth', map_location=torch.device('cpu')).to('cuda')
+onion = torch.load('output/train/model_best.pth', map_location=torch.device('cpu')).to('cuda')
 onion.eval()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 losses = []
 preds = []
 labels = []
-out_dir = 'cnn_model/output/test'
+out_dir = 'output/test'
 os.makedirs(out_dir, exist_ok=True)
 for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
     pred = onion(input, regi, posi)
     loss = weighted_mse_loss(pred, label, 10)
-    loss.backward()
     preds.append(pred.reshape(-1, r, z))
     labels.append(label.reshape(-1, r, z))
     losses.append(loss.item())
