@@ -22,14 +22,15 @@ class Config:
 
 
 class ConvEmbModel(nn.Module):
+    """
+    使用卷积操作将input从(batch_size, max_n) padding到(batch_size, max_n, max_r, max_ z)
+    """
     def __init__(self, max_r=100, max_z=100):
         super().__init__()
         self.r = max_r
         self.z = max_z
         out_channels = max_r * max_z
-        # self.sigmoid = nn.Sigmoid()  # Corrected typo in the activation function name
         self.conv = nn.Conv1d(in_channels=1, out_channels=out_channels, kernel_size=1)
-        # self.batch_norm = nn.BatchNorm1d(input_len)
 
     def forward(self, x):
         x = self.conv(x.unsqueeze(1)).transpose(1, 2)
@@ -79,12 +80,15 @@ class Onion(nn.Module):
         input = self.conv_upsample(input)
         regi = regi.unsqueeze(dim=0).transpose(0, 1)
         final_input = torch.concat([input, regi, posi], dim=1)
-        conv_out = self.net(final_input)
+        conv_out = self.net(final_input)    
         conv_out = conv_out.reshape(conv_out.size(0), -1)
         out = self.fc(conv_out)
         return out
     
 def weighted_mse_loss(pred, target, weight=None):
+    '''
+    加权MSELoss, 对预测错误的负样本施加惩罚, 为了让该学成0的位置学成0
+    '''
     # 计算均方误差
     mse_loss = (pred - target) ** 2
 
