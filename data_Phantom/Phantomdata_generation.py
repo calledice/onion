@@ -241,17 +241,16 @@ def generate_dataset(name,num_region,num_maxvalue_posi,num_value):
         rdm_point_num = random.randint(1, 3)
         rdm_chord_num = random.randint(10, 60)
         los_pos, los_angle = load_los(numgridr, numgridz, rdm_point_num, rdm_chord_num, grid_defr, grid_defz)
+        grid = grid_generate(minr, maxr, numgridr, minz, maxz, numgridz)  # 为网格中心的坐标
+        c_matrix = get_cmatrix(grid_defr, grid_defz, los_pos, los_angle, grid)
         for k in range(num_maxvalue_posi):
             randn_indexr = random.randint(center_left, center_right)
             randn_indexz = random.randint(center_down, center_up)
-            grid = grid_generate(minr, maxr, numgridr, minz, maxz, numgridz)  # 为网格中心的坐标
-            c_matrix = get_cmatrix(grid_defr, grid_defz, los_pos, los_angle, grid)
             region, grad_coff, threshhold_coff = region_generate(randn_indexr, randn_indexz, numgridr, numgridz, grid)
             print(f'grad_coff = {grad_coff}')
             print(f'threshhold_coff = {threshhold_coff}')
             c_matrix_list.append(c_matrix)
             region_list.append(region)
-
             for j in range(num_value):
                 value = random.uniform(0.5, 1)
                 label = label_generate(randn_indexr, randn_indexz, value, numgridr, numgridz, grid, grad_coff,
