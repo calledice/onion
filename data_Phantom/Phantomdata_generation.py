@@ -218,7 +218,7 @@ def plot_data(data):
     plt.savefig("."+"/see_label_pcolor")
     plt.show()
 
-def generate_dataset(name,num_region,num_value):
+def generate_dataset(name,num_region,num_maxvalue_posi,num_value):
     os.makedirs("./phantomdata", exist_ok=True)
     c_matrix_list = []
     region_list = []
@@ -238,30 +238,31 @@ def generate_dataset(name,num_region,num_value):
         center_down = int(0.3 * (numgridz - 1))
         center_left = int(0.3 * (numgridr - 1))
         center_right = int(0.7 * (numgridr - 1))
-        randn_indexr = random.randint(center_left, center_right)
-        randn_indexz = random.randint(center_down, center_up)
         rdm_point_num = random.randint(1, 3)
         rdm_chord_num = random.randint(10, 60)
-        los_pos, los_angle = load_los(numgridr, numgridz, rdm_point_num, rdm_chord_num,grid_defr,grid_defz)
-        grid = grid_generate(minr, maxr, numgridr, minz, maxz, numgridz)  # 为网格中心的坐标
-        c_matrix = get_cmatrix(grid_defr, grid_defz, los_pos, los_angle, grid)
-        region, grad_coff, threshhold_coff = region_generate(randn_indexr, randn_indexz, numgridr, numgridz, grid)
-        print(f'grad_coff = {grad_coff}')
-        print(f'threshhold_coff = {threshhold_coff}')
-        c_matrix_list.append(c_matrix)
-        region_list.append(region)
+        los_pos, los_angle = load_los(numgridr, numgridz, rdm_point_num, rdm_chord_num, grid_defr, grid_defz)
+        for k in range(num_maxvalue_posi):
+            randn_indexr = random.randint(center_left, center_right)
+            randn_indexz = random.randint(center_down, center_up)
+            grid = grid_generate(minr, maxr, numgridr, minz, maxz, numgridz)  # 为网格中心的坐标
+            c_matrix = get_cmatrix(grid_defr, grid_defz, los_pos, los_angle, grid)
+            region, grad_coff, threshhold_coff = region_generate(randn_indexr, randn_indexz, numgridr, numgridz, grid)
+            print(f'grad_coff = {grad_coff}')
+            print(f'threshhold_coff = {threshhold_coff}')
+            c_matrix_list.append(c_matrix)
+            region_list.append(region)
 
-        for j in range(num_value):
-            value = random.uniform(0.5, 1)
-            label = label_generate(randn_indexr, randn_indexz, value, numgridr, numgridz, grid, grad_coff,
-                                   threshhold_coff)
-            # plot_data(label.T[0].reshape(numgridr,numgridz))
-            input = input_generate(c_matrix, label)
-            new_columns = np.array([[i, numgridr, numgridz]], dtype=np.float64)
-            # 将id和网格数量拼接，用于后续可视化
-            input_contact = np.column_stack((np.array(input.T), new_columns))
-            input_list.append(input_contact[0])
-            label_list.append(label.T[0])
+            for j in range(num_value):
+                value = random.uniform(0.5, 1)
+                label = label_generate(randn_indexr, randn_indexz, value, numgridr, numgridz, grid, grad_coff,
+                                       threshhold_coff)
+                # plot_data(label.T[0].reshape(numgridr,numgridz))
+                input = input_generate(c_matrix, label)
+                new_columns = np.array([[i, numgridr, numgridz]], dtype=np.float64)
+                # 将id和网格数量拼接，用于后续可视化
+                input_contact = np.column_stack((np.array(input.T), new_columns))
+                input_list.append(input_contact[0])
+                label_list.append(label.T[0])
     assert len(input_list) == len(label_list), "输入列表和标签列表长度必须相同"
 
     # 合并输入和标签
@@ -329,9 +330,10 @@ def generate_dataset(name,num_region,num_value):
 if __name__ == '__main__':
     # 定义列名称
     name = ['train','valid','test']
-    num_region = 50
+    num_region = 1
+    num_maxvalue_posi = 10
     num_value = 2000
-    generate_dataset(name,num_region,num_value)
+    generate_dataset(name,num_region,num_maxvalue_posi,num_value)
 
 
 
