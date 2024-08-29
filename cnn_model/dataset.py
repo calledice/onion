@@ -91,6 +91,10 @@ class OnionDataset(Dataset):
         self.regi_list = [regi[str(i)][:] for i in range(len(regi))]  # 收集regi信息
         self.posi_list = [posi[str(i)][:] for i in range(len(posi))]  # 收集posi信息
 
+        max_input_len = len(inputs_list[0])
+        self.max_r = int(self.info_list[0][1])
+        self.max_z = int(self.info_list[0][2])
+
         self.max_input_len = max_input_len
         self.padded_input, self.input_len_org = pad_arrays_to_length(inputs_list, max_input_len)
 

@@ -6,12 +6,16 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import json
 import os
-n = 34
-r = 21
-z = 31
 print(torch.cuda.is_available())
 
-dataset = OnionDataset("../data_Phantom/phantomdata/mini_2_valid_database.h5", max_input_len=n, max_r=r, max_z=z)
+dataset = OnionDataset("../data_Phantom/phantomdata/mini_2_test_database.h5")
+
+
+# 临时加的，为了不做padding
+n = int(dataset.input_len_org[0])
+r = int(dataset.info_list[0][1])
+z = int(dataset.info_list[0][2])
+
 print(len(dataset))
 batch_size = 64
 test_loader = DataLoader(dataset, batch_size=64, shuffle=True)
@@ -27,9 +31,12 @@ for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
     pred = onion(input, regi, posi)
     loss = weighted_mse_loss(pred, label, 10)
+    pred = torch.where(pred < 0.001, torch.tensor(0.0), pred)
+    print(pred[0])
     preds.append(pred.reshape(-1, r, z))
     labels.append(label.reshape(-1, r, z))
     losses.append(loss.item())
+    break
 
 print(sum(losses) / len(losses))
 json.dump(losses, open(f"{out_dir}/testing_loss.json", 'w'), indent=2)
