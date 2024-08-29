@@ -7,6 +7,49 @@ import matplotlib.pyplot as plt
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
+def create_embedding_mask(n, m, max_n, max_m):
+    """
+    生成一个二维掩码矩阵，确保只保留 n×m 的部分，其余部分为 0。
+    参数:
+    - n (int): 保留的行数。
+    - m (int): 保留的列数。
+    - max_n (int): 最大行数。
+    - max_m (int): 最大列数。
+    - device (str): 执行计算的设备 ('cpu' 或 'cuda')。
+    返回:
+    - mask (Tensor): 形状为 (1, 1, max_n, max_m) 的掩码矩阵，其中 1 表示应关注的位置，0 表示不应关注的位置。
+    """
+    # 创建一个形状为 (n, m) 的矩阵，其中 1 表示应关注的位置
+    ones_matrix = torch.ones(n, m)
+    # 将矩阵扩展为 (1, 1, n, m) 的形状
+    ones_matrix = ones_matrix
+    # 创建一个形状为 (1, 1, max_n, max_m) 的掩码矩阵
+    mask = torch.zeros(max_n, max_m)
+    # 将保留的部分设置为 1
+    mask[:n, :m] = ones_matrix
+    return mask
+
+
+def create_sequence_mask(seq_len, keep_seq_len, num_heads=8):
+    """
+    创建一个序列掩码，屏蔽除指定序列长度外的所有位置。
+    参数:
+    - seq_len (int): 序列的总长度。
+    - keep_seq_len (int): 需要保留的序列长度。
+    - num_heads (int): 注意力头的数量。
+    x = 1,100,2048
+    多头：1,8,100,256
+    score: 1,8,100,100
+    mask: 1,8,40,40
+    softmax()
+    返回:
+    - mask (Tensor): 形状为 (1, num_heads, seq_len, seq_len) 的掩码张量。
+    """
+    # 创建一个全为 0 的掩码张量
+    mask = torch.zeros(num_heads, seq_len, seq_len)
+    # 将需要保留的部分设置为 1
+    mask[:, :keep_seq_len, :keep_seq_len] = 1
+    return mask
 
 def pad_arrays_to_length(arrays, target_length=101, label=0, pos_pad_len=None):
     """
@@ -44,7 +87,7 @@ def pad_arrays_to_length(arrays, target_length=101, label=0, pos_pad_len=None):
 
 
 class OnionDataset(Dataset):
-    def __init__(self, pth_, max_input_len=100, max_rz_len=10000):
+    def __init__(self, pth_, max_input_len=100, max_rz_len=10000, num_head = 8):
         '''
         读数据集，做padding操作
         :param pth_: 数据集路径
@@ -62,6 +105,8 @@ class OnionDataset(Dataset):
         regi_list = [regi[str(i)][:] for i in range(len(regi))]  # 收集regi信息
         posi_list = [posi[str(i)][:] for i in range(len(posi))]  # 收集posi信息
         self.max_input_len = max_input_len
+        self.max_rz_len = max_rz_len
+        self.num_head = num_head
         self.info_list = [x[str(i)][:][-3:].flatten() for i in range(len(x))]  # 收集输入数据
         self.padded_input, self.input_len_org = pad_arrays_to_length(inputs_list, max_input_len)
         self.padded_output, _ = pad_arrays_to_length(outputs_list, max_rz_len)
@@ -84,7 +129,6 @@ class OnionDataset(Dataset):
         #     torch.tensor(regi[input_length:, :], requires_grad=False, dtype=torch.float32)
         #     ], dim=0
         # )
-
         part1 = torch.concat([
             regi[:input_length, :r * z].clone().detach().requires_grad_(True),
             regi[:input_length, r * z:].clone().detach(),
@@ -93,8 +137,6 @@ class OnionDataset(Dataset):
         part2 = regi[input_length:, :].clone().detach()
         # 将两部分拼接起来
         regi = torch.concat([part1, part2], dim=0)
-
-
         posi = torch.tensor(np.array(self.padded_posi[regi_pos_idx]))
 
         # posi_old = torch.concat([
@@ -114,8 +156,11 @@ class OnionDataset(Dataset):
         # 将两部分张量沿着维度0拼接
         posi = torch.concat([part1_, part2_], dim=0)
         output = self.padded_output[idx]
-        info = (input_length, r, z)
-        return (input, regi, posi, info), output
+        info = np.array((input_length, r, z))
+        embedding_mask = create_embedding_mask(info[0],info[1]*info[2], self.max_input_len, self.max_rz_len)
+        sequence_mask = create_sequence_mask(self.max_input_len,info[0],num_heads = self.num_head)
+        return (input, regi, posi, info, embedding_mask, sequence_mask), output
 
     def __len__(self):
         return len(self.padded_input)
+
