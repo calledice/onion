@@ -44,10 +44,10 @@ def training(model_name, config, train_input_path,val_input_path, num_train_epoc
              weight_decay, learning_rate, scheduler_step, check_every, out_path,
              tb_save_path):
     print("start training ")
-    max_input_len, max_rz_len = config.max_input_len, config.max_rz_len
-    train_set = OnionDataset(train_input_path, max_input_len=max_input_len, max_rz_len=max_rz_len)
+    max_input_len, max_rz_len,num_head= config.max_input_len, config.max_rz_len,config.n_head
+    train_set = OnionDataset(train_input_path, max_input_len=max_input_len, max_rz_len=max_rz_len,num_head=num_head)
     train_iter = DataLoader(train_set, batch_size=config.batch_size, drop_last=True, shuffle=True)
-    valid_set= OnionDataset(val_input_path, max_input_len=max_input_len, max_rz_len=max_rz_len)
+    valid_set= OnionDataset(val_input_path, max_input_len=max_input_len, max_rz_len=max_rz_len,num_head=num_head)
     val_iter = DataLoader(valid_set, batch_size=config.batch_size, drop_last=True, shuffle=True)
 
     model = Onion(config)
@@ -99,9 +99,9 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
         model.train()
         epoch_iterator = tqdm(train_iter, desc=f"Epoch {epoch}", mininterval=2)
 
-        for batch_id, ((input, regi, posi, info), label) in enumerate(epoch_iterator):
-            input, regi, posi, label= input.to(device), regi.to(device), posi.to(device), label.to(device)
-            output = model(input, regi, posi).squeeze(1)
+        for batch_id, ((input, regi, posi, info,embedding_mask,sequence_mask), label) in enumerate(epoch_iterator):
+            input, regi, posi, label,info,embedding_mask,sequence_mask = input.to(device), regi.to(device), posi.to(device), label.to(device),info.to(device),embedding_mask.to(device),sequence_mask.to(device)
+            output = model(input, regi, posi, info,embedding_mask,sequence_mask).squeeze(1)
             output_b = output.unsqueeze(-1)#
             result = torch.bmm(posi, output_b).squeeze(-1)#
             sigmoid_n = torch.sigmoid(model.n)
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     paser.add_argument("--tb_save_path", help="TensorBoard 保存路径", default="TensorBoard_logs")
     args = paser.parse_args()
 
-    config = Config(2, 8, 0.0, True, torch.float32, 64,100,2048)
+    config = Config(2, 8, 0.0, True, torch.float32, 1,100,2048)
     config_dict = {
         "n_layer": config.n_layer,
         "n_head": config.n_head,
