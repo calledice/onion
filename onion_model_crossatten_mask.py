@@ -220,7 +220,8 @@ class Out_head(nn.Module):
         x = self.c_fc(x)
         x = self.relu(x)
         x = self.c_proj(x)
-        x = self.relu(x)
+        # x = self.relu(x)
+        x = self.sgmoid(x)
         x = self.dropout(x)
         # x = self.relu(x)
         return x

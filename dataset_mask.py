@@ -29,7 +29,6 @@ def create_embedding_mask(n, m, max_n, max_m):
     mask[:n, :m] = ones_matrix
     return mask
 
-
 def create_sequence_mask(seq_len, keep_seq_len, num_heads=8):
     """
     创建一个序列掩码，屏蔽除指定序列长度外的所有位置。

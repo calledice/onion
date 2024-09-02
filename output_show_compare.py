@@ -18,7 +18,7 @@ def plot_data(data, title, save_path,i):
     max = data.max()
     min = data.min()
     plt.figure()
-    plt.pcolor(data, cmap='jet')
+    plt.pcolor(data, cmap='jet',vmin = 0.0,vmax = 1.0)
     plt.colorbar(label='ne')
     plt.title(title)
     ax = plt.gca()
@@ -71,7 +71,7 @@ def predict(config, model_load_path, model_name, test_iter,model_path):
         input_all = np.array(input_all)
         result_all = np.array(result_all)
         mae = np.mean(np.abs(preds_all - labels_all))
-        print(f'test set mae = np.mean(np.abs(preds - labels)): {mae}')
+        print(f'testset mae = np.mean(np.abs(preds - labels)): {mae}')
         df_preds = pd.DataFrame(preds_all)
         df_labels = pd.DataFrame(labels_all)
         df_info = pd.DataFrame(info_all)
@@ -80,7 +80,7 @@ def predict(config, model_load_path, model_name, test_iter,model_path):
 
     t2 = time.time()
     avg_test_loss = sum(test_loss_list) / len(test_loss_list)
-    print(f'test set loss is: {avg_test_loss}, test time is: {t2 - t1} s')
+    print(f'testset ave_loss is: {avg_test_loss}, test time is: {t2 - t1} s')
 
     # 循环结束后，将所有输出写入csv文件
     output_path = model_path+"/outputs"
@@ -111,17 +111,18 @@ def plot_save(df_pre,df_gt,df_info,df_input,df_result,path):
         outsize = r*z
         Pre = df_pre[i][:outsize].reshape(r,z).T
         Label = df_gt[i][:outsize].reshape(r,z).T
-        RelativeError = (abs(df_gt[i][:outsize].reshape(r, z)-df_pre[i][:outsize].reshape(r,z))/np.max(df_gt[i][:outsize].reshape(r,z))).T*100
+        RelativeError = (abs(df_gt[i][:outsize].reshape(r, z)-df_pre[i][:outsize].reshape(r,z))/np.max(df_gt[i][:outsize].reshape(r,z))).T
         scatter_data(df_input[i][:insize],df_result[i][:insize],"LineIntegral&GT",path,i)
         plot_data(Pre,"Pre",path,i)
         plot_data(Label,"Label",path,i)
         plot_data(RelativeError, "RelativeError", path, i)
+        print(f"finish index: {i}")
 
 if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    test = True
+    test = False
     model_name = "Onion_9"
     model_path = "./model_attn_data/Onion2024-08-29-17:35:14/"
     modelPath = model_path + model_name + ".pth"
@@ -138,12 +139,12 @@ if __name__ == '__main__':
         test_set = OnionDataset(test_input_path, max_input_len=config.max_input_len, max_rz_len=config.max_rz_len)
         test_iter = DataLoader(test_set, batch_size=config.batch_size, drop_last=True, shuffle=False)
         pre_path,gt_path,info_path,input_path,result_path = predict(config = config, model_load_path=modelPath, model_name=model_name,test_iter=test_iter,model_path = model_path)
-    # else:
-    #     pre_path = model_path + "outputs/Onion_0/pre_matrix_.csv"
-    #     gt_path = model_path + "outputs/Onion_0/gt_matrix_.csv"
-    #     info_path = model_path + "outputs/Onion_0/info_matrix_.csv"
-    #     input_path = model_path + "outputs/Onion_0/input_matrix_.csv"
-    #     result_path = model_path + "outputs/Onion_0/result_matrix_.csv" #是弦积分后的结果
+    else:
+        pre_path = model_path + f"outputs/{model_name}/pre_matrix_.csv"
+        gt_path = model_path + f"outputs/{model_name}/gt_matrix_.csv"
+        info_path = model_path + f"outputs/{model_name}/info_matrix_.csv"
+        input_path = model_path + f"outputs/{model_name}/input_matrix_.csv"
+        result_path = model_path + f"outputs/{model_name}/result_matrix_.csv" #是弦积分后的结果
 
     path = os.path.split(pre_path)[0]
     df_pre = pd.read_csv(pre_path).values[:,1:]
@@ -151,5 +152,7 @@ if __name__ == '__main__':
     df_info = pd.read_csv(info_path).values[:,1:]
     df_input = pd.read_csv(input_path).values[:,1:]
     df_result = pd.read_csv(result_path).values[:,1:]
+    mae = np.mean(np.abs(df_pre - df_gt))
+    print(f'testset mae = np.mean(np.abs(preds - labels)): {mae}')
     print("finish read from csv start plot")
     plot_save(df_pre,df_gt,df_info,df_input,df_result,path)

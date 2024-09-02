@@ -54,25 +54,26 @@ def training(model_name, config, train_input_path,val_input_path, num_train_epoc
     val_iter = DataLoader(valid_set, batch_size=config.batch_size, drop_last=True, shuffle=True)
 
     model = Onion(config)
+
+    out_path = os.path.join(out_path, model_name + time.strftime("%Y-%m-%d-%X", time.localtime()))
+    log_path = os.path.join(out_path, "result.txt")
+    tb_save_path = os.path.join(out_path, tb_save_path)
+    os.makedirs(out_path, exist_ok=True)
+    os.makedirs(tb_save_path, exist_ok=True)
+
     input_shapes = [(batch_size,max_input_len),
                     (batch_size,max_input_len,max_rz_len),
                     (batch_size,max_input_len,max_rz_len),
                     (batch_size,3),
                     (batch_size,max_input_len,max_rz_len),
-                    (batch_size,n_head,max_input_len,max_input_len)]
+                    (batch_size,num_head,max_input_len,max_input_len)]
     inputs = [torch.randn(*shape) for shape in input_shapes]
-    inputs[3] = (abs(inputs[3]*10)).to(torch.long)
+    inputs[3] = (abs(inputs[3]*10)+3).to(torch.long)
     with open(out_path + '/' + 'model_summary.txt', 'w') as f:
         with redirect_stdout(f):
             summary(model, input_data=inputs)
 
     model.to(device)
-    out_path = os.path.join(out_path, model_name + time.strftime("%Y-%m-%d-%X", time.localtime()))
-    log_path = os.path.join(out_path, "result.txt")
-    tb_save_path = os.path.join(out_path, tb_save_path)
-
-    os.makedirs(out_path, exist_ok=True)
-    os.makedirs(tb_save_path, exist_ok=True)
 
     train_model(model, model_name, num_train_epochs, weight_decay, learning_rate, scheduler_step, train_iter, val_iter,
                 check_every,
@@ -209,7 +210,7 @@ if __name__ == "__main__":
     paser.add_argument("--tb_save_path", help="TensorBoard 保存路径", default="TensorBoard_logs")
     args = paser.parse_args()
 
-    config = Config(2, 8, 0.0, True, torch.float32, 64,100,2048)
+    config = Config(4, 8, 0.0, True, torch.float32, 32,100,2048)
     config_dict = {
         "n_layer": config.n_layer,
         "n_head": config.n_head,

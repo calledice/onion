@@ -7,6 +7,7 @@ from tqdm import tqdm
 import os
 import math
 import json
+from torchinfo import summary
 
 
 class Config:
@@ -96,3 +97,13 @@ def weighted_mse_loss(pred, target, weight=None):
 
     # 计算损失的平均值
     return (mse_loss * penalty).mean()
+
+if __name__ =="__main__":
+    n = 23
+    r = 32
+    z = 36
+    flatten_len = r*z
+    input_shapes = [(1,n),(1,r,z),(1,n,r,z)]
+    inputs = [torch.randn(*shape) for shape in input_shapes]
+    onion = Onion(n=n, max_r=r, max_z=z)
+    summary(onion,input_data=inputs)
