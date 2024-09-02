@@ -3,8 +3,8 @@ from tqdm import tqdm, trange
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from dataset import OnionDataset
-from onion_model_crossatten import Onion, Config, ConvEmbModel
+from dataset_mask import OnionDataset
+from onion_model_crossatten_mask import Onion, Config, ConvEmbModel
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -128,6 +128,11 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
         epoch_loss = sum(train_loss_epoch) / len(train_loss_epoch)
         print("\ntrain_loss------>:", epoch_loss)
 
+        val_loss = evaluate(model, model_name, val_iter, loss_mse)
+        writer.add_scalar("val_loss", val_loss, step, double_precision=True)
+        with open(log_path, "a") as f:
+            f.write("\n step:{}, val_loss:{:.10f}".format(step, val_loss))
+
         if (epoch + 1) % 5 == 0:
             with open(log_path, "a") as f:
                 f.write("\n epoch:{}, train_loss:{:.10f}".format(epoch, epoch_loss))
@@ -153,10 +158,10 @@ def evaluate(model, model_name, val_iter, loss_mse):
     conv_emb = ConvEmbModel(out_channels=config.max_rz_len)
     model.eval()
     with torch.no_grad():
-        for batch_id, ((input, regi, posi, info), label) in enumerate(val_iter):
-            input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-            # output = model(input, regi, posi).squeeze(1).to(torch.float32)
-            output = model(input, regi, posi).squeeze(1)
+        for batch_id, ((input, regi, posi, info,embedding_mask,sequence_mask), label) in enumerate(val_iter):
+            input, regi, posi, label, info, embedding_mask, sequence_mask = input.to(device), regi.to(device), posi.to(
+                device), label.to(device), info.to(device), embedding_mask.to(device), sequence_mask.to(device)
+            output = model(input, regi, posi, info, embedding_mask, sequence_mask).squeeze(1)
             output_b = output.unsqueeze(-1)  #
             result = torch.bmm(posi, output_b).squeeze(-1)  #
             sigmoid_n = torch.sigmoid(model.n)
@@ -174,8 +179,8 @@ if __name__ == "__main__":
     paser = argparse.ArgumentParser()
     # paser.add_argument("--model_name", help="选择模型", default="expert_mmoe")
     paser.add_argument("--model_name", help="选择模型", default="Onion")
-    paser.add_argument("--train_input_path", help="训练集输入数据路径", default="./data_Phantom/phantomdata/mini_2_train_database.h5")
-    paser.add_argument("--val_input_path", help="验证集输入数据路径", default="./data_Phantom/phantomdata/mini_2_valid_database.h5")
+    paser.add_argument("--train_input_path", help="训练集输入数据路径", default="./data_Phantom/phantomdata/mini_1_train_database.h5")
+    paser.add_argument("--val_input_path", help="验证集输入数据路径", default="./data_Phantom/phantomdata/mini_1_valid_database.h5")
     paser.add_argument("--num_train_epochs", help="num_train_epochs", type=int, default=10)
     paser.add_argument("--weight_decay", help="weight_decay", type=float, default=0.005)
     paser.add_argument("--learning_rate", help="learning_rate", type=float, default=5e-4)
@@ -186,7 +191,7 @@ if __name__ == "__main__":
     paser.add_argument("--tb_save_path", help="TensorBoard 保存路径", default="TensorBoard_logs")
     args = paser.parse_args()
 
-    config = Config(2, 8, 0.0, True, torch.float32, 1,100,2048)
+    config = Config(2, 8, 0.0, True, torch.float32, 64,100,2048)
     config_dict = {
         "n_layer": config.n_layer,
         "n_head": config.n_head,

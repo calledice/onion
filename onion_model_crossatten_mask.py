@@ -1,4 +1,4 @@
-from dataset import OnionDataset
+from dataset_mask import OnionDataset
 from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import torch
@@ -327,7 +327,7 @@ class Onion(nn.Module):
 #     loss = loss_fn(pred, label)
 if __name__ =="__main__":
     config = Config(2, 8, 0.0, True, torch.float32, 1, 100, 2048)
-    input_shapes = [(1,100),(1,100,2048),(1,100,2048)]
+    input_shapes = [(1,100),(1,100,2048),(1,100,2048),(),()]
     inputs = [torch.randn(*shape) for shape in input_shapes]
     onion = Onion(config)
     summary(onion,input_data=inputs)
