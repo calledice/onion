@@ -11,12 +11,15 @@ from onion_model import Onion
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-n = 34
-r = 21
-z = 31
 
-train_set = OnionDataset("../data_Phantom/phantomdata/mini_2_train_database.h5", max_input_len=n, max_r=r, max_z=z)
-val_set = OnionDataset("../data_Phantom/phantomdata/mini_2_valid_database.h5", max_input_len=n, max_r=r, max_z=z)
+train_set = OnionDataset("../data_Phantom/phantomdata/mini_2_train_database.h5")
+val_set = OnionDataset("../data_Phantom/phantomdata/mini_2_valid_database.h5")
+
+# 临时加的，为了不做padding
+n = int(train_set.input_len_org[0])
+r = int(train_set.info_list[0][1])
+z = int(train_set.info_list[0][2])
+
 train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
 val_loader = DataLoader(val_set, batch_size=64, shuffle=True)
 onion = Onion(n=n, max_r=r, max_z=z)
@@ -28,6 +31,7 @@ weight = torch.tensor([3.0], requires_grad=True, dtype=torch.float32).to(device)
 out_dir = 'output/train'
 os.makedirs(out_dir, exist_ok=True)
 min_val_loss = float('inf')
+early_stop = 5
 
 epochs = 100
 for epoch in range(epochs):
@@ -56,7 +60,6 @@ for epoch in range(epochs):
         input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
         pred = onion(input, regi, posi)
         loss = weighted_mse_loss(pred, label, 10)
-        loss.backward()
         preds.append(pred.reshape(-1, r, z))
         labels.append(label.reshape(-1, r, z))
         losses.append(loss.item())
@@ -68,4 +71,8 @@ for epoch in range(epochs):
         torch.save(onion, f"{out_dir}/model_best.pth")
         with open(f"{out_dir}/best_epoch.txt", 'w') as f:
             f.write(str(epoch))
+        early_stop = 5
     json.dump(losses, open(f"{out_dir}/val_loss{epoch}.json", 'w'))
+    early_stop -= 1
+    if early_stop <= 0:
+        break

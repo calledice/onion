@@ -120,20 +120,7 @@ def plot_save(df_pre,df_gt,df_info,df_input,df_result,path):
 if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    #######################################################
-    # 查看test/train数据
-    # test_input_path = "./data_Phantom/phantomdata/mini_1_test_database.h5"
-    # dataset = h5py.File(test_input_path, 'r')
-    # x = dataset["x"]
-    # y = dataset["y"]
-    # regi = dataset['regi']
-    # posi = dataset['posi']
-    # inputs_list = [x[dkey][:][:-3].flatten() for dkey in x.keys()]  # 收集输入数据
-    # outputs_list = [y[dkey][:].flatten() for dkey in y.keys()]
-    # plt.contourf(y["0"][:].reshape(int(x["0"][-1]),int(x["0"][-2])), cmap='jet')
-    # plt.show()
-    # print("good")
-    ######################################################
+
     test = True
     model_name = "Onion_9"
     model_path = "./model_attn_data/Onion2024-08-29-17:35:14/"
