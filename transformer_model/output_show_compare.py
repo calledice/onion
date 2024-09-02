@@ -18,7 +18,7 @@ def plot_data(data, title, save_path,i):
     max = data.max()
     min = data.min()
     plt.figure()
-    plt.contourf(data, cmap='jet')
+    plt.pcolor(data, cmap='jet',vmin=0.0,vmax=1.0)
     plt.colorbar(label='ne')
     plt.title(title)
     ax = plt.gca()
@@ -146,16 +146,16 @@ if __name__ == '__main__':
         config = Config(data['config']["n_layer"], data['config']["n_head"],data['config']["dropout"],data['config']["bias"],
             data['config']["dtype"],data['config']["batch_size"],data['config']["max_input_len"],data['config']["max_rz_len"])
 
-        test_input_path = "./data_Phantom/phantomdata/mini_2_test_database.h5"
+        test_input_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5"
         test_set = OnionDataset(test_input_path, max_input_len=config.max_input_len, max_rz_len=config.max_rz_len)
         test_iter = DataLoader(test_set, batch_size=config.batch_size, drop_last=True, shuffle=False)
         pre_path,gt_path,info_path,input_path,result_path = predict(config = config, model_load_path=modelPath, model_name=model_name,test_iter=test_iter,model_path = model_path)
     else:
-        pre_path = model_path + "outputs/Onion_0/pre_matrix_.csv"
-        gt_path = model_path + "outputs/Onion_0/gt_matrix_.csv"
-        info_path = model_path + "outputs/Onion_0/info_matrix_.csv"
-        input_path = model_path + "outputs/Onion_0/input_matrix_.csv"
-        result_path = model_path + "outputs/Onion_0/result_matrix_.csv" #是弦积分后的结果
+        pre_path = model_path + f"outputs/{model_name}/pre_matrix_.csv"
+        gt_path = model_path + f"outputs/{model_name}/gt_matrix_.csv"
+        info_path = model_path + f"outputs/{model_name}/info_matrix_.csv"
+        input_path = model_path + f"outputs/{model_name}/input_matrix_.csv"
+        result_path = model_path + f"outputs/{model_name}/result_matrix_.csv" #是弦积分后的结果
 
     path = os.path.split(pre_path)[0]
     df_pre = pd.read_csv(pre_path).values[:,1:]
