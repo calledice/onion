@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 import math
 from torchinfo import summary
+from contextlib import redirect_stdout
 
 class Config:
 
@@ -326,8 +327,23 @@ class Onion(nn.Module):
 #     pred = model(vec).squeeze(1)
 #     loss = loss_fn(pred, label)
 if __name__ =="__main__":
-    config = Config(2, 8, 0.0, True, torch.float32, 1, 100, 2048)
-    input_shapes = [(1,100),(1,100,2048),(1,100,2048),(),()]
+    max_input_len = 100
+    max_rz_len = 2048
+    n_head = 8
+    batch_size = 1
+    config = Config(2, n_head, 0.0, True, torch.float32, batch_size, max_input_len, max_rz_len)
+    input_shapes = [(batch_size,max_input_len),
+                    (batch_size,max_input_len,max_rz_len),
+                    (batch_size,max_input_len,max_rz_len),
+                    (batch_size,3),
+                    (batch_size,max_input_len,max_rz_len),
+                    (batch_size,n_head,max_input_len,max_input_len)]
     inputs = [torch.randn(*shape) for shape in input_shapes]
+    inputs[3] = (abs(inputs[3]*10)).to(torch.long)
     onion = Onion(config)
-    summary(onion,input_data=inputs)
+
+    # 将summary输出保存到文本文件中
+    summary(onion, input_data=inputs)
+    with open('model_summary.txt', 'w') as f:
+        with redirect_stdout(f):
+            summary(onion, input_data=inputs)

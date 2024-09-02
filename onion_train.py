@@ -12,6 +12,8 @@ import time
 from torch.utils.tensorboard import SummaryWriter
 import argparse
 import json
+from torchinfo import summary
+from contextlib import redirect_stdout
 
 outpath = './model_data/'
 data_root = './data_HL_2A'
@@ -44,6 +46,7 @@ def training(model_name, config, train_input_path,val_input_path, num_train_epoc
              weight_decay, learning_rate, scheduler_step, check_every, out_path,
              tb_save_path):
     print("start training ")
+    batch_size = config.batch_size
     max_input_len, max_rz_len,num_head= config.max_input_len, config.max_rz_len,config.n_head
     train_set = OnionDataset(train_input_path, max_input_len=max_input_len, max_rz_len=max_rz_len,num_head=num_head)
     train_iter = DataLoader(train_set, batch_size=config.batch_size, drop_last=True, shuffle=True)
@@ -51,6 +54,17 @@ def training(model_name, config, train_input_path,val_input_path, num_train_epoc
     val_iter = DataLoader(valid_set, batch_size=config.batch_size, drop_last=True, shuffle=True)
 
     model = Onion(config)
+    input_shapes = [(batch_size,max_input_len),
+                    (batch_size,max_input_len,max_rz_len),
+                    (batch_size,max_input_len,max_rz_len),
+                    (batch_size,3),
+                    (batch_size,max_input_len,max_rz_len),
+                    (batch_size,n_head,max_input_len,max_input_len)]
+    inputs = [torch.randn(*shape) for shape in input_shapes]
+    inputs[3] = (abs(inputs[3]*10)).to(torch.long)
+    with open(out_path + '/' + 'model_summary.txt', 'w') as f:
+        with redirect_stdout(f):
+            summary(model, input_data=inputs)
 
     model.to(device)
     out_path = os.path.join(out_path, model_name + time.strftime("%Y-%m-%d-%X", time.localtime()))
@@ -69,6 +83,8 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
                 check_every,
                 out_path, tb_save_path, log_path, config):
     max_input_len, max_rz_len = config.max_input_len, config.max_rz_len
+    n_head = config.n_head
+    batch_size = config.batch_size
     loss_mse = nn.MSELoss()
     conv_emb = ConvEmbModel(out_channels=max_rz_len)
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -85,6 +101,7 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
     }
     with open(output_file, 'w') as f:
         json.dump(data_to_dump, f, indent=4)
+
     with open(out_path + '/' + 'model.txt', 'a') as file0:
         print(model, file=file0)
 
@@ -102,6 +119,7 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
         for batch_id, ((input, regi, posi, info,embedding_mask,sequence_mask), label) in enumerate(epoch_iterator):
             input, regi, posi, label,info,embedding_mask,sequence_mask = input.to(device), regi.to(device), posi.to(device), label.to(device),info.to(device),embedding_mask.to(device),sequence_mask.to(device)
             output = model(input, regi, posi, info,embedding_mask,sequence_mask).squeeze(1)
+
             output_b = output.unsqueeze(-1)#
             result = torch.bmm(posi, output_b).squeeze(-1)#
             sigmoid_n = torch.sigmoid(model.n)
