@@ -3,10 +3,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error
-from dataset import OnionDataset
+# from dataset import OnionDataset
 from torch.utils.data import DataLoader
 import torch
-from onion_model import Onion, Config, ConvEmbModel
+# from onion_model import Onion, Config, ConvEmbModel
 import json
 import torch.nn as nn
 import time
@@ -25,7 +25,10 @@ if __name__ == '__main__':
     posi = dataset['posi']
     inputs_list = [x[dkey][:][:-3].flatten() for dkey in x.keys()]  # 收集输入数据
     outputs_list = [y[dkey][:].flatten() for dkey in y.keys()]
-    label = (y["0"][:].reshape(int(x["0"][-2]),int(x["0"][-1]))).T
+    r = int(x["0"][-2])
+    z = int(x["0"][-1])
+    n = len(x["0"])-3
+    label = (y["0"][:].reshape(r,z)).T
     # 创建图形和轴
     fig, ax = plt.subplots()
     # 绘制等高线图
@@ -36,4 +39,7 @@ if __name__ == '__main__':
     cbar = fig.colorbar(contour, ax=ax)
     # 显示图形
     plt.show()
+    print(f"n = {n}")
+    print(f"r = {r}")
+    print(f"z = {z}")
     print("good")
