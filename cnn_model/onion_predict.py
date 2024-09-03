@@ -1,7 +1,7 @@
 import torch 
 print(torch.cuda.is_available())
 from dataset import OnionDataset
-from onion_model import Onion, ConvEmbModel, weighted_mse_loss
+from model_without_regi import Onion, ConvEmbModel, weighted_mse_loss
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import json
@@ -28,7 +28,7 @@ out_dir = 'output/test'
 os.makedirs(out_dir, exist_ok=True)
 for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-    pred = onion(input, regi, posi)
+    pred = onion(input)
 
     # 加权MSELoss
     loss = weighted_mse_loss(pred, label, 10)

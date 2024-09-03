@@ -1,12 +1,11 @@
 from dataset import OnionDataset
 from torch.utils.data import Dataset, DataLoader
-from onion_model import *
+from model_without_regi import *
 import torch.nn as nn
 import torch
 from tqdm import tqdm
 import os
 import json
-from onion_model import Onion
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -33,6 +32,8 @@ os.makedirs(out_dir, exist_ok=True)
 min_val_loss = float('inf')
 early_stop = 5
 
+train_losses = []
+val_losses = []
 epochs = 100
 for epoch in range(epochs):
     # 训练阶段
@@ -41,14 +42,16 @@ for epoch in range(epochs):
     losses = []
     for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
         input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-        pred = onion(input, regi, posi)
+        pred = onion(input)
         optim.zero_grad()
         loss = weighted_mse_loss(pred, label, 10)
         loss.backward()
         optim.step()
         losses.append(loss.item())
-    print(f"epoch{epoch} training loss: {sum(losses) / len(losses)}")
+    train_loss = sum(losses) / len(losses)
+    print(f"epoch{epoch} training loss: {train_loss}")
     json.dump(losses, open(f"{out_dir}/training_loss{epoch}.json", 'w'))
+    train_losses.append(train_loss)
 
     # 验证阶段
     onion.eval()
@@ -58,7 +61,7 @@ for epoch in range(epochs):
     labels = []
     for (input, regi, posi, info), label in tqdm(val_loader, desc="Validating"):
         input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-        pred = onion(input, regi, posi)
+        pred = onion(input)
         loss = weighted_mse_loss(pred, label, 10)
         preds.append(pred.reshape(-1, r, z))
         labels.append(label.reshape(-1, r, z))
@@ -73,6 +76,31 @@ for epoch in range(epochs):
             f.write(str(epoch))
         early_stop = 5
     json.dump(losses, open(f"{out_dir}/val_loss{epoch}.json", 'w'))
+    val_losses.append(val_loss)
     early_stop -= 1
     if early_stop <= 0:
         break
+
+import matplotlib.pyplot as plt
+iters = list(range(len(train_losses)))
+
+# 创建一个新的图形
+plt.figure()
+
+# 绘制第一条曲线
+plt.plot(iters, train_losses, label='training loss', color='blue')
+
+# 绘制第二条曲线
+plt.plot(iters, val_losses, label='validation loss', color='red')
+
+# 添加标题和标签
+plt.title('Loss curve')
+plt.xlabel('iters')
+plt.ylabel('loss')
+
+# 显示图例
+plt.legend()
+
+plt.savefig('loss_curve.png')
+# 显示图形
+plt.show()
