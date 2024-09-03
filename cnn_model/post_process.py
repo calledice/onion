@@ -14,8 +14,6 @@ import os
 import glob
 
 
-
-
 def plot_data(data, title, save_path,i):
     # 计算最大值和最小值
     max_val = data.max()
@@ -35,8 +33,8 @@ def plot_data(data, title, save_path,i):
 
 
 if __name__ == "__main__":
-    pred_path = "./output/preds.txt"
-    label_path = "./output/labels.txt"
+    pred_path = "./output/test/preds.json"
+    label_path = "./output/test/labels.json"
 
     preds = json.load(open(pred_path, 'r'))
     labels = json.load(open(label_path, 'r'))
