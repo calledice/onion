@@ -198,8 +198,8 @@ if __name__ == "__main__":
     paser = argparse.ArgumentParser()
     # paser.add_argument("--model_name", help="选择模型", default="expert_mmoe")
     paser.add_argument("--model_name", help="选择模型", default="Onion")
-    paser.add_argument("--train_input_path", help="训练集输入数据路径", default="./data_Phantom/phantomdata/mini_1_train_database.h5")
-    paser.add_argument("--val_input_path", help="验证集输入数据路径", default="./data_Phantom/phantomdata/mini_1_valid_database.h5")
+    paser.add_argument("--train_input_path", help="训练集输入数据路径", default="./data_HL_2A/data/train_database_test.h5")
+    paser.add_argument("--val_input_path", help="验证集输入数据路径", default="./data_HL_2A/data/val_database_test.h5")
     paser.add_argument("--num_train_epochs", help="num_train_epochs", type=int, default=10)
     paser.add_argument("--weight_decay", help="weight_decay", type=float, default=0.005)
     paser.add_argument("--learning_rate", help="learning_rate", type=float, default=5e-4)
@@ -210,7 +210,7 @@ if __name__ == "__main__":
     paser.add_argument("--tb_save_path", help="TensorBoard 保存路径", default="TensorBoard_logs")
     args = paser.parse_args()
 
-    config = Config(4, 8, 0.0, True, torch.float32, 32,100,2048)
+    config = Config(4, 8, 0.5, True, torch.float32, 16,100,4096)
     config_dict = {
         "n_layer": config.n_layer,
         "n_head": config.n_head,

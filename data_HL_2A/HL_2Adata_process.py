@@ -34,7 +34,7 @@ if __name__ == '__main__':
         df_out = pd.read_csv(out_pth, header=None)
         c_matrix = np.loadtxt(data_root + '/' +'0_cMatrix.txt')
         region = np.loadtxt(data_root + '/' +'0_region_list.txt')
-        with h5py.File("./data"+"/" + name + "_database_test.h5", 'a') as f:
+        with h5py.File("./data"+"/HL_2A_" + name + "_database.h5", 'a') as f:
             input_group = f.create_group("x")
             label_group = f.create_group("y")
             posi_group = f.create_group("posi")

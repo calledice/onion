@@ -45,7 +45,7 @@ for file_path in mat_files_list:
     df_out_array = np.array(y)
     df_inp_i = np.append(df_inp_array, values_to_add)
     input_list.append(df_inp_i)
-    label_list.append(df_inp_array.T[0])
+    label_list.append(df_out_array.T[0])
 
 assert len(input_list) == len(label_list), "输入列表和标签列表长度必须相同"
 print("load finish")
