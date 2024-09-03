@@ -23,7 +23,7 @@ def extend_row(row,values_to_add):
 
 if __name__ == '__main__':
     # data_root = './data_HL_2A'
-    data_root = '/media/congwang/data/python_code/Onion/data_HL_2A'
+    data_root = '/media/congwang/data/python_code/Onion_past/data_HL_2A/data'
     name_list = ["train","test","val"]
     for name in name_list:
         print(name)
@@ -34,7 +34,7 @@ if __name__ == '__main__':
         df_out = pd.read_csv(out_pth, header=None)
         c_matrix = np.loadtxt(data_root + '/' +'0_cMatrix.txt')
         region = np.loadtxt(data_root + '/' +'0_region_list.txt')
-        with h5py.File(data_root+"/" + name + "_database_test.h5", 'a') as f:
+        with h5py.File("./data"+"/" + name + "_database_test.h5", 'a') as f:
             input_group = f.create_group("x")
             label_group = f.create_group("y")
             posi_group = f.create_group("posi")
@@ -51,8 +51,7 @@ if __name__ == '__main__':
             df_inp_array = np.array(df_inp_dropped_both)
             df_out_array = np.array(df_out.drop(0))
             for i in range(len(df_inp_array)):
-                df_inp_i=np.append(df_inp_array[i],values_to_add)
+                df_inp_i = np.append(df_inp_array[i],values_to_add)
                 input_group.create_dataset(str(i), data=df_inp_i)
                 label_group.create_dataset(str(i), data=df_out_array[i])
-
     print('finish')

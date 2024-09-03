@@ -20,9 +20,9 @@ def search_mat_files(directory):
     return mat_files
 
 # 使用方法
-directory_path = '/data_East/data/DATA_set_MCW'
+directory_path = '/media/congwang/data/python_code/Onion_past/data_East/data/DATA_set_MCW'
 mat_files_list = search_mat_files(directory_path)
-c_matrix_sss = sio.loadmat("/data_East/data/Poly_SXR.mat")
+c_matrix_sss = sio.loadmat("./Poly_SXR.mat")
 c_matrix_s = c_matrix_sss['Poly_SXR'][0][0]
 c_matrix_ss = c_matrix_sss['Poly_SXR'][1][0]
 c_matrix_1 = c_matrix_s.reshape(-1, c_matrix_s.shape[2]).T
@@ -48,7 +48,7 @@ for file_path in mat_files_list:
     label_list.append(df_inp_array.T[0])
 
 assert len(input_list) == len(label_list), "输入列表和标签列表长度必须相同"
-
+print("load finish")
 # 合并输入和标签
 combined = list(zip(input_list, label_list))
 # 设置随机种子以保证实验的可重复性
@@ -75,7 +75,7 @@ val_inputs, val_labels = shuffled_inputs[train_end:val_end], shuffled_labels[tra
 test_inputs, test_labels = shuffled_inputs[val_end:], shuffled_labels[val_end:]
 name = ['train','valid','test']
 
-with h5py.File(f"/media/congwang/data/python_code/Onion/data_East/DATA_set_MCW/EAST_{name[0]}_database.h5", 'a') as data0:
+with h5py.File(f"./data/EAST_{name[0]}_database.h5", 'a') as data0:
     data_input_group = data0.create_group("x")
     data_label_group = data0.create_group("y")
     data_posi_group = data0.create_group("posi")
@@ -86,22 +86,22 @@ with h5py.File(f"/media/congwang/data/python_code/Onion/data_East/DATA_set_MCW/E
     data_posi_group.create_dataset(str(0), data=c_matrix)
     data_region_group.create_dataset(str(0), data=region)
 
-with h5py.File(f"/media/congwang/data/python_code/Onion/data_East/DATA_set_MCW/EAST_{name[1]}_database.h5", 'a') as data1:
-    data_input_group = data0.create_group("x")
-    data_label_group = data0.create_group("y")
-    data_posi_group = data0.create_group("posi")
-    data_region_group = data0.create_group("regi")
+with h5py.File(f"./data/EAST_{name[1]}_database.h5", 'a') as data1:
+    data_input_group = data1.create_group("x")
+    data_label_group = data1.create_group("y")
+    data_posi_group = data1.create_group("posi")
+    data_region_group = data1.create_group("regi")
     for j in range(len(val_inputs)):
         data_input_group.create_dataset(str(j), data=val_inputs[j])
         data_label_group.create_dataset(str(j), data=val_labels[j])
     data_posi_group.create_dataset(str(0), data=c_matrix)
     data_region_group.create_dataset(str(0), data=region)
 
-with h5py.File(f"/media/congwang/data/python_code/Onion/data_East/DATA_set_MCW/EAST_{name[2]}_database.h5", 'a') as data2:
-    data_input_group = data0.create_group("x")
-    data_label_group = data0.create_group("y")
-    data_posi_group = data0.create_group("posi")
-    data_region_group = data0.create_group("regi")
+with h5py.File(f"./data/EAST_{name[2]}_database.h5", 'a') as data2:
+    data_input_group = data2.create_group("x")
+    data_label_group = data2.create_group("y")
+    data_posi_group = data2.create_group("posi")
+    data_region_group = data2.create_group("regi")
     for j in range(len(test_inputs)):
         data_input_group.create_dataset(str(j), data=test_inputs[j])
         data_label_group.create_dataset(str(j), data=test_labels[j])
