@@ -136,7 +136,7 @@ if __name__ == '__main__':
     ######################################################
     test = True
     model_name = "Onion_9"
-    model_path = "../model_attn_data/Onion2024-09-04-09:55:56/"
+    model_path = "../model_attn_data/Onion2024-09-04-10:41:27/"
     modelPath = model_path + model_name + ".pth"
     # json_file = model_path + "config_and_args_4L_norm_2loss_2048.json"
     json_file = glob.glob(os.path.join(model_path, '*.json'))

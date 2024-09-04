@@ -116,7 +116,7 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
             output_b = output.unsqueeze(-1)#
             result = torch.bmm(posi, output_b).squeeze(-1)#
             sigmoid_n = torch.sigmoid(model.n)
-            loss = loss_mse(output, label)+sigmoid_n * loss_mse(input,result)
+            loss = loss_mse(output, label) + 5.0 * loss_mse(input,result)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -133,17 +133,16 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
                 writer.add_scalar("val_loss", val_loss, step, double_precision=True)
                 with open(log_path, "a") as f:
                     f.write("\n step:{}, val_loss:{:.10f}".format(step, val_loss))
+        scheduler.step()
+        print(f'sigmoid_n = {sigmoid_n}')
+        epoch_loss = sum(train_loss_epoch) / len(train_loss_epoch)
+        print("\ntrain_loss------>:", epoch_loss)
 
         val_loss = evaluate(model, model_name, val_iter, loss_mse)
         val_loss_list.append((step - 1, val_loss))
         writer.add_scalar("val_loss", val_loss, step, double_precision=True)
         with open(log_path, "a") as f:
             f.write("\n step:{}, val_loss:{:.10f}".format(step, val_loss))
-
-        scheduler.step()
-        print(f'sigmoid_n = {sigmoid_n}')
-        epoch_loss = sum(train_loss_epoch) / len(train_loss_epoch)
-        print("\ntrain_loss------>:", epoch_loss)
 
         if (epoch + 1) % 5 == 0:
             with open(log_path, "a") as f:
@@ -177,7 +176,7 @@ def evaluate(model, model_name, val_iter, loss_mse):
             output_b = output.unsqueeze(-1)  #
             result = torch.bmm(posi, output_b).squeeze(-1)  #
             sigmoid_n = torch.sigmoid(model.n)
-            loss = loss_mse(output, label) + sigmoid_n * loss_mse(input, result)
+            loss = loss_mse(output, label) + 5.0 * loss_mse(input, result)
             val_loss += loss.to(device).item()
             val_loss_list.append(val_loss)
         val_loss = sum(val_loss_list) / len(val_loss_list)
@@ -201,10 +200,10 @@ if __name__ == "__main__":
     paser.add_argument("--out_path", help="输出路径", default="../model_attn_data")
     paser.add_argument("--tb_save_path", help="TensorBoard 保存路径", default="TensorBoard_logs")
     args = paser.parse_args()
-    max_rz_len = 29*33
-    max_input_len = 29
-    n_head = 11 # 需要根据max_rz_len来调整
-    config = Config(2, 11, 0.1, True, torch.float32, 512,29, max_rz_len)
+    max_rz_len = 30*38
+    max_input_len = 58
+    n_head = 12 # 需要根据max_rz_len来调整
+    config = Config(2, n_head, 0.1, True, torch.float32, 512,max_input_len, max_rz_len)
     config_dict = {
         "n_layer": config.n_layer,
         "n_head": config.n_head,

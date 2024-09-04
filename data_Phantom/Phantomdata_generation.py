@@ -218,13 +218,14 @@ def plot_data(data):
     plt.savefig("."+"/see_label_pcolor")
     plt.show()
 
-def generate_dataset(name,num_region,num_maxvalue_posi,num_value):
+def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value):
     os.makedirs("./phantomdata", exist_ok=True)
     c_matrix_list = []
     region_list = []
     input_list = []
     label_list = []
-    for i in range(num_region):
+    l = 0
+    for i in range(num_rz_shape):
         print(f'start {i} case:')
         size_ratio = random.randint(5, 10)
         size_ratio = size_ratio/(10.0)
@@ -243,7 +244,7 @@ def generate_dataset(name,num_region,num_maxvalue_posi,num_value):
         los_pos, los_angle = load_los(numgridr, numgridz, rdm_point_num, rdm_chord_num, grid_defr, grid_defz)
         grid = grid_generate(minr, maxr, numgridr, minz, maxz, numgridz)  # 为网格中心的坐标
         c_matrix = get_cmatrix(grid_defr, grid_defz, los_pos, los_angle, grid)
-        for k in range(num_maxvalue_posi):
+        for k in range(num_region_maxvalue):
             randn_indexr = random.randint(center_left, center_right)
             randn_indexz = random.randint(center_down, center_up)
             region, grad_coff, threshhold_coff = region_generate(randn_indexr, randn_indexz, numgridr, numgridz, grid)
@@ -257,11 +258,12 @@ def generate_dataset(name,num_region,num_maxvalue_posi,num_value):
                                        threshhold_coff)
                 # plot_data(label.T[0].reshape(numgridr,numgridz))
                 input = input_generate(c_matrix, label)
-                new_columns = np.array([[k, numgridr, numgridz]], dtype=np.float64)
+                new_columns = np.array([[l, numgridr, numgridz]], dtype=np.float64)
                 # 将id和网格数量拼接，用于后续可视化
                 input_contact = np.column_stack((np.array(input.T), new_columns))
                 input_list.append(input_contact[0])#(n,)
                 label_list.append(label.T[0])#(r*z,)
+            l += 1
     assert len(input_list) == len(label_list), "输入列表和标签列表长度必须相同"
 
     # 合并输入和标签
@@ -289,7 +291,7 @@ def generate_dataset(name,num_region,num_maxvalue_posi,num_value):
     val_inputs, val_labels = shuffled_inputs[train_end:val_end], shuffled_labels[train_end:val_end]
     test_inputs, test_labels = shuffled_inputs[val_end:], shuffled_labels[val_end:]
 
-    with h5py.File(f"./phantomdata/mini_0_{name[0]}_database_{num_region}_{num_maxvalue_posi}_{num_value}.h5", 'a') as data0:
+    with h5py.File(f"./phantomdata/mini_1_{name[0]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data0:
         data_input_group = data0.create_group("x")
         data_label_group = data0.create_group("y")
         data_posi_group = data0.create_group("posi")
@@ -300,7 +302,7 @@ def generate_dataset(name,num_region,num_maxvalue_posi,num_value):
         for j in range(len(train_inputs)):
             data_input_group.create_dataset(str(j), data=train_inputs[j])
             data_label_group.create_dataset(str(j), data=train_labels[j])
-    with h5py.File(f"./phantomdata/mini_0_{name[1]}_database_{num_region}_{num_maxvalue_posi}_{num_value}.h5", 'a') as data1:
+    with h5py.File(f"./phantomdata/mini_1_{name[1]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data1:
         data_input_group = data1.create_group("x")
         data_label_group = data1.create_group("y")
         data_posi_group = data1.create_group("posi")
@@ -311,7 +313,7 @@ def generate_dataset(name,num_region,num_maxvalue_posi,num_value):
         for j in range(len(val_inputs)):
             data_input_group.create_dataset(str(j), data=val_inputs[j])
             data_label_group.create_dataset(str(j), data=val_labels[j])
-    with h5py.File(f"./phantomdata/mini_0_{name[2]}_database_{num_region}_{num_maxvalue_posi}_{num_value}.h5", 'a') as data2:
+    with h5py.File(f"./phantomdata/mini_1_{name[2]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data2:
         data_input_group = data2.create_group("x")
         data_label_group = data2.create_group("y")
         data_posi_group = data2.create_group("posi")
@@ -329,11 +331,11 @@ def generate_dataset(name,num_region,num_maxvalue_posi,num_value):
 if __name__ == '__main__':
     # 定义列名称
     name = ['train','valid','test']
-    num_region = 1
-    num_maxvalue_posi = 10
-    num_value = 100
+    num_rz_shape = 1
+    num_region_maxvalue = 100
+    num_value = 1000
 
-    generate_dataset(name,num_region,num_maxvalue_posi,num_value)
+    generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value)
 
 
 
