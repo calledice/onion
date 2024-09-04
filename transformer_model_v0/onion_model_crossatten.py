@@ -279,14 +279,15 @@ class Onion(nn.Module):
         # posi_embeded = self.posi_embedding(posi)
         # vec = embeded_input + regi + posi
         # vec = (embeded_input + posi) * regi
+        # vec = process_attention(self.multihead_atten,input_embeded, posi_embeded)
         vec = process_attention(self.multihead_atten,input_embeded, posi_embeded)
         for block in self.block_stack:
             vec = block(vec)
         # x_in = torch.sum(vec, dim=1, dtype=torch.float32)##很不合适！！！展平过MLP合适
         # vec_out =self.vec_compress(vec.view(4, -1).unsqueeze(1))
         #output = self.out_head(vec_out).unsqueeze(1) * regi[:, 0, :].unsqueeze(1)
-        vec_out =self.vec_compress(vec) * regi[:, 0, :].unsqueeze(1)
-        output = self.out_head(vec_out)
+        vec_out =self.vec_compress(vec)
+        output = self.out_head(vec_out)* regi[:, 0, :].unsqueeze(1)
         return output
 
 # max_input_len, max_rz_len = 100, 2500
