@@ -12,7 +12,11 @@ import time
 from torch.utils.tensorboard import SummaryWriter
 import argparse
 import json
+from contextlib import redirect_stdout
+from torchinfo import summary
 
+
+outpath = '../model_data/'
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_name = Onion
@@ -130,6 +134,12 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
                 with open(log_path, "a") as f:
                     f.write("\n step:{}, val_loss:{:.10f}".format(step, val_loss))
 
+        val_loss = evaluate(model, model_name, val_iter, loss_mse)
+        val_loss_list.append((step - 1, val_loss))
+        writer.add_scalar("val_loss", val_loss, step, double_precision=True)
+        with open(log_path, "a") as f:
+            f.write("\n step:{}, val_loss:{:.10f}".format(step, val_loss))
+
         scheduler.step()
         print(f'sigmoid_n = {sigmoid_n}')
         epoch_loss = sum(train_loss_epoch) / len(train_loss_epoch)
@@ -191,8 +201,10 @@ if __name__ == "__main__":
     paser.add_argument("--out_path", help="输出路径", default="../model_attn_data")
     paser.add_argument("--tb_save_path", help="TensorBoard 保存路径", default="TensorBoard_logs")
     args = paser.parse_args()
-
-    config = Config(2, 4, 0.5, True, torch.float32, 64,24,25*36)
+    max_rz_len = 29*33
+    max_input_len = 29
+    n_head = 11 # 需要根据max_rz_len来调整
+    config = Config(2, 11, 0.1, True, torch.float32, 256,29, max_rz_len)
     config_dict = {
         "n_layer": config.n_layer,
         "n_head": config.n_head,
@@ -201,7 +213,8 @@ if __name__ == "__main__":
         "dtype": str(config.dtype),
         "batch_size": config.batch_size,
         "max_input_len": config.max_input_len,
-        "max_rz_len": config.max_rz_len
+        "max_rz_len": config.max_rz_len,
+        "belong": "transformer_v1"
     }
 
 

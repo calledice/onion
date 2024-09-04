@@ -6,7 +6,7 @@ from sklearn.metrics import mean_absolute_error
 from dataset import OnionDataset
 from torch.utils.data import DataLoader
 import torch
-from onion_model import Onion, Config, ConvEmbModel
+from onion_model_crossatten import Onion, Config, ConvEmbModel
 import json
 import torch.nn as nn
 import time
@@ -115,6 +115,7 @@ def plot_save(df_pre,df_gt,df_info,df_input,df_result,path):
         plot_data(Pre,"Pre",path,i)
         plot_data(Label,"Label",path,i)
         plot_data(RelativeError, "RelativeError", path, i)
+        print(f"finish index: {i}")
 
 if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
@@ -135,13 +136,13 @@ if __name__ == '__main__':
     ######################################################
     test = True
     model_name = "Onion_9"
-    model_path = "./model_attn_data/Onion2024-08-26-14:15:07/"
+    model_path = "../model_attn_data/Onion2024-09-03-14:54:57/"
     modelPath = model_path + model_name + ".pth"
     # json_file = model_path + "config_and_args_4L_norm_2loss_2048.json"
     json_file = glob.glob(os.path.join(model_path, '*.json'))
     # 加载模型进行test
     if test:
-        with open(json_file, 'r', encoding='utf-8') as file:
+        with open(json_file[0], 'r', encoding='utf-8') as file:
             data = json.load(file)
         config = Config(data['config']["n_layer"], data['config']["n_head"],data['config']["dropout"],data['config']["bias"],
             data['config']["dtype"],data['config']["batch_size"],data['config']["max_input_len"],data['config']["max_rz_len"])

@@ -3,10 +3,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error
-from dataset_mask import OnionDataset
+from dataset import OnionDataset
 from torch.utils.data import DataLoader
 import torch
-from onion_model_crossatten_mask import Onion, Config, ConvEmbModel
+from onion_model_crossatten import Onion, Config, ConvEmbModel
 import json
 import torch.nn as nn
 import time
@@ -18,7 +18,7 @@ def plot_data(data, title, save_path,i):
     max = data.max()
     min = data.min()
     plt.figure()
-    plt.pcolor(data, cmap='jet',vmin = 0.0,vmax = 1.0)
+    plt.pcolor(data, cmap='jet',vmin=0.0,vmax=1.0)
     plt.colorbar(label='ne')
     plt.title(title)
     ax = plt.gca()
@@ -50,19 +50,18 @@ def predict(config, model_load_path, model_name, test_iter,model_path):
     test_loss_list = []
     t1 = time.time()
     with torch.no_grad():
-        for batch_id, ((input, regi, posi, info, embedding_mask, sequence_mask), label) in enumerate(test_iter):
-            input, regi, posi, label, info, embedding_mask, sequence_mask = input.to(device), regi.to(device), posi.to(
-                device), label.to(device), info.to(device), embedding_mask.to(device), sequence_mask.to(device)
-            output = model(input, regi, posi, info, embedding_mask, sequence_mask).squeeze(1)
-            output_b = output.unsqueeze(-1)  #
-            result = torch.bmm(posi, output_b).squeeze(-1)  #
+        for batch_id, ((input, regi, posi, info), label) in enumerate(test_iter):
+            input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
+            output = model(input, regi, posi).squeeze(1)
+            output_temp = output.unsqueeze(-1)  #
+            result = torch.bmm(posi, output_temp).squeeze(-1)  #
             sigmoid_n = torch.sigmoid(model.n)
             loss = loss_mse(output, label) + sigmoid_n * loss_mse(input, result)
             test_loss += loss.to(device).item()
             test_loss_list.append(test_loss)
             preds_all.extend(output.cpu().numpy())
             labels_all.extend(label.cpu().numpy())
-            info_all.extend(info.cpu().numpy())
+            info_all.extend(np.array(info).T)
             input_all.extend(input.cpu().numpy())
             result_all.extend(result.cpu().numpy())
         preds_all = np.array(preds_all)
@@ -71,7 +70,7 @@ def predict(config, model_load_path, model_name, test_iter,model_path):
         input_all = np.array(input_all)
         result_all = np.array(result_all)
         mae = np.mean(np.abs(preds_all - labels_all))
-        print(f'testset mae = np.mean(np.abs(preds - labels)): {mae}')
+        print(f'test set mae = np.mean(np.abs(preds - labels)): {mae}')
         df_preds = pd.DataFrame(preds_all)
         df_labels = pd.DataFrame(labels_all)
         df_info = pd.DataFrame(info_all)
@@ -80,7 +79,7 @@ def predict(config, model_load_path, model_name, test_iter,model_path):
 
     t2 = time.time()
     avg_test_loss = sum(test_loss_list) / len(test_loss_list)
-    print(f'testset ave_loss is: {avg_test_loss}, test time is: {t2 - t1} s')
+    print(f'test set loss is: {avg_test_loss}, test time is: {t2 - t1} s')
 
     # 循环结束后，将所有输出写入csv文件
     output_path = model_path+"/outputs"
@@ -104,7 +103,7 @@ def predict(config, model_load_path, model_name, test_iter,model_path):
 
 def plot_save(df_pre,df_gt,df_info,df_input,df_result,path):
     num = len(df_info)
-    for i in range(num):
+    for i in range(10):
         insize = df_info[i][0]
         r = df_info[i][1]
         z = df_info[i][2]
@@ -121,10 +120,23 @@ def plot_save(df_pre,df_gt,df_info,df_input,df_result,path):
 if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+    #######################################################
+    # 查看test/train数据
+    # test_input_path = "./data_Phantom/phantomdata/mini_1_test_database.h5"
+    # dataset = h5py.File(test_input_path, 'r')
+    # x = dataset["x"]
+    # y = dataset["y"]
+    # regi = dataset['regi']
+    # posi = dataset['posi']
+    # inputs_list = [x[dkey][:][:-3].flatten() for dkey in x.keys()]  # 收集输入数据
+    # outputs_list = [y[dkey][:].flatten() for dkey in y.keys()]
+    # plt.contourf(y["0"][:].reshape(int(x["0"][-1]),int(x["0"][-2])), cmap='jet')
+    # plt.show()
+    # print("good")
+    ######################################################
     test = True
     model_name = "Onion_9"
-    model_path = "./model_attn_data/Onion2024-09-02-12:55:41/"
+    model_path = "../model_attn_data/Onion2024-09-03-14:54:57/"
     modelPath = model_path + model_name + ".pth"
     # json_file = model_path + "config_and_args_4L_norm_2loss_2048.json"
     json_file = glob.glob(os.path.join(model_path, '*.json'))
@@ -135,7 +147,7 @@ if __name__ == '__main__':
         config = Config(data['config']["n_layer"], data['config']["n_head"],data['config']["dropout"],data['config']["bias"],
             data['config']["dtype"],data['config']["batch_size"],data['config']["max_input_len"],data['config']["max_rz_len"])
 
-        test_input_path = "./data_Phantom/phantomdata/mini_1_test_database.h5"
+        test_input_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5"
         test_set = OnionDataset(test_input_path, max_input_len=config.max_input_len, max_rz_len=config.max_rz_len)
         test_iter = DataLoader(test_set, batch_size=config.batch_size, drop_last=True, shuffle=False)
         pre_path,gt_path,info_path,input_path,result_path = predict(config = config, model_load_path=modelPath, model_name=model_name,test_iter=test_iter,model_path = model_path)
@@ -152,7 +164,5 @@ if __name__ == '__main__':
     df_info = pd.read_csv(info_path).values[:,1:]
     df_input = pd.read_csv(input_path).values[:,1:]
     df_result = pd.read_csv(result_path).values[:,1:]
-    mae = np.mean(np.abs(df_pre - df_gt))
-    print(f'testset mae = np.mean(np.abs(preds - labels)): {mae}')
     print("finish read from csv start plot")
     plot_save(df_pre,df_gt,df_info,df_input,df_result,path)
