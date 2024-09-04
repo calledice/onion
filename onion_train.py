@@ -219,7 +219,8 @@ if __name__ == "__main__":
         "dtype": str(config.dtype),
         "batch_size": config.batch_size,
         "max_input_len": config.max_input_len,
-        "max_rz_len": config.max_rz_len
+        "max_rz_len": config.max_rz_len,
+        "belong": "crossatten_mask"
     }
 
 

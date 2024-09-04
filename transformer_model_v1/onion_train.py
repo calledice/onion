@@ -116,7 +116,7 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
             output_b = output.unsqueeze(-1)#
             result = torch.bmm(posi, output_b).squeeze(-1)#
             sigmoid_n = torch.sigmoid(model.n)
-            loss = loss_mse(output, label)+sigmoid_n * loss_mse(input,result)# 怎么增加可学习的权重？
+            loss = loss_mse(output, label)+sigmoid_n * loss_mse(input,result)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -204,7 +204,7 @@ if __name__ == "__main__":
     max_rz_len = 29*33
     max_input_len = 29
     n_head = 11 # 需要根据max_rz_len来调整
-    config = Config(2, 11, 0.1, True, torch.float32, 256,29, max_rz_len)
+    config = Config(2, 11, 0.1, True, torch.float32, 512,29, max_rz_len)
     config_dict = {
         "n_layer": config.n_layer,
         "n_head": config.n_head,

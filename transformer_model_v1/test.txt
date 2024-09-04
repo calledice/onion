@@ -1,0 +1,1 @@
+process_attention(self.multihead_atten,input_embeded,posi_embeded)[0][0].detach().cpu().numpy().reshape(29,-1)

@@ -257,7 +257,7 @@ def generate_dataset(name,num_region,num_maxvalue_posi,num_value):
                                        threshhold_coff)
                 # plot_data(label.T[0].reshape(numgridr,numgridz))
                 input = input_generate(c_matrix, label)
-                new_columns = np.array([[i, numgridr, numgridz]], dtype=np.float64)
+                new_columns = np.array([[k, numgridr, numgridz]], dtype=np.float64)
                 # 将id和网格数量拼接，用于后续可视化
                 input_contact = np.column_stack((np.array(input.T), new_columns))
                 input_list.append(input_contact[0])#(n,)

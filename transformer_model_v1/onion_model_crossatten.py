@@ -146,12 +146,12 @@ def cross_attention(query, posi, multihead_attn):
     return multihead_attn(query=query, key=posi, value=posi)
 
 
-def process_attention(multihead_atten,embed_input, posi):
-    for i in range(4):
-        embed_input, _ = self_attention(embed_input, multihead_atten)
-    self_attn_output = embed_input
+def process_attention(multihead_atten,qk_atten, v_output):
+    for i in range(1):
+        qk_atten, _ = self_attention(qk_atten, multihead_atten)
+    self_attn_output = qk_atten
     # cross_attn_output, _ = cross_attention(self_attn_output, posi, multihead_atten)
-    cross_attn_output, _ = cross_attention(posi,self_attn_output, multihead_atten)
+    cross_attn_output, _ = cross_attention(v_output,self_attn_output, multihead_atten)
 
     vec = cross_attn_output
     return vec
@@ -195,10 +195,10 @@ class Out_head(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.c_fc = nn.Linear(config.max_rz_len, config.max_rz_len, bias=config.bias, dtype=torch.float32)
+        self.c_fc = nn.Linear(config.max_rz_len, 2*config.max_rz_len, bias=config.bias, dtype=torch.float32)
         self.relu = nn.ReLU()
         self.sgmoid = nn.Sigmoid()
-        self.c_proj = nn.Linear(config.max_rz_len, config.max_rz_len, bias=config.bias, dtype=torch.float32)
+        self.c_proj = nn.Linear(2*config.max_rz_len, config.max_rz_len, bias=config.bias, dtype=torch.float32)
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
@@ -255,11 +255,12 @@ class Onion(nn.Module):
         # self.LN = DynamicLayerNorm()
         self.LN = nn.LayerNorm(config.max_rz_len)
         self.posi_embedding = nn.Linear(config.max_rz_len, config.max_rz_len)
+        self.input_embedding = nn.Linear(config.max_input_len, config.max_rz_len)
         # self.vec_compress = nn.Linear(config.max_input_len*config.max_rz_len, config.max_rz_len)
         self.vec_compress = vec_compress(config)
         self.out_head = Out_head(config)
         self.max_input_len = config.max_input_len
-        self.n = nn.Parameter(torch.tensor(1.0, requires_grad=True))  # 添加一个可学习的权重 n
+        self.n = nn.Parameter(torch.tensor(5.0, requires_grad=True))  # 添加一个可学习的权重 n
         self.n_head = config.n_head
         self.max_rz_len = config.max_rz_len
         self.multihead_atten = MultiHeadAttention(config.max_rz_len,config.n_head)
@@ -274,20 +275,22 @@ class Onion(nn.Module):
                 nn.init.zeros_(param)
 
     def forward(self, input, regi, posi):
-        input_embeded = self.conv_emb(input)
+        input_embeded = self.input_embedding(input)
+        # input_embeded = self.conv_emb(input)
         posi_embeded = posi
+        posi_embeded = torch.sum(posi, dim=1)
         # posi_embeded = self.posi_embedding(posi)
         # vec = embeded_input + regi + posi
         # vec = (embeded_input + posi) * regi
         # vec = process_attention(self.multihead_atten,input_embeded, posi_embeded)
-        vec = process_attention(self.multihead_atten,input_embeded, posi_embeded)
+        vec = process_attention(self.multihead_atten,posi_embeded,input_embeded)
         for block in self.block_stack:
             vec = block(vec)
         # x_in = torch.sum(vec, dim=1, dtype=torch.float32)##很不合适！！！展平过MLP合适
         # vec_out =self.vec_compress(vec.view(4, -1).unsqueeze(1))
         #output = self.out_head(vec_out).unsqueeze(1) * regi[:, 0, :].unsqueeze(1)
-        vec_out =self.vec_compress(vec)
-        output = self.out_head(vec_out)* regi[:, 0, :].unsqueeze(1)
+        # vec =self.vec_compress(vec)
+        output = self.out_head(vec) * regi[:, 0, :].unsqueeze(1)
         return output
 
 # max_input_len, max_rz_len = 100, 2500
