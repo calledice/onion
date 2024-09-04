@@ -7,7 +7,7 @@ from tqdm import tqdm
 import os
 import math
 import json
-
+from torchinfo import summary
 
 class Config:
     def __init__(self, n_layer, n_head, dropout, bias, dtype, batch_size, max_input_len, max_rz_len):
@@ -79,7 +79,7 @@ class Onion(nn.Module):
 
     def forward(self, input):
         input = self.conv_upsample(input)
-        conv_out = self.net(input)    
+        conv_out = self.net(input)
         conv_out = conv_out.reshape(conv_out.size(0), -1)
         out = self.fc(conv_out)
         return out
@@ -95,3 +95,9 @@ def weighted_mse_loss(pred, target, weight=None):
 
     # 计算损失的平均值
     return (mse_loss * penalty).mean()
+
+if __name__ == "__main__":
+    input_shapes = [(1,58)]
+    inputs = [torch.randn(*shape) for shape in input_shapes]
+    onion = Onion(n=58, max_r=30, max_z=38)
+    summary(onion,input_data=inputs)

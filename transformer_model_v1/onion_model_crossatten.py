@@ -147,7 +147,7 @@ def cross_attention(query, posi, multihead_attn):
 
 
 def process_attention(multihead_atten,qk_atten, v_output):
-    for i in range(1):
+    for i in range(4):
         qk_atten, _ = self_attention(qk_atten, multihead_atten)
     self_attn_output = qk_atten
     # cross_attn_output, _ = cross_attention(self_attn_output, posi, multihead_atten)
@@ -179,12 +179,14 @@ class Encoder_Block(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.ln_1 = LayerNorm(config.max_rz_len, bias=config.bias)
-        self.attn = CausalSelfAttention(config)
+        self.attnc = CausalSelfAttention(config)
+        self.attnm = MultiHeadAttention(config.max_rz_len,config.n_head)
         self.ln_2 = LayerNorm(config.max_rz_len, bias=config.bias)
         self.mlp = MLP(config)
 
     def forward(self, x):
-        x = x + self.attn(self.ln_1(x))
+        x = x + self.attnm(self.ln_1(x),self.ln_1(x),self.ln_1(x))[0]
+        # x = x + self.attnc(self.ln_1(x))
         # x = self.ln_1(x + self.attn(x))
         x = x + self.mlp(self.ln_1(x))
         # x = self.ln_2(x + self.mlp(x))
@@ -195,7 +197,26 @@ class Out_head(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.c_fc = nn.Linear(config.max_rz_len, 2*config.max_rz_len, bias=config.bias, dtype=torch.float32)
+        self.c_fc = nn.Linear(config.max_rz_len, 4*config.max_rz_len, bias=config.bias, dtype=torch.float32)
+        self.relu = nn.ReLU()
+        self.c_proj = nn.Linear(4*config.max_rz_len, config.max_rz_len, bias=config.bias, dtype=torch.float32)
+        self.sgmoid = nn.Sigmoid()
+        self.dropout = nn.Dropout(config.dropout)
+
+    def forward(self, x):
+        x = self.c_fc(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+        x = self.c_proj(x)
+        # x = self.relu(x)
+        x = self.sgmoid(x)
+        return x
+
+class In_head(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.batch_size = config.batch_size
+        self.c_fc = nn.Linear(config.max_input_len, 2*config.max_rz_len, bias=config.bias, dtype=torch.float32)
         self.relu = nn.ReLU()
         self.sgmoid = nn.Sigmoid()
         self.c_proj = nn.Linear(2*config.max_rz_len, config.max_rz_len, bias=config.bias, dtype=torch.float32)
@@ -204,10 +225,10 @@ class Out_head(nn.Module):
     def forward(self, x):
         x = self.c_fc(x)
         x = self.relu(x)
-        x = self.c_proj(x)
-        # x = self.relu(x)
-        x = self.sgmoid(x)
         x = self.dropout(x)
+        x = self.c_proj(x)
+        x = self.sgmoid(x)
+
         # x = self.relu(x)
         return x
 
@@ -219,14 +240,14 @@ class vec_compress(nn.Module):
         self.relu = nn.ReLU()
         self.c2= nn.Conv1d(in_channels = config.max_input_len//2, out_channels = 1, kernel_size = 3, padding = 1, dtype=torch.float32)
         self.dropout = nn.Dropout(config.dropout)
-
+        self.sgmoid = nn.Sigmoid()
     def forward(self, x):
         # x = x.permute(0, 2, 1)
         x = self.c1(x)
         x = self.relu(x)
-        x = self.c2(x)
-        x = self.relu(x)
         x = self.dropout(x)
+        x = self.c2(x)
+        x = self.sgmoid(x)
         # x = x.permute(0,2,1)
         return x
 
@@ -259,10 +280,12 @@ class Onion(nn.Module):
         # self.vec_compress = nn.Linear(config.max_input_len*config.max_rz_len, config.max_rz_len)
         self.vec_compress = vec_compress(config)
         self.out_head = Out_head(config)
+        self.in_head = In_head(config)
         self.max_input_len = config.max_input_len
         self.n = nn.Parameter(torch.tensor(5.0, requires_grad=True))  # 添加一个可学习的权重 n
         self.n_head = config.n_head
         self.max_rz_len = config.max_rz_len
+        self.batch_size = config.batch_size
         self.multihead_atten = MultiHeadAttention(config.max_rz_len,config.n_head)
         # self.process_attention = process_attention(self.multihead_atten,embeded_input, posi)
 
@@ -275,9 +298,10 @@ class Onion(nn.Module):
                 nn.init.zeros_(param)
 
     def forward(self, input, regi, posi):
-        input_embeded = self.input_embedding(input)
+        input_embeded = self.in_head(input)
+        # input_embeded = self.input_embedding(input)
         # input_embeded = self.conv_emb(input)
-        posi_embeded = posi
+        # posi_embeded = posi
         posi_embeded = torch.sum(posi, dim=1)
         # posi_embeded = self.posi_embedding(posi)
         # vec = embeded_input + regi + posi
@@ -290,6 +314,7 @@ class Onion(nn.Module):
         # vec_out =self.vec_compress(vec.view(4, -1).unsqueeze(1))
         #output = self.out_head(vec_out).unsqueeze(1) * regi[:, 0, :].unsqueeze(1)
         # vec =self.vec_compress(vec)
+
         output = self.out_head(vec) * regi[:, 0, :].unsqueeze(1)
         return output
 

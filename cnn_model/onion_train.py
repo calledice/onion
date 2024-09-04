@@ -139,9 +139,9 @@ def run(train_path, val_path, test_path, out_dir, config):
     plot_loss(train_losses, val_losses, out_dir)
 
 if __name__ == '__main__':
-    train_path = "../data_Phantom/phantomdata/mini_2_train_database.h5"
-    val_path = "../data_Phantom/phantomdata/mini_2_valid_database.h5"
-    test_path = "../data_Phantom/phantomdata/mini_2_test_database.h5"
+    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_1000.h5"
+    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_1000.h5"
+    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5"
     out_dir = "output/Phantom"
-    config = Config(early_stop=-1, epochs=18)
+    config = Config(early_stop=-1, epochs=18,batch_size=64)
     run(train_path, val_path, test_path, out_dir, config)

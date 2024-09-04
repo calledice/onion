@@ -39,7 +39,16 @@ def draw_loss(train_loss_list, val_loss_list, out_path):
     plt.grid()
     plt.savefig(out_path)
     plt.close()
+def weighted_mse_loss(pred, target, weight=None):
+    '''
+    加权MSELoss, 对预测错误的负样本施加惩罚, 为了让该学成0的位置学成0
+    '''
+    # 计算均方误差
+    mse_loss = (pred - target) ** 2
 
+    penalty = torch.where((pred == 0) & (target != 0), torch.tensor(100.0), torch.tensor(1.0))
+    # 计算损失的平均值
+    return (mse_loss * penalty).mean()
 
 def training(model_name, config, train_input_path,val_input_path, num_train_epochs,
              weight_decay, learning_rate, scheduler_step, check_every, out_path,
@@ -60,13 +69,14 @@ def training(model_name, config, train_input_path,val_input_path, num_train_epoc
 
     os.makedirs(out_path, exist_ok=True)
     os.makedirs(tb_save_path, exist_ok=True)
-    input_shapes = [(batch_size, max_input_len),
-                    (batch_size, max_input_len, max_rz_len),
-                    (batch_size, max_input_len, max_rz_len)]
-    inputs = [torch.randn(*shape) for shape in input_shapes]
-    with open(out_path + '/' + 'model_summary.txt', 'w') as f:
-        with redirect_stdout(f):
-            summary(model, input_data=inputs)
+    #打印模型结构用
+    # input_shapes = [(batch_size, max_input_len),
+    #                 (batch_size, max_input_len, max_rz_len),
+    #                 (batch_size, max_input_len, max_rz_len)]
+    # inputs = [torch.randn(*shape) for shape in input_shapes]
+    # with open(out_path + '/' + 'model_summary.txt', 'w') as f:
+    #     with redirect_stdout(f):
+    #         summary(model, input_data=inputs)
 
     model.to(device)
 
@@ -116,7 +126,8 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
             output_b = output.unsqueeze(-1)#
             result = torch.bmm(posi, output_b).squeeze(-1)#
             sigmoid_n = torch.sigmoid(model.n)
-            loss = loss_mse(output, label) + 5.0 * loss_mse(input,result)
+            loss = 100 * loss_mse(output, label) + 50 * loss_mse(input,result)
+            # loss = weighted_mse_loss(pred, label, 10) + + 5.0 * loss_mse(input,result)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -176,7 +187,8 @@ def evaluate(model, model_name, val_iter, loss_mse):
             output_b = output.unsqueeze(-1)  #
             result = torch.bmm(posi, output_b).squeeze(-1)  #
             sigmoid_n = torch.sigmoid(model.n)
-            loss = loss_mse(output, label) + 5.0 * loss_mse(input, result)
+            # loss = loss_mse(output, label)
+            loss = 100 * loss_mse(output, label) + 50.0 * loss_mse(input, result)
             val_loss += loss.to(device).item()
             val_loss_list.append(val_loss)
         val_loss = sum(val_loss_list) / len(val_loss_list)

@@ -1,1 +1,2 @@
-process_attention(self.multihead_atten,input_embeded,posi_embeded)[0][0].detach().cpu().numpy().reshape(29,-1)
+process_attention(self.multihead_atten,input_embeded,posi_embeded)[0][0].detach().cpu().numpy().reshape(30,-1)
+torch.bmm(posi, label.unsqueeze(-1)).squeeze(-1)
