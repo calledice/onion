@@ -113,6 +113,7 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
     train_loss = 0.0
     train_loss_list = []
     val_loss_list = []
+    min_val_loss = float('inf')
     step = 0
     model.zero_grad()
     for epoch in range(num_train_epochs):
@@ -146,12 +147,12 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
             writer.add_scalar("train_loss", loss_value, step)
             step += 1
 
-            if step % check_every == 0:
-                val_loss = evaluate(model, model_name, val_iter, loss_mse)
-                val_loss_list.append((step - 1, val_loss))
-                writer.add_scalar("val_loss", val_loss, step, double_precision=True)
-                with open(log_path, "a") as f:
-                    f.write("\n step:{}, val_loss:{:.10f}".format(step, val_loss))
+            # if step % check_every == 0:
+            #     val_loss = evaluate(model, model_name, val_iter, loss_mse)
+            #     val_loss_list.append((step - 1, val_loss))
+            #     writer.add_scalar("val_loss", val_loss, step, double_precision=True)
+            #     with open(log_path, "a") as f:
+            #         f.write("\n step:{}, val_loss:{:.10f}".format(step, val_loss))
         scheduler.step()
         # 在 scheduler.step() 之后打印更新后的学习率
         current_lr = scheduler.get_last_lr()[0]
@@ -167,13 +168,17 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
         with open(log_path, "a") as f:
             f.write("\n step:{}, val_loss:{:.10f}".format(step, val_loss))
 
+        if val_loss < min_val_loss:
+            min_val_loss = val_loss
+            model_path = os.path.join(out_path, model_name + "_" + "best" + ".pth")
+            # torch.save(model.state_dict(), model_params_path)
+            torch.save(model, model_path)
+
         if (epoch + 1) % 5 == 0:
             with open(log_path, "a") as f:
                 f.write("\n epoch:{}, train_loss:{:.10f}".format(epoch, epoch_loss))
                 # model_params_path = os.path.join(out_path, model_name + "_params" + str(epoch) + ".pth")
-                model_path = os.path.join(out_path, model_name + "_" + str(epoch) + ".pth")
-                # torch.save(model.state_dict(), model_params_path)
-                torch.save(model, model_path)
+
 
     loss_str = ["step {}: {}".format(*el) for el in train_loss_list]
     with open(os.path.join(out_path, "train_loss.txt"), "w") as fw:
