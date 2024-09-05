@@ -128,8 +128,16 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
             sigmoid_n = torch.sigmoid(model.n)
             loss = 100 * loss_mse(output, label) + 50 * loss_mse(input,result)
             # loss = weighted_mse_loss(pred, label, 10) + + 5.0 * loss_mse(input,result)
-            optimizer.zero_grad()
             loss.backward()
+
+            # 在 optimizer.zero_grad() 之后输出梯度
+            print("\nAfter backward and before zero_grad:")
+            for name, param in model.named_parameters():
+                if param.grad is not None:
+                    print(f"{name}: {param.grad}")
+
+            optimizer.zero_grad()
+
             optimizer.step()
             loss_value = loss.item()
             train_loss += loss_value
@@ -145,6 +153,10 @@ def train_model(model, model_name, num_train_epochs, weight_decay, learning_rate
                 with open(log_path, "a") as f:
                     f.write("\n step:{}, val_loss:{:.10f}".format(step, val_loss))
         scheduler.step()
+        # 在 scheduler.step() 之后打印更新后的学习率
+        current_lr = scheduler.get_last_lr()[0]
+        print(f"Learning Rate: {current_lr:.6f}")
+
         print(f'sigmoid_n = {sigmoid_n}')
         epoch_loss = sum(train_loss_epoch) / len(train_loss_epoch)
         print("\ntrain_loss------>:", epoch_loss)
@@ -205,7 +217,7 @@ if __name__ == "__main__":
     paser.add_argument("--val_input_path", help="验证集输入数据路径", default="../data_Phantom/phantomdata/mini_1_valid_database_1_100_1000.h5")
     paser.add_argument("--num_train_epochs", help="num_train_epochs", type=int, default=10)
     paser.add_argument("--weight_decay", help="weight_decay", type=float, default=0.005)
-    paser.add_argument("--learning_rate", help="learning_rate", type=float, default=5e-4)
+    paser.add_argument("--learning_rate", help="learning_rate", type=float, default=0.01)
     paser.add_argument("--scheduler_step", help="lr更新步长", type=int, default=500)
     paser.add_argument("--check_every", help="每多少步validate一次", type=int, default=2000)
     # paser.add_argument("--out_path", help="输出路径", default="./model_data")

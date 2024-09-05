@@ -8,7 +8,7 @@ import json
 import os
 print(torch.cuda.is_available())
 
-dataset = OnionDataset("../data_Phantom/phantomdata/mini_2_test_database.h5")
+dataset = OnionDataset("../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5")
 
 # 临时加的，为了不做padding
 n = int(dataset.input_len_org[0])
@@ -18,13 +18,13 @@ z = int(dataset.info_list[0][2])
 print(len(dataset))
 batch_size = 64
 test_loader = DataLoader(dataset, batch_size=64, shuffle=True)
-onion = torch.load('output/train/model_best.pth', map_location=torch.device('cpu')).to('cuda')
+onion = torch.load('output/Phantom/train/model_best.pth', map_location=torch.device('cpu')).to('cuda')
 onion.eval()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 losses = []
 preds = []
 labels = []
-out_dir = 'output/test'
+out_dir = 'output/Phantom/test'
 os.makedirs(out_dir, exist_ok=True)
 for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)

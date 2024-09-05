@@ -1,17 +1,6 @@
-import os
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_absolute_error
-from dataset import OnionDataset
-from torch.utils.data import DataLoader
-import torch
-from onion_model import Onion, Config, ConvEmbModel
 import json
-import time
-import h5py
-import os
-import glob
 
 
 def plot_data(data, title, save_path,i):
@@ -22,7 +11,7 @@ def plot_data(data, title, save_path,i):
     # 创建等高线级别
     levels = np.linspace(min_val, max_val, 20)
     plt.figure()
-    plt.pcolor(data, cmap='jet')
+    plt.pcolor(data, cmap='jet',vmin=0.0,vmax=1.0)
     plt.colorbar(label='ne')
     plt.title(title)
     ax = plt.gca()
@@ -33,15 +22,15 @@ def plot_data(data, title, save_path,i):
 
 
 if __name__ == "__main__":
-    pred_path = "./output/test/preds.json"
-    label_path = "./output/test/labels.json"
+    pred_path = "./output/Phantom/test/preds.json"
+    label_path = "./output/Phantom/test/labels.json"
 
     preds = json.load(open(pred_path, 'r'))
     labels = json.load(open(label_path, 'r'))
     title_pred = 'preds'
     title_label = 'labels'
     title_error = 'error'
-    save_path = "./output"
+    save_path = "./output/Phantom/"
     ave_error_list = []
     for i in range(len(preds)):
         error = abs(np.matrix(preds[i]).T-np.matrix(labels[i]).T)/np.max(np.matrix(labels[i]).T)*100
