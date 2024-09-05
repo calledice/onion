@@ -103,19 +103,31 @@ def predict(config, model_load_path, model_name, test_iter,model_path):
 
 def plot_save(df_pre,df_gt,df_info,df_input,df_result,path):
     num = len(df_info)
-    for i in range(10):
+    ave_RelativeError_list = []
+    error_record_path = path + "/error_record.txt"
+    for i in range(num):
         insize = df_info[i][0]
         r = df_info[i][1]
         z = df_info[i][2]
         outsize = r*z
         Pre = df_pre[i][:outsize].reshape(r,z).T
         Label = df_gt[i][:outsize].reshape(r,z).T
-        RelativeError = (abs(df_gt[i][:outsize].reshape(r, z)-df_pre[i][:outsize].reshape(r,z))/np.max(df_gt[i][:outsize].reshape(r,z))).T
-        scatter_data(df_input[i][:insize],df_result[i][:insize],"LineIntegral&GT",path,i)
-        plot_data(Pre,"Pre",path,i)
-        plot_data(Label,"Label",path,i)
-        plot_data(RelativeError, "RelativeError", path, i)
-        print(f"finish index: {i}")
+        RelativeError = (abs(df_gt[i][:outsize].reshape(r, z)-df_pre[i][:outsize].reshape(r,z))/np.max(df_gt[i][:outsize].reshape(r,z))).T*100
+        ave_RelativeError_list.append(np.average(RelativeError))
+        if i < 100 :
+            scatter_data(df_input[i][:insize],df_result[i][:insize],"LineIntegral&GT",path,i)
+            plot_data(Pre,"Pre",path,i)
+            plot_data(Label,"Label",path,i)
+            plot_data(RelativeError, "RelativeError", path, i)
+            print(f"finish index: {i}")
+    ave_error_all = np.average(ave_RelativeError_list)
+    error_all= np.sum(ave_RelativeError_list)
+
+    with open(error_record_path, "a") as file:
+        file.write(f"ave_error_all = {ave_error_all}\n")
+        file.write(f"error_all = {error_all}")
+    print(f"ave_error_all = {ave_error_all}")
+    print(f"error_all = {error_all}")
 
 if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
