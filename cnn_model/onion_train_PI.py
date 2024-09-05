@@ -52,7 +52,10 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
             result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
 
             optim.zero_grad()
-            loss = weighted_mse_loss(pred, label, 10) + 10.0*loss_mse(input,result)
+            loss_1 = weighted_mse_loss(pred, label, 10)
+            loss_2 = loss_mse(input, result)
+            alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+            loss = loss_1 + alpha * loss_2
             loss.backward()
             optim.step()
             losses.append(loss.item())

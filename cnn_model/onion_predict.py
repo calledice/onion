@@ -6,6 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import json
 import os
+import torch.nn as nn
 import numpy as np
 print(torch.cuda.is_available())
 
@@ -29,6 +30,7 @@ results = []
 inputs = []
 out_dir = 'output/Phantom/test'
 os.makedirs(out_dir, exist_ok=True)
+loss_mse = nn.MSELoss()
 for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
     pred = onion(input)
@@ -37,6 +39,7 @@ for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
 
     # 加权MSELoss
     loss = weighted_mse_loss(pred, label, 10)
+    # loss = weighted_mse_loss(pred, label, 10) + 10.0 * loss_mse(input, result)
 
     # 设置阈值为0.001，小于0.001的置为0
     pred = torch.where(pred < 0.001, torch.tensor(0.0), pred)

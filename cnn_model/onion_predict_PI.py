@@ -38,7 +38,7 @@ for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     result = torch.bmm(posi.view(len(posi),len(posi[0]),-1), pred_temp).squeeze(-1)
 
     # 加权MSELoss
-    loss = weighted_mse_loss(pred, label, 10) + 10.0*loss_mse(input,result)
+    loss = weighted_mse_loss(pred, label, 10)
 
     # 设置阈值为0.001，小于0.001的置为0
     pred = torch.where(pred < 0.001, torch.tensor(0.0), pred)
