@@ -18,8 +18,12 @@ def plot_data(data, title, save_path,i):
     max = data.max()
     min = data.min()
     plt.figure()
-    plt.pcolor(data, cmap='jet',vmin = 0.0,vmax = 1.0)
-    plt.colorbar(label='ne')
+    if title != "RelativeError":
+        plt.pcolor(data, cmap='jet', vmin=0.0, vmax=1.0)
+        plt.colorbar(label='ne')
+    else:
+        plt.pcolor(data, cmap='jet')
+        plt.colorbar(label='error(%)')
     plt.title(title)
     ax = plt.gca()
     ax.set_aspect(1.0)

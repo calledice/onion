@@ -97,7 +97,7 @@ def weighted_mse_loss(pred, target, weight=None):
     return (mse_loss * penalty).mean()
 
 if __name__ == "__main__":
-    input_shapes = [(1,58)]
+    input_shapes = [(1,43)]
     inputs = [torch.randn(*shape) for shape in input_shapes]
-    onion = Onion(n=58, max_r=30, max_z=38)
+    onion = Onion(n=43, max_r=17, max_z=25)
     summary(onion,input_data=inputs)

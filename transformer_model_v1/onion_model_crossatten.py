@@ -314,7 +314,6 @@ class Onion(nn.Module):
         # vec_out =self.vec_compress(vec.view(4, -1).unsqueeze(1))
         #output = self.out_head(vec_out).unsqueeze(1) * regi[:, 0, :].unsqueeze(1)
         # vec =self.vec_compress(vec)
-
         output = self.out_head(vec) * regi[:, 0, :].unsqueeze(1)
         return output
 
