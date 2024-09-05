@@ -38,11 +38,11 @@ for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     print(loss)
 
     # 还原output形状
-    preds.append(pred)
-    labels.append(label)
+    preds.append(pred.reshape(-1, 32, 36))
+    labels.append(label.reshape(-1, 32, 36))
     losses.append(loss.item())
     
-    break # 只测试了一个batch，如果要预测所有测试集则删除这个break
+    # break # 只测试了一个batch，如果要预测所有测试集则删除这个break
 
 print(sum(losses) / len(losses))
 json.dump(losses, open(f"{out_dir}/test/testing_loss.json", 'w'), indent=2)

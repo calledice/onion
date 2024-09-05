@@ -26,7 +26,8 @@ class Config:
         self.lr = lr
         self.epochs = epochs
         self.early_stop = early_stop
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = 'cuda'
 
 
 def train(model, train_loader, val_loader, out_dir, config:Config):
@@ -38,7 +39,6 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
     optim = torch.optim.Adam(params=model.parameters(), lr=config.lr)
     train_losses = []
     val_losses = []
-    loss_mse = nn.MSELoss()
     for epoch in range(epochs):
         # 训练阶段
         model.train()
@@ -46,16 +46,10 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
         losses = []
         for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-            # pred = model(input)
             pred = model(input, regi, posi)
-            pred_temp = pred.unsqueeze(-1)
-            result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
-
+            # pred = model(input, regi, posi)
             optim.zero_grad()
-            loss_1 = weighted_mse_loss(pred, label, 10)
-            loss_2 = loss_mse(input, result)
-            alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-            loss = loss_1 + alpha * loss_2
+            loss = weighted_mse_loss(pred, label, 10)
             loss.backward()
             optim.step()
             losses.append(loss.item())
@@ -72,7 +66,7 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
         labels = []
         for (input, regi, posi, info), label in tqdm(val_loader, desc="Validating"):
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-            pred = model(input)
+            pred = model(input, regi, posi)
             # pred = model(input, regi, posi)
             loss = weighted_mse_loss(pred, label, 10)
             preds.append(pred.detach().reshape(-1, config.max_r, config.max_z))
@@ -122,7 +116,7 @@ def plot_loss(train_losses, val_losses, out_dir):
     # 显示图形
     plt.show()
 
-def run(train_path, val_path, test_path, out_dir, config):
+def run(train_path, val_path, out_dir, config):
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     device = config.device
 
@@ -139,6 +133,7 @@ def run(train_path, val_path, test_path, out_dir, config):
     config.max_n = n
     config.max_r = r
     config.max_z = z
+    print(f"max_n: {n}, max_r: {r}, max_z: {z}")
     onion = Onion(n=n, max_r=r, max_z=z)
     onion.to(device)
 
@@ -146,9 +141,8 @@ def run(train_path, val_path, test_path, out_dir, config):
     plot_loss(train_losses, val_losses, out_dir)
 
 if __name__ == '__main__':
-    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_1000.h5"
-    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_1000.h5"
-    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5"
+    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_100.h5"
+    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_100.h5"
     out_dir = "output/Phantom_PI"
-    config = Config(early_stop=-1, epochs=18,batch_size=64)
-    run(train_path, val_path, test_path, out_dir, config)
+    config = Config(early_stop=5, epochs=100,batch_size=64)
+    run(train_path, val_path, out_dir, config)

@@ -20,14 +20,14 @@ z = int(dataset.info_list[0][2])
 print(len(dataset))
 batch_size = 64
 test_loader = DataLoader(dataset, batch_size=64, shuffle=True)
-onion = torch.load('output/train/model_best.pth', map_location=torch.device('cpu')).to('cuda')
+out_dir = 'output/Phantom'
+onion = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cpu')).to('cuda')
 onion.eval()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 losses = []
 preds = []
 labels = []
-out_dir = 'output/test'
-os.makedirs(out_dir, exist_ok=True)
+os.makedirs(out_dir+'/test', exist_ok=True)
 loss_mse = nn.MSELoss()
 for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
@@ -46,14 +46,14 @@ for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     labels.append(label.reshape(-1, r, z))
     losses.append(loss.item())
     
-    break # 只测试了一个batch，如果要预测所有测试集则删除这个break
+    # break # 只测试了一个batch，如果要预测所有测试集则删除这个break
 
 print(sum(losses) / len(losses))
-json.dump(losses, open(f"{out_dir}/testing_loss.json", 'w'), indent=2)
+json.dump(losses, open(f"{out_dir}/test/testing_loss.json", 'w'), indent=2)
 preds = torch.concat(preds, dim=0)
 labels = torch.concat(labels, dim=0)
-json.dump(preds.tolist(), open(f"{out_dir}/preds.json", 'w'), indent=2)
-json.dump(labels.tolist(), open(f"{out_dir}/labels.json", 'w'), indent=2)
+json.dump(preds.tolist(), open(f"{out_dir}/test/preds.json", 'w'), indent=2)
+json.dump(labels.tolist(), open(f"{out_dir}/test/labels.json", 'w'), indent=2)
 
 
 

@@ -35,6 +35,7 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
     device = config.device
     os.makedirs(f'{out_dir}/train', exist_ok=True)
     min_val_loss = float('inf')
+    loss_fn = nn.MSELoss()
     optim = torch.optim.Adam(params=model.parameters(), lr=config.lr)
     train_losses = []
     val_losses = []
@@ -48,7 +49,8 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
             pred = model(input)
             # pred = model(input, regi, posi)
             optim.zero_grad()
-            loss = weighted_mse_loss(pred, label, 10)
+            # loss = weighted_mse_loss(pred, label, 10)
+            loss = loss_fn(pred, label)
             loss.backward()
             optim.step()
             losses.append(loss.item())

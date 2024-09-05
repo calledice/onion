@@ -10,7 +10,7 @@ import os
 import numpy as np
 print(torch.cuda.is_available())
 
-dataset = OnionDataset("../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5")
+dataset = OnionDataset("../data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5")
 
 # 临时加的，为了不做padding
 n = int(dataset.input_len_org[0])

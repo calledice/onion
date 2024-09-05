@@ -37,16 +37,16 @@ def plot_scatter(input,result,title,save_path,i):
     plt.close()
 
 if __name__ == "__main__":
-    case_file = "Phantom"
+    case_file = "Phantom_PI"
     pred_path = "./output/"+case_file+"/test/preds.json"
     label_path = "./output/"+case_file+"/test/labels.json"
-    input_path = "./output/"+case_file+"/test/inputs.json"
-    result_path = "./output/"+case_file+"/test/results.json"
+    # input_path = "./output/"+case_file+"/test/inputs.json"
+    # result_path = "./output/"+case_file+"/test/results.json"
 
     preds = json.load(open(pred_path, 'r'))
     labels = json.load(open(label_path, 'r'))
-    inputs = json.load(open(input_path, 'r'))
-    results = json.load(open(result_path, 'r'))
+    # inputs = json.load(open(input_path, 'r'))
+    # results = json.load(open(result_path, 'r'))
     title_pred = 'preds'
     title_label = 'labels'
     title_error = 'error'
@@ -62,7 +62,7 @@ if __name__ == "__main__":
             plot_data(np.matrix(preds[i]).T,title_pred,save_path,i)
             plot_data(np.matrix(labels[i]).T,title_label,save_path,i)
             plot_data(relative_error,title_error,save_path,i)
-            plot_scatter(inputs[i],results[i],title_data,save_path,i)
+            # plot_scatter(inputs[i],results[i],title_data,save_path,i)
             print(f"finish {i}")
     ave_error_all = np.average(ave_error_list)
     error_all = np.sum(ave_error_list)
