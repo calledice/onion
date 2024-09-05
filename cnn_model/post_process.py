@@ -25,11 +25,11 @@ def plot_data(data, title, save_path,i):
     plt.savefig(save_path + "/" +f"{i}-"+ title)
     plt.show()
     plt.close()
-def plot_scatter(inputs,results,title,save_path,i):
+def plot_scatter(input,result,title,save_path,i):
     plt.figure()
     plt.figure(figsize=(5, 4))
-    plt.scatter(range(len(inputs)), inputs, color='b', marker='^', s=15, alpha=0.8)
-    plt.scatter(range(len(results)), results, color='r', marker='o', s=15, alpha=0.5)
+    plt.scatter(range(len(input)), input, color='b', marker='^', s=15, alpha=0.8)
+    plt.scatter(range(len(result)), result, color='r', marker='o', s=15, alpha=0.5)
     plt.legend(labels=['Input', 'LineIntegral'])
     plt.title(title)
     plt.savefig(save_path + "/" +f"{i}-"+ title)
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         plot_data(np.matrix(preds[i]).T,title_pred,save_path,i)
         plot_data(np.matrix(labels[i]).T,title_label,save_path,i)
         plot_data(relative_error,title_error,save_path,i)
-        plot_scatter(inputs,results,title_data,save_path,i)
+        plot_scatter(inputs[i],results[i],title_data,save_path,i)
     ave_error_all = np.average(ave_error_list)
     error_all = np.sum(ave_error_list)
 

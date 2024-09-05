@@ -59,8 +59,8 @@ results = torch.concat(results, dim=0)
 inputs = torch.concat(inputs, dim=0)
 json.dump(preds.tolist(), open(f"{out_dir}/preds.json", 'w'), indent=2)
 json.dump(labels.tolist(), open(f"{out_dir}/labels.json", 'w'), indent=2)
-json.dump(labels.tolist(), open(f"{out_dir}/results.json", 'w'), indent=2)
-json.dump(labels.tolist(), open(f"{out_dir}/inputs.json", 'w'), indent=2)
+json.dump(results.tolist(), open(f"{out_dir}/results.json", 'w'), indent=2)
+json.dump(inputs.tolist(), open(f"{out_dir}/inputs.json", 'w'), indent=2)
 print("finish")
 
 
