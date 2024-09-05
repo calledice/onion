@@ -229,8 +229,10 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value):
         print(f'start {i} case:')
         size_ratio = random.randint(5, 10)
         size_ratio = size_ratio/(10.0)
-        numgridz = random.randint(20, 40)
-        numgridr = math.floor(numgridz * size_ratio)
+        # numgridz = random.randint(20, 40)
+        numgridz = 36
+        # numgridr = math.floor(numgridz * size_ratio)
+        numgridr = 32
         minr, maxr = 0, numgridr/numgridr
         minz, maxz = 0, numgridz/numgridz
         grid_defr = np.linspace(minr, maxr, numgridr)  # 每列网格的r坐标
@@ -240,7 +242,8 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value):
         center_left = int(0.3 * (numgridr - 1))
         center_right = int(0.7 * (numgridr - 1))
         rdm_point_num = random.randint(1, 3)
-        rdm_chord_num = random.randint(10, 60)
+        # rdm_chord_num = random.randint(10, 60)
+        rdm_chord_num = 40
         los_pos, los_angle = load_los(numgridr, numgridz, rdm_point_num, rdm_chord_num, grid_defr, grid_defz)
         grid = grid_generate(minr, maxr, numgridr, minz, maxz, numgridz)  # 为网格中心的坐标
         c_matrix = get_cmatrix(grid_defr, grid_defz, los_pos, los_angle, grid)
@@ -333,7 +336,7 @@ if __name__ == '__main__':
     name = ['train','valid','test']
     num_rz_shape = 1
     num_region_maxvalue = 100
-    num_value = 1000
+    num_value = 100
 
     generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value)
 

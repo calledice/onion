@@ -1,7 +1,6 @@
 from dataset import OnionDataset
 from torch.utils.data import Dataset, DataLoader
-from model_without_regi import *
-# from onion_model import *
+from onion_model import CNN_Base, weighted_mse_loss
 import torch.nn as nn
 import torch
 from tqdm import tqdm
@@ -26,7 +25,8 @@ class Config:
         self.lr = lr
         self.epochs = epochs
         self.early_stop = early_stop
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = 'cuda'
 
 
 def train(model, train_loader, val_loader, out_dir, config:Config):
@@ -115,7 +115,7 @@ def plot_loss(train_losses, val_losses, out_dir):
     # 显示图形
     plt.show()
 
-def run(train_path, val_path, out_dir, config):
+def run(train_path, val_path, test_path, out_dir, config):
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     device = config.device
 
@@ -133,16 +133,16 @@ def run(train_path, val_path, out_dir, config):
     config.max_r = r
     config.max_z = z
     print(f"max_n: {n}, max_r: {r}, max_z: {z}")
-    onion = Onion(n=n, max_r=r, max_z=z)
+    onion = CNN_Base(n=n, r=r, z=z)
     onion.to(device)
 
     train_losses, val_losses = train(onion, train_loader, val_loader, out_dir, config=config)
     plot_loss(train_losses, val_losses, out_dir)
 
 if __name__ == '__main__':
-    train_path = "../data_Phantom/phantomdata/mini_2_train_database.h5"
-    val_path = "../data_Phantom/phantomdata/mini_2_valid_database.h5"
-    test_path = "../data_Phantom/phantomdata/mini_2_test_database.h5"
-    out_dir = "output/Phantom"
+    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_100.h5"
+    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_100.h5"
+    test_path = "../data_Phantom/data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5"
+    out_dir = "output/Phantom_base"
     config = Config(early_stop=-1, epochs=18,batch_size=64)
-    run(train_path, val_path, out_dir, config)
+    run(train_path, val_path, test_path, out_dir, config)
