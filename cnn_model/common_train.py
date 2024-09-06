@@ -1,35 +1,25 @@
+import torch
 from dataset import OnionDataset
 from torch.utils.data import Dataset, DataLoader
-from onion_model import CNN_Base, weighted_mse_loss
+from onion_model import CNN_Base, weighted_mse_loss, Onion, OnionWithoutRegi, Config
+from common_predict import predict
 import torch.nn as nn
-import torch
 from tqdm import tqdm
 import os
 import json
 
+# 获取当前源程序所在的目录
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
-class Config:
-    def __init__(self, n_layer=None, n_head=None, dropout=None, bias=True, dtype=torch.float32, batch_size=64, 
-                 max_input_len=100, max_rz_len=10000, max_n=100, max_r=100, max_z=100, lr=0.001, epochs=20, early_stop=5):
-        self.n_layer = n_layer
-        self.n_head = n_head
-        self.dropout = dropout
-        self.bias = bias
-        self.dtype = dtype
-        self.batch_size = batch_size
-        self.max_input_len = max_input_len
-        self.max_rz_len = max_rz_len
-        self.max_n = max_n
-        self.max_r = max_r
-        self.max_z = max_z
-        self.lr = lr
-        self.epochs = epochs
-        self.early_stop = early_stop
-        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.device = 'cuda'
+# 切换工作目录到源程序所在的目录
+os.chdir(script_dir)
 
 
-def train(model, train_loader, val_loader, out_dir, config:Config):
+def train(model, train_loader, val_loader, config:Config):
+    '''
+    no_regi: 判断是不是没有regi和posi的模型
+    '''
+    out_dir = config.out_dir
     epochs = config.epochs
     early_stop = config.early_stop
     device = config.device
@@ -46,8 +36,10 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
         losses = []
         for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-            pred = model(input)
-            # pred = model(input, regi, posi)
+            if config.no_regi:
+                pred = model(input)
+            else:
+                pred = model(input, regi, posi)
             optim.zero_grad()
             # loss = weighted_mse_loss(pred, label, 10)
             loss = loss_fn(pred, label)
@@ -67,8 +59,10 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
         labels = []
         for (input, regi, posi, info), label in tqdm(val_loader, desc="Validating"):
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-            pred = model(input)
-            # pred = model(input, regi, posi)
+            if config.no_regi:
+                pred = model(input)
+            else:
+                pred = model(input, regi, posi)
             loss = weighted_mse_loss(pred, label, 10)
             preds.append(pred.detach().reshape(-1, config.max_r, config.max_z))
             labels.append(label.detach().reshape(-1, config.max_r, config.max_z))
@@ -117,7 +111,12 @@ def plot_loss(train_losses, val_losses, out_dir):
     # 显示图形
     plt.show()
 
-def run(train_path, val_path, test_path, out_dir, config):
+def run(Module, config:Config):
+    train_path = config.train_path
+    val_path = config.val_path
+    test_path = config.test_path
+    out_dir = config.out_dir
+
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     device = config.device
 
@@ -135,16 +134,40 @@ def run(train_path, val_path, test_path, out_dir, config):
     config.max_r = r
     config.max_z = z
     print(f"max_n: {n}, max_r: {r}, max_z: {z}")
-    onion = CNN_Base(n=n, r=r, z=z)
+    onion = Module(n, r, z)
     onion.to(device)
 
-    train_losses, val_losses = train(onion, train_loader, val_loader, out_dir, config=config)
+    train_losses, val_losses = train(onion, train_loader, val_loader, config)
     plot_loss(train_losses, val_losses, out_dir)
 
-if __name__ == '__main__':
+def tmp_runner(Module, predict_only=False):
     train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_100.h5"
     val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_100.h5"
-    test_path = "../data_Phantom/data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5"
-    out_dir = "output/Phantom_base"
-    config = Config(early_stop=-1, epochs=18,batch_size=64)
-    run(train_path, val_path, test_path, out_dir, config)
+    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5"
+
+    if Module == CNN_Base:
+        out_dir = "output/Phantom_base"
+        no_regi=True
+    elif Module == Onion:
+        out_dir = "output/Phantom_PI"
+        no_regi=False
+    elif Module == OnionWithoutRegi:
+        out_dir = "output/Phantom"
+        no_regi=True
+    else:
+        print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
+        exit(1)
+
+    config = Config(train_path, val_path, test_path, out_dir, no_regi, early_stop=-1, epochs=5, batch_size=64)
+    
+    if not predict_only:
+        run(Module, config)
+    predict(config)
+
+
+if __name__ == '__main__':
+    '''
+    对于已经开发好的三个模型，直接通过这一个common_train文件就可以开启训练和预测，如果只需要预测，则开启predict_only=True.
+    训练参数
+    '''
+    tmp_runner(Onion, predict_only=True)

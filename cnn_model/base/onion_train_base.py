@@ -1,7 +1,6 @@
 from dataset import OnionDataset
 from torch.utils.data import Dataset, DataLoader
-from model_without_regi import *
-# from onion_model import *
+from onion_model import CNN_Base, weighted_mse_loss
 import torch.nn as nn
 import torch
 from tqdm import tqdm
@@ -10,8 +9,8 @@ import json
 
 
 class Config:
-    def __init__(self, n_layer=None, n_head=None, dropout=None, bias=True, dtype=torch.float32, batch_size=64, 
-                 max_input_len=100, max_rz_len=10000, max_n=100, max_r=100, max_z=100, lr=0.001, epochs=20, early_stop=5):
+    def __init__(self, n_layer=None, n_head=None, dropout=None, bias=True, dtype=torch.float32, batch_size=64,
+        max_n=100, max_r=100, max_z=100, lr=0.001, epochs=20, early_stop=5):
         self.n_layer = n_layer
         self.n_head = n_head
         self.dropout = dropout
@@ -26,15 +25,20 @@ class Config:
         self.lr = lr
         self.epochs = epochs
         self.early_stop = early_stop
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = 'cuda'
 
 
-def train(model, train_loader, val_loader, out_dir, config:Config):
+def train(model, train_loader, val_loader, out_dir, config:Config, no_regi: bool):
+    '''
+    no_regi: 判断是不是没有regi和posi的模型
+    '''
     epochs = config.epochs
     early_stop = config.early_stop
     device = config.device
     os.makedirs(f'{out_dir}/train', exist_ok=True)
     min_val_loss = float('inf')
+    loss_fn = nn.MSELoss()
     optim = torch.optim.Adam(params=model.parameters(), lr=config.lr)
     train_losses = []
     val_losses = []
@@ -45,10 +49,13 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
         losses = []
         for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-            pred = model(input)
-            # pred = model(input, regi, posi)
+            if no_regi:
+                pred = model(input)
+            else:
+                pred = model(input, regi, posi)
             optim.zero_grad()
-            loss = weighted_mse_loss(pred, label, 10)
+            # loss = weighted_mse_loss(pred, label, 10)
+            loss = loss_fn(pred, label)
             loss.backward()
             optim.step()
             losses.append(loss.item())
@@ -65,8 +72,10 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
         labels = []
         for (input, regi, posi, info), label in tqdm(val_loader, desc="Validating"):
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-            pred = model(input)
-            # pred = model(input, regi, posi)
+            if no_regi:
+                pred = model(input)
+            else:
+                pred = model(input, regi, posi)
             loss = weighted_mse_loss(pred, label, 10)
             preds.append(pred.detach().reshape(-1, config.max_r, config.max_z))
             labels.append(label.detach().reshape(-1, config.max_r, config.max_z))
@@ -115,7 +124,8 @@ def plot_loss(train_losses, val_losses, out_dir):
     # 显示图形
     plt.show()
 
-def run(train_path, val_path, out_dir, config):
+def run(train_path, val_path, test_path, out_dir, config:Config, no_regi:bool):
+    print(torch.cuda.is_available())
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     device = config.device
 
@@ -133,16 +143,16 @@ def run(train_path, val_path, out_dir, config):
     config.max_r = r
     config.max_z = z
     print(f"max_n: {n}, max_r: {r}, max_z: {z}")
-    onion = Onion(n=n, max_r=r, max_z=z)
+    onion = CNN_Base(n=n, r=r, z=z)
     onion.to(device)
 
-    train_losses, val_losses = train(onion, train_loader, val_loader, out_dir, config=config)
+    train_losses, val_losses = train(onion, train_loader, val_loader, out_dir, config=config, no_regi)
     plot_loss(train_losses, val_losses, out_dir)
 
 if __name__ == '__main__':
-    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_1000.h5"
-    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_1000.h5"
-    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5"
-    out_dir = "output/Phantom_plus_cnn_input"
-    config = Config(early_stop=-1, epochs=20,batch_size=256)
-    run(train_path, val_path, out_dir, config)
+    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_100.h5"
+    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_100.h5"
+    test_path = "../data_Phantom/data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5"
+    out_dir = "output/Phantom_base"
+    config = Config(early_stop=-1, epochs=18,batch_size=64)
+    run(train_path, val_path, test_path, out_dir, config, no_regi=True)
