@@ -1,7 +1,7 @@
 import torch
 from dataset import OnionDataset
 from torch.utils.data import Dataset, DataLoader
-from onion_model import CNN_Base, weighted_mse_loss, Onion, OnionWithoutRegi, Config
+from onion_model import *
 from common_predict import predict
 import torch.nn as nn
 from tqdm import tqdm
@@ -40,7 +40,14 @@ def train(model, train_loader, val_loader, config:Config):
                 pred = model(input)
             else:
                 pred = model(input, regi, posi)
+            pred_temp = pred.unsqueeze(-1)
+            result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
+
             optim.zero_grad()
+            # loss_1 = loss_fn(pred, label)
+            # loss_2 = loss_fn(input, result)
+            # alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+            # loss = loss_1 + alpha * loss_2
             # loss = weighted_mse_loss(pred, label, 10)
             loss = loss_fn(pred, label)
             loss.backward()
@@ -122,7 +129,6 @@ def run(Module, config:Config):
 
     train_set = OnionDataset(train_path)
     val_set = OnionDataset(val_path)
-
     train_loader = DataLoader(train_set, batch_size=config.batch_size, shuffle=True)
     val_loader = DataLoader(val_set, batch_size=config.batch_size, shuffle=True)
 
@@ -148,11 +154,14 @@ def tmp_runner(Module, predict_only=False):
     if Module == CNN_Base:
         out_dir = "output/Phantom_base"
         no_regi=True
-    elif Module == Onion:
-        out_dir = "output/Phantom_PI"
+    elif Module == Onion_gavin:
+        out_dir = "output/Phantom_Onion_gavin"
         no_regi=False
-    elif Module == OnionWithoutRegi:
-        out_dir = "output/Phantom"
+    elif Module == Onion_input:
+        out_dir = "output/Phantom_Onion_input"
+        no_regi=True
+    elif Module == Onion_PI:
+        out_dir = "output/Phantom_Onion_PI"
         no_regi=True
     else:
         print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
@@ -170,4 +179,4 @@ if __name__ == '__main__':
     对于已经开发好的三个模型，直接通过这一个common_train文件就可以开启训练和预测，如果只需要预测，则开启predict_only=True.
     训练参数
     '''
-    tmp_runner(Onion, predict_only=True)
+    tmp_runner(Onion_PI, predict_only=True)
