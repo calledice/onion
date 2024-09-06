@@ -54,7 +54,7 @@ if __name__ == "__main__":
     save_path = "./output/"+case_file+"/figures"
     os.makedirs(save_path,exist_ok=True)
     ave_error_list = []
-    error_record_path = save_path + "/error_record.txt"
+    error_record_path = "./output/"+case_file+"/error_record.txt"
     for i in range(len(preds)):
         relative_error = abs(np.matrix(preds[i]).T-np.matrix(labels[i]).T)/np.max(np.matrix(labels[i]).T)*100
         ave_error_list.append(np.average(relative_error))
