@@ -27,11 +27,15 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 losses = []
 preds = []
 labels = []
+results = []
+inputs = []
 os.makedirs(out_dir+'/test', exist_ok=True)
 loss_mse = nn.MSELoss()
 for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
     pred = onion(input)
+    pred_temp = pred.unsqueeze(-1)
+    result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
 
     # 加权MSELoss
     loss = weighted_mse_loss(pred, label, 10)
@@ -45,6 +49,8 @@ for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     preds.append(pred.reshape(-1, r, z))
     labels.append(label.reshape(-1, r, z))
     losses.append(loss.item())
+    results.append(result)
+    inputs.append(input)
     
     # break # 只测试了一个batch，如果要预测所有测试集则删除这个break
 
@@ -52,8 +58,13 @@ print(sum(losses) / len(losses))
 json.dump(losses, open(f"{out_dir}/test/testing_loss.json", 'w'), indent=2)
 preds = torch.concat(preds, dim=0)
 labels = torch.concat(labels, dim=0)
+results = torch.concat(results, dim=0)
+inputs = torch.concat(inputs, dim=0)
 json.dump(preds.tolist(), open(f"{out_dir}/test/preds.json", 'w'), indent=2)
 json.dump(labels.tolist(), open(f"{out_dir}/test/labels.json", 'w'), indent=2)
+json.dump(results.tolist(), open(f"{out_dir}/results.json", 'w'), indent=2)
+json.dump(inputs.tolist(), open(f"{out_dir}/inputs.json", 'w'), indent=2)
+print("finish")
 
 
 

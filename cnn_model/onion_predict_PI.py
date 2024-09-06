@@ -10,7 +10,7 @@ import os
 import numpy as np
 print(torch.cuda.is_available())
 
-dataset = OnionDataset("../data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5")
+dataset = OnionDataset("../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5")
 
 # 临时加的，为了不做padding
 n = int(dataset.input_len_org[0])
@@ -51,7 +51,7 @@ for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
     results.append(result)
     inputs.append(input)
     
-    break # 只测试了一个batch，如果要预测所有测试集则删除这个break
+    # break # 只测试了一个batch，如果要预测所有测试集则删除这个break
 
 print(sum(losses) / len(losses))
 json.dump(losses, open(f"{out_dir}/testing_loss.json", 'w'), indent=2)

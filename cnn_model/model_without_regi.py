@@ -8,6 +8,7 @@ import os
 import math
 import json
 from torchinfo import summary
+from contextlib import redirect_stdout
 
 class Config:
     def __init__(self, n_layer, n_head, dropout, bias, dtype, batch_size, max_input_len, max_rz_len):
@@ -107,3 +108,9 @@ if __name__ == "__main__":
     inputs = [torch.randn(*shape) for shape in input_shapes]
     onion = Onion(n=43, max_r=17, max_z=25)
     summary(onion,input_data=inputs)
+
+    # 将summary输出保存到文本文件中
+    summary(onion, input_data=inputs)
+    with open('onion_model_plus.txt', 'w') as f:
+        with redirect_stdout(f):
+            summary(onion, input_data=inputs)

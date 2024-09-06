@@ -39,6 +39,7 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
     optim = torch.optim.Adam(params=model.parameters(), lr=config.lr)
     train_losses = []
     val_losses = []
+    loss_mse = nn.MSELoss()
     for epoch in range(epochs):
         # 训练阶段
         model.train()
@@ -48,8 +49,14 @@ def train(model, train_loader, val_loader, out_dir, config:Config):
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
             pred = model(input, regi, posi)
             # pred = model(input, regi, posi)
+            pred_temp = pred.unsqueeze(-1)
+            result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
+
             optim.zero_grad()
-            loss = weighted_mse_loss(pred, label, 10)
+            loss_1 = weighted_mse_loss(pred, label, 10)
+            loss_2 = loss_mse(input, result)
+            alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+            loss = loss_1 + alpha * loss_2
             loss.backward()
             optim.step()
             losses.append(loss.item())
