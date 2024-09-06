@@ -328,8 +328,8 @@ class Onion(nn.Module):
 #     pred = model(vec).squeeze(1)
 #     loss = loss_fn(pred, label)
 if __name__ =="__main__":
-    max_input_len = 100
-    max_rz_len = 2048
+    max_input_len = 40
+    max_rz_len = 32*36
     n_head = 8
     batch_size = 1
     config = Config(2, n_head, 0.0, True, torch.float32, batch_size, max_input_len, max_rz_len)

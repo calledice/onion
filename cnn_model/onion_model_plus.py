@@ -107,9 +107,9 @@ def weighted_mse_loss(pred, target, weight=None):
     return (mse_loss * penalty).mean()
 
 if __name__ =="__main__":
-    n = 43
-    r = 17
-    z = 25
+    n = 40
+    r = 32
+    z = 36
     flatten_len = r*z
     input_shapes = [(1,n),(1,r,z),(1,n,r,z)]
     inputs = [torch.randn(*shape) for shape in input_shapes]
