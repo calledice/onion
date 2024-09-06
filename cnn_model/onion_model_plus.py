@@ -34,24 +34,30 @@ class Onion(nn.Module):
         channels = n * 2 + 1
 
         self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=channels, out_channels=128, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels),
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=128),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.MaxPool2d(kernel_size=2,stride=2),
+
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels),
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(in_channels=channels, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=256),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=channels * 2, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels * 2),
+            nn.MaxPool2d(kernel_size=2,stride=2),
+
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.AdaptiveMaxPool2d(output_size=(10, 10))
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=512),
+            nn.ReLU(inplace=True),
+            nn.AdaptiveMaxPool2d(output_size=(2, 2))
         )
         self.deconv_net = nn.Sequential(
             nn.ConvTranspose2d(in_channels=channels*2,out_channels=channels*2,kernel_size=(3,3),stride=2,padding=1,output_padding=1),
@@ -66,7 +72,7 @@ class Onion(nn.Module):
                                output_padding=1),
             nn.ReLU(inplace=True)
         )
-        conv_out_dim = channels * 2 * 10 * 10
+        conv_out_dim = 512*2*2
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
@@ -82,9 +88,9 @@ class Onion(nn.Module):
         regi = regi.unsqueeze(dim=0).transpose(0, 1)
         final_input = torch.concat([input, regi, posi], dim=1)
         conv_out = self.net(final_input)
-        deconv_out = self.deconv_net(conv_out)
-        deconv_out = deconv_out.reshape(deconv_out.size(0), -1)
-        out = self.fc(deconv_out)
+        # conv_out = self.deconv_net(conv_out)
+        conv_out = conv_out.reshape(conv_out.size(0), -1)
+        out = self.fc(conv_out)
         return out
     
 def weighted_mse_loss(pred, target, weight=None):

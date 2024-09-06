@@ -46,27 +46,33 @@ class Onion(nn.Module):
         channels = n
 
         self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=channels, out_channels=128, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels),
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=128),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.MaxPool2d(kernel_size=2,stride=2),
+
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels),
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(in_channels=channels, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=256),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=channels * 2, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels * 2),
+            nn.MaxPool2d(kernel_size=2,stride=2),
+
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.AdaptiveMaxPool2d(output_size=(10, 10))
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=512),
+            nn.ReLU(inplace=True),
+            nn.AdaptiveMaxPool2d(output_size=(2, 2))
         )
 
-        conv_out_dim = channels * 2 * 10 * 10
+        conv_out_dim = 512*2*2
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
