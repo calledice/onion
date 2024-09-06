@@ -1,12 +1,6 @@
-from dataset import OnionDataset
-from torch.utils.data import Dataset, DataLoader
-from onion_model import *
-import torch.nn as nn
 import torch
-from tqdm import tqdm
-import os
-import json
-from onion_model import Onion
+from onion_model import CNN_Base, Onion, OnionWithoutRegi
+
 # torch.Size([64, 23]) torch.Size([64, 32, 36]) torch.Size([64, 23, 32, 36])
 input = torch.rand(64, 23, dtype=torch.float32)
 regi = torch.rand(64, 32, 36, dtype=torch.float32)

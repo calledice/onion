@@ -1,9 +1,12 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: linux-64
-torch==2.3.0+cu121
-torchaudio==2.3.0+cu121
-torchvision==0.18.0+cu121
+# torch==2.3.0+cu121
+# torchaudio==2.3.0+cu121
+# torchvision==0.18.0+cu121
 tqdm
 pandas
 scikit-learn
+h5py
+matplotlib
+torchinfo
