@@ -8,6 +8,7 @@ import os
 import math
 import json
 from torchinfo import summary
+from contextlib import redirect_stdout
 
 
 class ConvEmbModel(nn.Module):
@@ -117,20 +118,18 @@ def weighted_mse_loss(pred, target, weight=None):
     # 计算损失的平均值
     return (mse_loss * penalty).mean()
 
-def summary():
-    n = 43
-    r = 17
-    z = 25
+if __name__ =="__main__":
+    n = 40
+    r = 32
+    z = 36
     flatten_len = r*z
     input_shapes = [(1,n),(1,r,z),(1,n,r,z)]
     inputs = [torch.randn(*shape) for shape in input_shapes]
     onion = Onion(n=n, max_r=r, max_z=z)
     summary(onion,input_data=inputs)
 
-if __name__ =="__main__":
-    n = 40
-    r = 36
-    z = 32
-    x = torch.rand(64, n)
-    model = CNN_Base(n, r, z)
-    model(x)
+    # 将summary输出保存到文本文件中
+    summary(onion, input_data=inputs)
+    with open('onion_model.txt', 'w') as f:
+        with redirect_stdout(f):
+            summary(onion, input_data=inputs)
