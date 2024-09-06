@@ -177,6 +177,6 @@ def tmp_runner(Module, predict_only=False):
 if __name__ == '__main__':
     '''
     对于已经开发好的三个模型，直接通过这一个common_train文件就可以开启训练和预测，如果只需要预测，则开启predict_only=True.
-    训练参数
+    数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
     tmp_runner(Onion_PI, predict_only=True)
