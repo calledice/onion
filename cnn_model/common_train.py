@@ -1,6 +1,7 @@
 import torch
 from dataset import OnionDataset
 from torch.utils.data import Dataset, DataLoader
+from post_process import visualize
 from onion_model import *
 from common_predict import predict
 import torch.nn as nn
@@ -147,9 +148,9 @@ def run(Module, config:Config):
     plot_loss(train_losses, val_losses, out_dir)
 
 def tmp_runner(Module, predict_only=False):
-    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_100.h5"
-    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_100.h5"
-    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5"
+    train_path = "../data_HL_2A/data/train_database_test.h5"
+    val_path = "../data_HL_2A/data/val_database_test.h5"
+    test_path = "../data_HL_2A/data/test_database_test.h5"
 
     if Module == CNN_Base:
         out_dir = "output/Phantom_base"
@@ -167,16 +168,16 @@ def tmp_runner(Module, predict_only=False):
         print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
         exit(1)
 
-    config = Config(train_path, val_path, test_path, out_dir, no_regi, early_stop=-1, epochs=5, batch_size=64)
+    config = Config(train_path, val_path, test_path, out_dir, no_regi, early_stop=5, epochs=50, batch_size=64)
     
     if not predict_only:
         run(Module, config)
     predict(config)
-
+    visualize(out_dir)
 
 if __name__ == '__main__':
     '''
     对于已经开发好的三个模型，直接通过这一个common_train文件就可以开启训练和预测，如果只需要预测，则开启predict_only=True.
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
-    tmp_runner(Onion_PI, predict_only=True)
+    tmp_runner(Onion_gavin, predict_only=True)

@@ -1,6 +1,6 @@
 import torch 
 from dataset import OnionDataset
-from onion_model import Config, weighted_mse_loss, CNN_Base, Onion, OnionWithoutRegi
+from onion_model import *
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import json
@@ -54,11 +54,11 @@ def predict(config: Config):
         # print(pred[0])
 
         # 还原output形状
-        preds.append(pred.reshape(-1, r, z))
-        labels.append(label.reshape(-1, r, z))
+        preds.append(pred.detach().reshape(-1, r, z))
+        labels.append(label.detach().reshape(-1, r, z))
         losses.append(loss.item())
-        results.append(result)
-        inputs.append(input)
+        results.append(result.detach())
+        inputs.append(input.detach())
         
         # break # 只测试了一个batch，如果要预测所有测试集则删除这个break
 
@@ -68,8 +68,8 @@ def predict(config: Config):
     labels = torch.concat(labels, dim=0)
     results = torch.concat(results, dim=0)
     inputs = torch.concat(inputs, dim=0)
-    json.dump(preds.tolist(), open(f"{out_dir}/preds.json", 'w'), indent=2)
-    json.dump(labels.tolist(), open(f"{out_dir}/labels.json", 'w'), indent=2)
-    json.dump(results.tolist(), open(f"{out_dir}/results.json", 'w'), indent=2)
-    json.dump(inputs.tolist(), open(f"{out_dir}/inputs.json", 'w'), indent=2)
+    json.dump(preds.tolist(), open(f"{out_dir}/test/preds.json", 'w'), indent=2)
+    json.dump(labels.tolist(), open(f"{out_dir}/test/labels.json", 'w'), indent=2)
+    json.dump(results.tolist(), open(f"{out_dir}/test/results.json", 'w'), indent=2)
+    json.dump(inputs.tolist(), open(f"{out_dir}/test/inputs.json", 'w'), indent=2)
     print("finish")

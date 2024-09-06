@@ -251,8 +251,8 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value):
             randn_indexr = random.randint(center_left, center_right)
             randn_indexz = random.randint(center_down, center_up)
             region, grad_coff, threshhold_coff = region_generate(randn_indexr, randn_indexz, numgridr, numgridz, grid)
-            print(f'grad_coff = {grad_coff}')
-            print(f'threshhold_coff = {threshhold_coff}')
+            print(f'regi {k}/{num_region_maxvalue}: grad_coff = {grad_coff}')
+            print(f'regi {k}/{num_region_maxvalue}: threshhold_coff = {threshhold_coff}')
             c_matrix_list.append(c_matrix)
             region_list.append(region)
             for j in range(num_value):

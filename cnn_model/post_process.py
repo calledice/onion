@@ -4,6 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 
+from tqdm import tqdm
+# 获取当前源程序所在的目录
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# 切换工作目录到源程序所在的目录
+os.chdir(script_dir)
 
 def plot_data(data, title, save_path,i):
     # 计算最大值和最小值
@@ -36,26 +42,27 @@ def plot_scatter(input,result,title,save_path,i):
     # plt.show()
     plt.close()
 
-if __name__ == "__main__":
-    case_file = "Phantom_PI"
-    pred_path = "./output/"+case_file+"/test/preds.json"
-    label_path = "./output/"+case_file+"/test/labels.json"
-    input_path = "./output/"+case_file+"/test/inputs.json"
-    result_path = "./output/"+case_file+"/test/results.json"
+def visualize(case_file):
+    # case_file = "Phantom_Onion_gavin"
+    pred_path = case_file+"/test/preds.json"
+    label_path = case_file+"/test/labels.json"
+    input_path = case_file+"/test/inputs.json"
+    result_path = case_file+"/test/results.json"
 
     preds = json.load(open(pred_path, 'r'))
     labels = json.load(open(label_path, 'r'))
     inputs = json.load(open(input_path, 'r'))
     results = json.load(open(result_path, 'r'))
+    print("Files loaded successfully.")
     title_pred = 'preds'
     title_label = 'labels'
     title_error = 'error'
     title_data = "data"
-    save_path = "./output/"+case_file+"/figures"
+    save_path = case_file+"/figures"
     os.makedirs(save_path,exist_ok=True)
     ave_error_list = []
-    error_record_path = "./output/"+case_file+"/error_record.txt"
-    for i in range(len(preds)):
+    error_record_path = case_file+"/error_record.txt"
+    for i in tqdm(range(len(preds)), desc='Visualizing'):
         relative_error = abs(np.matrix(preds[i]).T-np.matrix(labels[i]).T)/np.max(np.matrix(labels[i]).T)*100
         ave_error_list.append(np.average(relative_error))
         if i < 100:

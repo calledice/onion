@@ -58,22 +58,22 @@ class Onion_gavin(nn.Module):
 
         self.net = nn.Sequential(
             nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
+            nn.GELU(),
             nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels),
-            nn.ReLU(inplace=True),
+            # nn.BatchNorm2d(num_features=channels),
+            nn.GELU(),
             nn.MaxPool2d(kernel_size=2),
             nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
+            nn.GELU(),
             nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels),
-            nn.ReLU(inplace=True),
+            # nn.BatchNorm2d(num_features=channels),
+            nn.GELU(),
             nn.MaxPool2d(kernel_size=2),
             nn.Conv2d(in_channels=channels, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
+            nn.GELU(),
             nn.Conv2d(in_channels=channels * 2, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels * 2),
-            nn.ReLU(inplace=True),
+            # nn.BatchNorm2d(num_features=channels * 2),
+            nn.GELU(),
             nn.AdaptiveMaxPool2d(output_size=(10, 10))
         )
 
@@ -82,7 +82,54 @@ class Onion_gavin(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True),
+            nn.GELU(),
+            nn.Dropout(0.5),
+            nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
+            nn.Sigmoid()
+        )
+
+    def forward(self, input, regi, posi):
+        input = self.conv_upsample(input)
+        regi = regi.unsqueeze(dim=0).transpose(0, 1)
+        final_input = torch.concat([input, regi, posi], dim=1)
+        conv_out = self.net(final_input)    
+        conv_out = conv_out.reshape(conv_out.size(0), -1)
+        out = self.fc(conv_out)
+        return out
+
+class Onion_gavin_original(nn.Module):
+    def __init__(self, n=100, max_r=100, max_z=100):
+        super(Onion_gavin_original, self).__init__()
+        self.conv_upsample = ConvEmbModel(max_r, max_z)
+        channels = n * 2 + 1
+
+        self.net = nn.Sequential(
+            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.GELU(),
+            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=channels),
+            nn.GELU(),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.GELU(),
+            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=channels),
+            nn.GELU(),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Conv2d(in_channels=channels, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
+            nn.GELU(),
+            nn.Conv2d(in_channels=channels * 2, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=channels * 2),
+            nn.GELU(),
+            nn.AdaptiveMaxPool2d(output_size=(10, 10))
+        )
+
+        conv_out_dim = channels * 2 * 10 * 10
+        fc_out_dim = max_r * max_z
+
+        self.fc = nn.Sequential(
+            nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
+            nn.GELU(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
             nn.Sigmoid()
