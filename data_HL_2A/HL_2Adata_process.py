@@ -24,7 +24,7 @@ def extend_row(row,values_to_add):
 if __name__ == '__main__':
     # data_root = './data_HL_2A'
     data_root = 'D:\Onion_data\data_HL_2A\data'
-    name_list = ["train","test","val"]
+    name_list = ["val","train","test"]
     os.makedirs("./data",exist_ok=True)
     for name in name_list:
         print(name)
@@ -35,6 +35,12 @@ if __name__ == '__main__':
         df_out = pd.read_csv(out_pth, header=None)
         c_matrix = np.loadtxt(data_root + '/' +'0_cMatrix.txt')/1000
         region = np.loadtxt(data_root + '/' +'0_region_list.txt')
+        values_to_add = [0, 32, 36]
+        # 删除第一行，这里使用.iloc来排除第一行
+        df_inp_dropped_both = df_inp.iloc[1:]
+        # 将处理后的DataFrame转换为NumPy数组
+        df_inp_array = np.array(df_inp_dropped_both)
+        df_out_temp = np.array(df_out.drop(0))
         with h5py.File("./data"+"/HL_2A_" + name + "_database.h5", 'a') as f:
             input_group = f.create_group("x")
             label_group = f.create_group("y")
@@ -43,16 +49,9 @@ if __name__ == '__main__':
 
             posi_group.create_dataset(str(0), data=c_matrix)
             region_group.create_dataset(str(0), data=region)
-            values_to_add = [0, 32, 36]
-            # 删除第一列 不需要
-            # df_inp_dropped_col = df_inp.drop(df_inp.columns[0], axis=1)
-            # 删除第一行，这里使用.iloc来排除第一行
-            df_inp_dropped_both = df_inp.iloc[1:]
-            # 将处理后的DataFrame转换为NumPy数组
-            df_inp_array = np.array(df_inp_dropped_both)
-            df_out_array = np.array(df_out.drop(0))
+
             for i in range(len(df_inp_array)):
                 df_inp_i = np.append(df_inp_array[i],values_to_add)
                 input_group.create_dataset(str(i), data=df_inp_i)
-                label_group.create_dataset(str(i), data=df_out_array[i])
+                label_group.create_dataset(str(i), data=df_out_temp[i].reshape(36, 32).T.flatten())
     print('finish')
