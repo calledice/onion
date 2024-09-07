@@ -183,7 +183,7 @@ def tmp_runner(Module, predict_only=False,visualize_only = False):
         print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
         exit(1)
 
-    config = Config(train_path, val_path, test_path, out_dir, no_regi,addloss, early_stop=5, epochs=50, batch_size=64)
+    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=5, epochs=50, batch_size=64)
     
     if predict_only:
         predict(config)

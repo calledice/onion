@@ -35,7 +35,7 @@ def predict(config: Config):
     results = []
     inputs = []
     os.makedirs(out_dir+'/test', exist_ok=True)
-    loss_mse = nn.MSELoss()
+    loss_fn = nn.MSELoss()
     for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
         input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
         if config.no_regi:
@@ -44,10 +44,13 @@ def predict(config: Config):
             pred = model(input, regi, posi)
         pred_temp = pred.unsqueeze(-1)
         result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
-        # 加权MSELoss
-        loss = loss_mse(pred, label)
-        # loss = weighted_mse_loss(pred, label, 10) + 10.0 * loss_mse(input, result)
-
+        if config.addloss:
+            loss_1 = loss_fn(pred, label)
+            loss_2 = loss_fn(input, result)
+            alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+            loss = loss_1 + alpha * loss_2
+        else:
+            loss = loss_fn(pred, label, 10)
 
         # 设置阈值为0.001，小于0.001的置为0
         pred = torch.where(pred < 0.001, torch.tensor(0.0), pred)
