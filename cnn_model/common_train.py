@@ -45,12 +45,14 @@ def train(model, train_loader, val_loader, config:Config):
             result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
 
             optim.zero_grad()
-            # loss_1 = loss_fn(pred, label)
-            # loss_2 = loss_fn(input, result)
-            # alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-            # loss = loss_1 + alpha * loss_2
-            # loss = weighted_mse_loss(pred, label, 10)
-            loss = loss_fn(pred, label)
+            if config.addloss:
+                loss_1 = loss_fn(pred, label)
+                loss_2 = loss_fn(input, result)
+                alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+                loss = loss_1 + alpha * loss_2
+                loss = weighted_mse_loss(pred, label, 10)
+            else:
+                loss = loss_fn(pred, label)
             loss.backward()
             optim.step()
             losses.append(loss.item())
@@ -65,17 +67,22 @@ def train(model, train_loader, val_loader, config:Config):
         losses = []
         preds = []
         labels = []
+        loss_fn = nn.MSELoss()
         for (input, regi, posi, info), label in tqdm(val_loader, desc="Validating"):
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
             if config.no_regi:
                 pred = model(input)
             else:
                 pred = model(input, regi, posi)
-            # loss_1 = loss_fn(pred, label)
-            # loss_2 = loss_fn(input, result)
-            # alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-            # loss = loss_1 + alpha * loss_2
-            loss = weighted_mse_loss(pred, label, 10)
+            pred_temp = pred.unsqueeze(-1)
+            result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
+            if config.addloss:
+                loss_1 = loss_fn(pred, label)
+                loss_2 = loss_fn(input, result)
+                alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+                loss = loss_1 + alpha * loss_2
+            else:
+                loss = loss_fn(pred, label, 10)
             preds.append(pred.detach().reshape(-1, config.max_r, config.max_z))
             labels.append(label.detach().reshape(-1, config.max_r, config.max_z))
             losses.append(loss.detach().item())
@@ -151,7 +158,7 @@ def run(Module, config:Config):
     train_losses, val_losses = train(onion, train_loader, val_loader, config)
     plot_loss(train_losses, val_losses, out_dir)
 
-def tmp_runner(Module, predict_only=False):
+def tmp_runner(Module, predict_only=False,visualize_only = False):
     train_path = "../data_HL_2A/data/train_database_test.h5"
     val_path = "../data_HL_2A/data/val_database_test.h5"
     test_path = "../data_HL_2A/data/test_database_test.h5"
@@ -159,25 +166,33 @@ def tmp_runner(Module, predict_only=False):
     if Module == CNN_Base:
         out_dir = "output/Phantom_base"
         no_regi=True
+        addloss = False
     elif Module == Onion_gavin:
         out_dir = "output/Phantom_Onion_gavin"
         no_regi=False
+        addloss = False
     elif Module == Onion_input:
         out_dir = "output/Phantom_Onion_input"
         no_regi=True
+        addloss = False
     elif Module == Onion_PI:
         out_dir = "output/Phantom_Onion_PI"
         no_regi=False
+        addloss = True
     else:
         print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
         exit(1)
 
-    config = Config(train_path, val_path, test_path, out_dir, no_regi, early_stop=5, epochs=50, batch_size=64)
+    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=5, epochs=50, batch_size=64)
     
-    if not predict_only:
+    if predict_only:
+        predict(config)
+    elif visualize_only:
+        visualize(out_dir)
+    else:
         run(Module, config)
-    predict(config)
-    visualize(out_dir)
+        predict(config)
+        visualize(out_dir)
 
 if __name__ == '__main__':
     '''
@@ -185,5 +200,5 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
 
-    tmp_runner(Onion_gavin, predict_only=True)
+    tmp_runner(Onion_gavin, predict_only=False,visualize_only = False)
 
