@@ -1,6 +1,6 @@
 import torch 
 from dataset import OnionDataset
-from onion_model import Config, weighted_mse_loss, CNN_Base, Onion, OnionWithoutRegi
+from onion_model import *
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import json

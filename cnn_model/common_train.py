@@ -70,6 +70,10 @@ def train(model, train_loader, val_loader, config:Config):
                 pred = model(input)
             else:
                 pred = model(input, regi, posi)
+            # loss_1 = loss_fn(pred, label)
+            # loss_2 = loss_fn(input, result)
+            # alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+            # loss = loss_1 + alpha * loss_2
             loss = weighted_mse_loss(pred, label, 10)
             preds.append(pred.detach().reshape(-1, config.max_r, config.max_z))
             labels.append(label.detach().reshape(-1, config.max_r, config.max_z))
@@ -179,4 +183,4 @@ if __name__ == '__main__':
     对于已经开发好的三个模型，直接通过这一个common_train文件就可以开启训练和预测，如果只需要预测，则开启predict_only=True.
     训练参数
     '''
-    tmp_runner(Onion_PI, predict_only=True)
+    tmp_runner(Onion_PI, predict_only=True) #记得改loss
