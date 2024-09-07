@@ -50,7 +50,7 @@ def train(model, train_loader, val_loader, config:Config):
                 loss_2 = loss_fn(input, result)
                 alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
                 loss = loss_1 + alpha * loss_2
-                loss = weighted_mse_loss(pred, label, 10)
+                # loss = weighted_mse_loss(pred, label, 10)
             else:
                 loss = loss_fn(pred, label)
             loss.backward()
@@ -82,7 +82,7 @@ def train(model, train_loader, val_loader, config:Config):
                 alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
                 loss = loss_1 + alpha * loss_2
             else:
-                loss = loss_fn(pred, label, 10)
+                loss = loss_fn(pred, label)
             preds.append(pred.detach().reshape(-1, config.max_r, config.max_z))
             labels.append(label.detach().reshape(-1, config.max_r, config.max_z))
             losses.append(loss.detach().item())
