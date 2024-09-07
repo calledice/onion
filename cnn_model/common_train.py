@@ -167,7 +167,7 @@ def tmp_runner(Module, predict_only=False):
         no_regi=True
     elif Module == Onion_PI:
         out_dir = "output/Phantom_Onion_PI"
-        no_regi=True
+        no_regi=False
     else:
         print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
         exit(1)

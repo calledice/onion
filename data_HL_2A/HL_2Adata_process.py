@@ -25,6 +25,7 @@ if __name__ == '__main__':
     # data_root = './data_HL_2A'
     data_root = '/media/congwang/data/python_code/Onion_past/data_HL_2A/data'
     name_list = ["train","test","val"]
+    os.makedirs("./data",exist_ok=True)
     for name in name_list:
         print(name)
         # csv_to_h5(data_root,name)

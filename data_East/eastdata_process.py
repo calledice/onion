@@ -74,6 +74,7 @@ train_inputs, train_labels = shuffled_inputs[:train_end], shuffled_labels[:train
 val_inputs, val_labels = shuffled_inputs[train_end:val_end], shuffled_labels[train_end:val_end]
 test_inputs, test_labels = shuffled_inputs[val_end:], shuffled_labels[val_end:]
 name = ['train','valid','test']
+os.makedirs("./data",exist_ok=True)
 
 with h5py.File(f"./data/EAST_{name[0]}_database.h5", 'a') as data0:
     data_input_group = data0.create_group("x")
