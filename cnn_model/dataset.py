@@ -103,6 +103,11 @@ class OnionDataset(Dataset):
         self.regi_list = [regi[str(i)][:] for i in range(len(regi))]  # 收集regi信息
         self.posi_list = [posi[str(i)][:] for i in range(len(posi))]  # 收集posi信息
 
+        #  2A:
+        #  posi[0].reshape(32,36)
+        #  regi.reshape(32,36)
+        #  east:
+        #  label_list[0].reshape(75,50)
         # 临时加的，为了不做padding操作
         max_input_len = len(inputs_list[0])
         self.max_r = int(self.info_list[0][1])

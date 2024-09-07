@@ -23,7 +23,7 @@ def extend_row(row,values_to_add):
 
 if __name__ == '__main__':
     # data_root = './data_HL_2A'
-    data_root = '/media/congwang/data/python_code/Onion_past/data_HL_2A/data'
+    data_root = 'D:\Onion_data\data_HL_2A\data'
     name_list = ["train","test","val"]
     os.makedirs("./data",exist_ok=True)
     for name in name_list:
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         out_pth = data_root + '/' + name + '_outputs_0604.csv'
         df_inp = pd.read_csv(inp_pth, header=None)
         df_out = pd.read_csv(out_pth, header=None)
-        c_matrix = np.loadtxt(data_root + '/' +'0_cMatrix.txt')
+        c_matrix = np.loadtxt(data_root + '/' +'0_cMatrix.txt')/1000
         region = np.loadtxt(data_root + '/' +'0_region_list.txt')
         with h5py.File("./data"+"/HL_2A_" + name + "_database.h5", 'a') as f:
             input_group = f.create_group("x")
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
             posi_group.create_dataset(str(0), data=c_matrix)
             region_group.create_dataset(str(0), data=region)
-            values_to_add = [0, 36, 32]
+            values_to_add = [0, 32, 36]
             # 删除第一列 不需要
             # df_inp_dropped_col = df_inp.drop(df_inp.columns[0], axis=1)
             # 删除第一行，这里使用.iloc来排除第一行

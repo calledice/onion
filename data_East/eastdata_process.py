@@ -20,17 +20,17 @@ def search_mat_files(directory):
     return mat_files
 
 # 使用方法
-directory_path = '/media/congwang/data/python_code/Onion_past/data_East/data/DATA_set_MCW'
+directory_path = 'D:\Onion_data\data_East\data\DATA_set_MCW'
 mat_files_list = search_mat_files(directory_path)
 c_matrix_sss = sio.loadmat("./Poly_SXR.mat")
 c_matrix_s = c_matrix_sss['Poly_SXR'][0][0]
 c_matrix_ss = c_matrix_sss['Poly_SXR'][1][0]
 c_matrix_1 = c_matrix_s.reshape(-1, c_matrix_s.shape[2]).T
 c_matrix_2 = c_matrix_ss.reshape(-1, c_matrix_ss.shape[2]).T
-c_matrix = np.vstack((c_matrix_1, c_matrix_2))
+c_matrix = np.vstack((c_matrix_1, c_matrix_2))*1000
 values_to_add = [0, 75, 50]
 lengh_vec= values_to_add[1]*values_to_add[2]
-region =  np.zeros(lengh_vec)
+region =  np.ones(lengh_vec)
 j = 0
 input_list = []
 label_list = []

@@ -50,7 +50,7 @@ def predict(config: Config):
 
 
         # 设置阈值为0.001，小于0.001的置为0
-        pred = torch.where(pred < 0.001, torch.tensor(0.0), pred)
+        # pred = torch.where(pred < 0.001, torch.tensor(0.0), pred)
         # print(pred[0])
 
         # 还原output形状
