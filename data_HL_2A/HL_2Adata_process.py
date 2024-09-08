@@ -53,5 +53,5 @@ if __name__ == '__main__':
             for i in range(len(df_inp_array)):
                 df_inp_i = np.append(df_inp_array[i],values_to_add)
                 input_group.create_dataset(str(i), data=df_inp_i)
-                label_group.create_dataset(str(i), data=df_out_temp[i].reshape(36, 32).T.flatten())
+                label_group.create_dataset(str(i), data=df_out_temp[i].reshape(36, 32).T.flatten()*1000)
     print('finish')
