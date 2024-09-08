@@ -184,12 +184,15 @@ def tmp_runner(Module, predict_only=False,visualize_only = False):
         exit(1)
 
     config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=5, epochs=50, batch_size=64)
-    
+
     if predict_only:
+        print("start predict")
         predict(config)
     elif visualize_only:
+        print("start visualize")
         visualize(out_dir)
     else:
+        print("start train")
         run(Module, config)
         predict(config)
         visualize(out_dir)

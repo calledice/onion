@@ -20,7 +20,7 @@ def plot_data(data, title, save_path,i):
     levels = np.linspace(min_val, max_val, 20)
     plt.figure()
     if title != "error":
-        plt.pcolor(data, cmap='jet',vmin=0.0,vmax=1.0)
+        plt.pcolor(data, cmap='jet',vmin=0.0,vmax=1.0*max_val)
         plt.colorbar(label='ne')
     else:
         plt.pcolor(data, cmap='jet')
@@ -34,7 +34,9 @@ def plot_data(data, title, save_path,i):
 def plot_scatter(input,result,title,save_path,i):
     plt.figure()
     plt.figure(figsize=(5, 4))
+    error = 0.1 * input
     plt.scatter(range(len(input)), input, color='b', marker='^', s=15, alpha=0.8)
+    plt.errorbar(range(len(input)), input, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
     plt.scatter(range(len(result)), result, color='r', marker='o', s=15, alpha=0.5)
     plt.legend(labels=['Input', 'LineIntegral'])
     plt.title(title)
@@ -65,12 +67,12 @@ def visualize(case_file):
     for i in tqdm(range(len(preds)), desc='Visualizing'):
         relative_error = abs(np.matrix(preds[i]).T-np.matrix(labels[i]).T)/np.max(np.matrix(labels[i]).T)*100
         ave_error_list.append(np.average(relative_error))
-        if i < 100:
+        if i < 10:
             plot_data(np.matrix(preds[i]).T,title_pred,save_path,i)
             plot_data(np.matrix(labels[i]).T,title_label,save_path,i)
             plot_data(relative_error,title_error,save_path,i)
             plot_scatter(inputs[i],results[i],title_data,save_path,i)
-            print(f"finish {i}")
+            # print(f"finish {i}")
     ave_error_all = np.average(ave_error_list)
     error_all = np.sum(ave_error_list)
 
