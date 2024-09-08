@@ -34,7 +34,7 @@ def plot_data(data, title, save_path,i):
 def plot_scatter(input,result,title,save_path,i):
     plt.figure()
     plt.figure(figsize=(5, 4))
-    error = 0.1 * input
+    error = 0.1 * np.array(input)
     plt.scatter(range(len(input)), input, color='b', marker='^', s=15, alpha=0.8)
     plt.errorbar(range(len(input)), input, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
     plt.scatter(range(len(result)), result, color='r', marker='o', s=15, alpha=0.5)

@@ -159,9 +159,9 @@ def run(Module, config:Config):
     plot_loss(train_losses, val_losses, out_dir)
 
 def tmp_runner(Module, predict_only=False,visualize_only = False):
-    train_path = "../data_HL_2A/data/train_database_test.h5"
-    val_path = "../data_HL_2A/data/val_database_test.h5"
-    test_path = "../data_HL_2A/data/test_database_test.h5"
+    train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
+    val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
+    test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
 
     if Module == CNN_Base:
         out_dir = "output/Phantom_base"
@@ -183,7 +183,7 @@ def tmp_runner(Module, predict_only=False,visualize_only = False):
         print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
         exit(1)
 
-    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=5, epochs=50, batch_size=64)
+    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=-1, epochs=20, batch_size=64)
 
     if predict_only:
         print("start predict")
