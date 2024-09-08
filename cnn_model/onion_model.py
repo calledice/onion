@@ -86,7 +86,7 @@ class Onion_gavin(nn.Module):
             nn.GELU(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.Sigmoid()
+            nn.()
         )
 
     def forward(self, input, regi, posi):
@@ -133,7 +133,7 @@ class Onion_gavin_original(nn.Module):
             nn.GELU(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.Sigmoid()
+            nn.ReLU()
         )
 
     def forward(self, input, regi, posi):
@@ -198,7 +198,7 @@ class Onion_PI(nn.Module):
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.Sigmoid()
+            nn.ReLU()
         )
 
     def forward(self, input, regi, posi):
@@ -253,7 +253,7 @@ class Onion_input(nn.Module):
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.Sigmoid()
+            nn.ReLU()
         )
 
     def forward(self, input):
@@ -282,7 +282,7 @@ class CNN_Base(nn.Module):
         )
         self.fc2 = nn.Sequential(
             nn.Linear(self.out_dim, r * z),
-            nn.Sigmoid()
+            nn.ReLU()
         )
 
     def forward(self, x):
