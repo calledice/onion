@@ -39,7 +39,7 @@ def plot_scatter(input,result,label2results,title,save_path,i):
     plt.errorbar(range(len(input)), input, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
     plt.scatter(range(len(result)), result, color='g', marker='o', s=15, alpha=0.5)
     plt.scatter(range(len(label2results)), label2results, color='r', marker='o', s=15, alpha=0.5)
-    plt.legend(labels=['Input', 'LineIntegral'])
+    plt.legend(labels=['Input', 'Pre2result','Label2result'])
     plt.title(title)
     plt.savefig(save_path + "/" +f"{i}-"+ title)
     # plt.show()
