@@ -49,12 +49,14 @@ def visualize(case_file):
     pred_path = case_file+"/test/preds.json"
     label_path = case_file+"/test/labels.json"
     input_path = case_file+"/test/inputs.json"
-    result_path = case_file+"/test/results.json"
+    result_path = case_file+"/test/results.json"# pre2result
+    label2result_path = case_file+"/test/label2results.json"
 
     preds = json.load(open(pred_path, 'r'))
     labels = json.load(open(label_path, 'r'))
     inputs = json.load(open(input_path, 'r'))
     results = json.load(open(result_path, 'r'))
+    label2results = json.load(open(label2result_path, 'r'))
     print("Files loaded successfully.")
     title_pred = 'preds'
     title_label = 'labels'
@@ -63,6 +65,8 @@ def visualize(case_file):
     save_path = case_file+"/figures"
     os.makedirs(save_path,exist_ok=True)
     ave_error_list = []
+    ave_label2result_error_list = []# 由label获得的弦积分结果与input的偏差
+    ave_pre2result_error_list = []# 由pre获得的弦积分结果与input的偏差
     error_record_path = case_file+"/error_record.txt"
     for i in tqdm(range(len(preds)), desc='Visualizing'):
         relative_error = abs(np.matrix(preds[i]).T-np.matrix(labels[i]).T)/np.max(np.matrix(labels[i]).T)*100
@@ -74,11 +78,17 @@ def visualize(case_file):
             plot_scatter(inputs[i],results[i],title_data,save_path,i)
             # print(f"finish {i}")
     ave_error_all = np.average(ave_error_list)
-    error_all = np.sum(ave_error_list)
+    ave_label2result_all = np.average(ave_label2result_error_list)
+    ave_pre2result_error_all = np.average(ave_pre2result_error_list)
+    # error_all = np.sum(ave_error_list)
 
     with open(error_record_path,"a") as file:
         file.write(f"ave_error_all = {ave_error_all}\n")
-        file.write(f"error_all = {error_all}")
+        file.write(f"ave_label2result_all = {ave_label2result_all}\n")
+        file.write(f"ave_pre2result_error_all = {ave_pre2result_error_all}\n")
+        # file.write(f"error_all = {error_all}")
     print(f"ave_error_all = {ave_error_all}")
-    print(f"error_all = {error_all}")
+    print(f"ave_label2result_all = {ave_label2result_all}")
+    print(f"ave_pre2result_error_all = {ave_pre2result_error_all}")
+    # print(f"error_all = {error_all}")
     print("good")

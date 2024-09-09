@@ -33,6 +33,7 @@ def predict(config: Config):
     preds = []
     labels = []
     results = []
+    label2results = []
     inputs = []
     os.makedirs(out_dir+'/test', exist_ok=True)
     loss_fn = nn.MSELoss()
@@ -43,7 +44,8 @@ def predict(config: Config):
         else:
             pred = model(input, regi, posi)
         pred_temp = pred.unsqueeze(-1)
-        result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
+        result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1) #pre2results
+        label2result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), label).squeeze(-1)
         if config.addloss:
             loss_1 = loss_fn(pred, label)
             loss_2 = loss_fn(input, result)
@@ -61,6 +63,7 @@ def predict(config: Config):
         labels.append(label.detach().reshape(-1, r, z))
         losses.append(loss.item())
         results.append(result.detach())
+        label2results.append(label2result.detach())
         inputs.append(input.detach())
         
         # break # 只测试了一个batch，如果要预测所有测试集则删除这个break
