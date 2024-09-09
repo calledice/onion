@@ -336,7 +336,7 @@ if __name__ == '__main__':
     name = ['train','valid','test']
     num_rz_shape = 1
     num_region_maxvalue = 100
-    num_value = 1000
+    num_value = 100
 
     generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value)
 

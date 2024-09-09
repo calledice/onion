@@ -159,12 +159,15 @@ def run(Module, config:Config):
     plot_loss(train_losses, val_losses, out_dir)
 
 def tmp_runner(Module, predict_only=False,visualize_only = False):
-    train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
-    val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
-    test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
+    # train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
+    # val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
+    # test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
+    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_100.h5"
+    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_100.h5"
+    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5"
 
     if Module == CNN_Base:
-        out_dir = "output/Phantom_base"
+        out_dir = "output/Phantom_CNN_Base_input"
         no_regi=True
         addloss = False
     elif Module == Onion_gavin:
@@ -183,7 +186,7 @@ def tmp_runner(Module, predict_only=False,visualize_only = False):
         print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
         exit(1)
 
-    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=-1, epochs=20, batch_size=64)
+    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=-1, epochs=1, batch_size=16)
 
     if predict_only:
         print("start predict")
@@ -203,5 +206,5 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
 
-    tmp_runner(Onion_gavin, predict_only=False,visualize_only = False)
+    tmp_runner(Onion_input, predict_only=False,visualize_only = True)
 

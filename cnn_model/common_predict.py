@@ -24,7 +24,7 @@ def predict(config: Config):
     
     print(len(dataset))
     batch_size = 64
-    test_loader = DataLoader(dataset, batch_size=64, shuffle=True)
+    test_loader = DataLoader(dataset, batch_size=64, shuffle=False)
     out_dir = config.out_dir
     device = torch.device('cpu')
     model = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cpu'))
@@ -45,7 +45,7 @@ def predict(config: Config):
             pred = model(input, regi, posi)
         pred_temp = pred.unsqueeze(-1)
         result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1) #pre2results
-        label2result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), label).squeeze(-1)
+        label2result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), label.unsqueeze(-1)).squeeze(-1)
         if config.addloss:
             loss_1 = loss_fn(pred, label)
             loss_2 = loss_fn(input, result)
@@ -73,9 +73,11 @@ def predict(config: Config):
     preds = torch.concat(preds, dim=0)
     labels = torch.concat(labels, dim=0)
     results = torch.concat(results, dim=0)
+    label2results = torch.concat(label2results, dim=0)
     inputs = torch.concat(inputs, dim=0)
     json.dump(preds.tolist(), open(f"{out_dir}/test/preds.json", 'w'), indent=2)
     json.dump(labels.tolist(), open(f"{out_dir}/test/labels.json", 'w'), indent=2)
     json.dump(results.tolist(), open(f"{out_dir}/test/results.json", 'w'), indent=2)
+    json.dump(label2results.tolist(), open(f"{out_dir}/test/label2results.json", 'w'), indent=2)
     json.dump(inputs.tolist(), open(f"{out_dir}/test/inputs.json", 'w'), indent=2)
     print("finish")
