@@ -30,6 +30,7 @@ def train(model, train_loader, val_loader, config:Config):
     optim = torch.optim.Adam(params=model.parameters(), lr=config.lr)
     train_losses = []
     val_losses = []
+    lambda_l1 = 0.01
     for epoch in range(epochs):
         # 训练阶段
         model.train()
@@ -49,7 +50,10 @@ def train(model, train_loader, val_loader, config:Config):
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
                 alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-                loss = loss_1 + alpha * loss_2
+                l1_reg = torch.tensor(0.)
+                for param in model.parameters():
+                    l1_reg += torch.norm(param,p=1)
+                loss = loss_1 + alpha * loss_2 + lambda_l1 * l1_reg
                 # loss = weighted_mse_loss(pred, label, 10)
             else:
                 loss = loss_fn(pred, label)
@@ -80,7 +84,10 @@ def train(model, train_loader, val_loader, config:Config):
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
                 alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-                loss = loss_1 + alpha * loss_2
+                l1_reg = torch.tensor(0.)
+                for param in model.parameters():
+                    l1_reg += torch.norm(param,p=1)
+                loss = loss_1 + alpha * loss_2 + lambda_l1 * l1_reg
             else:
                 loss = loss_fn(pred, label)
             preds.append(pred.detach().reshape(-1, config.max_r, config.max_z))
@@ -108,24 +115,18 @@ def plot_loss(train_losses, val_losses, out_dir):
 
     import matplotlib.pyplot as plt
     iters = list(range(len(train_losses)))
-
     # 创建一个新的图形
     plt.figure()
-
     # 绘制第一条曲线
     plt.plot(iters, train_losses, label='training loss', color='blue')
-
     # 绘制第二条曲线
     plt.plot(iters, val_losses, label='validation loss', color='red')
-
     # 添加标题和标签
     plt.title('Loss curve')
     plt.xlabel('iters')
     plt.ylabel('loss')
-
     # 显示图例
     plt.legend()
-
     plt.savefig(f'{out_dir}/train/loss_curve.png')
     # 显示图形
     plt.show()
@@ -167,26 +168,26 @@ def tmp_runner(Module, predict_only=False,visualize_only = False):
     test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5"
 
     if Module == CNN_Base:
-        out_dir = "output/Phantom_CNN_Base_input"
+        out_dir = "output/CNN_Base_input"
         no_regi=True
         addloss = False
     elif Module == Onion_gavin:
-        out_dir = "output/Phantom_Onion_gavin"
+        out_dir = "output/Onion_gavin"
         no_regi=False
         addloss = False
     elif Module == Onion_input:
-        out_dir = "output/Phantom_Onion_input"
+        out_dir = "output/Onion_input"
         no_regi=True
         addloss = False
     elif Module == Onion_PI:
-        out_dir = "output/Phantom_Onion_PI"
+        out_dir = "output/Onion_PI"
         no_regi=False
         addloss = True
     else:
         print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
         exit(1)
 
-    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=-1, epochs=1, batch_size=16)
+    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=-1, epochs=20, batch_size=256)
 
     if predict_only:
         print("start predict")
