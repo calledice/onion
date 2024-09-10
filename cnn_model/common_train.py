@@ -163,9 +163,12 @@ def tmp_runner(Module, predict_only=False,visualize_only = False):
     # train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
     # val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
     # test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
-    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_100.h5"
-    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_100.h5"
-    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5"
+    # train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_100.h5"
+    # val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_100.h5"
+    # test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5"
+    train_path = "../data_East/data/EAST_train_database.h5"
+    val_path = "../data_East/data/EAST_valid_database.h5"
+    test_path = "../data_East/data/EAST_test_database.h5"
 
     if Module == CNN_Base:
         out_dir = "output/CNN_Base_input"
