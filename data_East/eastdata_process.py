@@ -4,6 +4,7 @@ import fnmatch
 import os
 import glob
 import h5py
+import matplotlib.pyplot as plt
 # def find_mat_files(directory):
 #     # 递归地查找所有.mat文件
 #     return [os.path.join(root, name)
@@ -19,6 +20,20 @@ def search_mat_files(directory):
             mat_files.append(os.path.join(root, filename))
     return mat_files
 
+def plotdata(input,result,result1):
+    plt.figure()
+    plt.figure(figsize=(5, 4))
+    # error = 0.1 * np.array(input)
+    plt.scatter(range(len(input)), input, color='b', marker='^', s=15, alpha=0.8)
+    # plt.errorbar(range(len(input)), input, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
+    plt.scatter(range(len(result)), result, color='g', marker='o', s=15, alpha=0.5)
+    plt.scatter(range(len(result1)), result1, color='r', marker='o', s=15, alpha=0.5)
+    plt.legend(labels=['input_mean', 'input_49','label2result'])
+    plt.title('input compare')
+    # plt.savefig(save_path + "/" + f"{i}-" + title)
+    plt.show()
+    # plt.close()
+
 # 使用方法
 directory_path = 'D:\Onion_data\data_East\data\DATA_set_MCW'
 mat_files_list = search_mat_files(directory_path)
@@ -27,7 +42,7 @@ c_matrix_s = c_matrix_sss['Poly_SXR'][0][0]
 c_matrix_ss = c_matrix_sss['Poly_SXR'][1][0]
 c_matrix_1 = c_matrix_s.reshape(-1, c_matrix_s.shape[2]).T
 c_matrix_2 = c_matrix_ss.reshape(-1, c_matrix_ss.shape[2]).T
-c_matrix = np.vstack((c_matrix_1, c_matrix_2))*1000*2
+c_matrix = np.vstack((c_matrix_1, c_matrix_2))*2000
 values_to_add = [0, 75, 50]
 lengh_vec= values_to_add[1]*values_to_add[2]
 region =  np.ones(lengh_vec)
@@ -39,11 +54,17 @@ for file_path in mat_files_list:
     data = sio.loadmat(file_path)
     xu_mean = np.mean(data["Xu"], axis=1)  # 注意axis参数
     xd_mean = np.mean(data["Xd"], axis=1)  # 注意axis参数
+    xu_49 = np.mean(data["Xu"], axis=1)  # 注意axis参数
+    xd_49 = np.mean(data["Xd"], axis=1)  # 注意axis参数
     x = np.concatenate((xu_mean,xd_mean))
+    x_49 = np.concatenate((xu_49,xd_49))
     y = data["Sm"].reshape(lengh_vec,1)#3750*1
     df_inp_array = np.array(x)
+    df_inp_array_49 = np.array(x)
     df_out_array = np.array(y)
+    df_inp_array_out = c_matrix@df_out_array
     df_inp_i = np.append(df_inp_array, values_to_add)
+    # plotdata(df_inp_array, df_inp_array_49,df_inp_array_out)
     input_list.append(df_inp_i)
     label_list.append(df_out_array.T[0])
 
