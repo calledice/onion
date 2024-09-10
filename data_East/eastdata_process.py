@@ -64,7 +64,7 @@ for file_path in mat_files_list:
     df_out_array = np.array(y)
     df_inp_array_out = c_matrix@df_out_array
     df_inp_i = np.append(df_inp_array, values_to_add)
-    # plotdata(df_inp_array, df_inp_array_49,df_inp_array_out)
+    plotdata(df_inp_array, df_inp_array_49,df_inp_array_out)
     input_list.append(df_inp_i)
     label_list.append(df_out_array.T[0])
 
