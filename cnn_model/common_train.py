@@ -16,7 +16,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(script_dir)
 
 
-def train(model, train_loader, val_loader, config:Config):
+def train(model, train_loader, val_loader, config: Config):
     '''
     no_regi: 判断是不是没有regi和posi的模型
     '''
@@ -52,7 +52,7 @@ def train(model, train_loader, val_loader, config:Config):
                 alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
                 l1_reg = torch.tensor(0.)
                 for param in model.parameters():
-                    l1_reg += torch.norm(param,p=1)
+                    l1_reg += torch.norm(param, p=1)
                 loss = loss_1 + alpha * loss_2 + lambda_l1 * l1_reg
                 # loss = weighted_mse_loss(pred, label, 10)
             else:
@@ -86,7 +86,7 @@ def train(model, train_loader, val_loader, config:Config):
                 alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
                 l1_reg = torch.tensor(0.)
                 for param in model.parameters():
-                    l1_reg += torch.norm(param,p=1)
+                    l1_reg += torch.norm(param, p=1)
                 loss = loss_1 + alpha * loss_2 + lambda_l1 * l1_reg
             else:
                 loss = loss_fn(pred, label)
@@ -111,8 +111,8 @@ def train(model, train_loader, val_loader, config:Config):
                 break
     return train_losses, val_losses
 
-def plot_loss(train_losses, val_losses, out_dir):
 
+def plot_loss(train_losses, val_losses, out_dir):
     import matplotlib.pyplot as plt
     iters = list(range(len(train_losses)))
     # 创建一个新的图形
@@ -131,7 +131,8 @@ def plot_loss(train_losses, val_losses, out_dir):
     # 显示图形
     plt.show()
 
-def run(Module, config:Config):
+
+def run(Module, config: Config):
     train_path = config.train_path
     val_path = config.val_path
     test_path = config.test_path
@@ -159,7 +160,8 @@ def run(Module, config:Config):
     train_losses, val_losses = train(onion, train_loader, val_loader, config)
     plot_loss(train_losses, val_losses, out_dir)
 
-def tmp_runner(Module, predict_only=False,visualize_only = False):
+
+def tmp_runner(Module, predict_only=False, visualize_only=False):
     # train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
     # val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
     # test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
@@ -172,25 +174,26 @@ def tmp_runner(Module, predict_only=False,visualize_only = False):
 
     if Module == CNN_Base:
         out_dir = "output/CNN_Base_input"
-        no_regi=True
+        no_regi = True
         addloss = False
     elif Module == Onion_gavin:
         out_dir = "output/Onion_gavin"
-        no_regi=False
+        no_regi = False
         addloss = False
     elif Module == Onion_input:
         out_dir = "output/Onion_input"
-        no_regi=True
+        no_regi = True
         addloss = False
     elif Module == Onion_PI:
         out_dir = "output/Onion_PI"
-        no_regi=False
+        no_regi = False
         addloss = True
     else:
         print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
         exit(1)
 
-    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=-1, epochs=20, batch_size=256)
+    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=-1, epochs=20,
+                    batch_size=256)
 
     if predict_only:
         print("start predict")
@@ -204,11 +207,11 @@ def tmp_runner(Module, predict_only=False,visualize_only = False):
         predict(config)
         visualize(out_dir)
 
+
 if __name__ == '__main__':
     '''
     对于已经开发好的三个模型，直接通过这一个common_train文件就可以开启训练和预测，如果只需要预测，则开启predict_only=True.
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
 
-    tmp_runner(Onion_input, predict_only=False,visualize_only = True)
-
+    tmp_runner(Onion_input, predict_only=False, visualize_only=True)
