@@ -30,7 +30,7 @@ def train(model, train_loader, val_loader, config: Config):
     optim = torch.optim.Adam(params=model.parameters(), lr=config.lr)
     train_losses = []
     val_losses = []
-    lambda_l1 = 0.01
+    lambda_l1 = config.lambda_l1
     for epoch in range(epochs):
         # 训练阶段
         model.train()
@@ -193,7 +193,7 @@ def tmp_runner(Module, predict_only=False, visualize_only=False):
         exit(1)
 
     config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=-1, epochs=20,
-                    batch_size=256)
+                    batch_size=256,lambda_l1= 0.1)
 
     if predict_only:
         print("start predict")
@@ -214,4 +214,4 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
 
-    tmp_runner(Onion_input, predict_only=False, visualize_only=True)
+    tmp_runner(Onion_input, predict_only=False, visualize_only=False)
