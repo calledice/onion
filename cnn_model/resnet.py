@@ -1,6 +1,8 @@
 import torch 
 import torch.nn as nn
 import math
+from torchinfo import summary
+from contextlib import redirect_stdout
 
 
 class ConvEmbModel(nn.Module):
@@ -47,9 +49,9 @@ class DownSample(nn.Module):
         return self.feature(x)
 
 
-class ResOnion(nn.Module):
+class ResOnion_PI(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
-        super(ResOnion, self).__init__()
+        super(ResOnion_PI, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n * 2 + 1
         self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(4)])
@@ -85,12 +87,59 @@ class ResOnion(nn.Module):
             z = net(z)
         return z
 
-if __name__ == '__main__':
-    basic = ResOnion(40, 34, 27)
 
-    input = torch.rand(64, 40)
-    posi = torch.rand(64, 40, 34, 27)
-    regi = torch.rand(64, 34, 27)
-    x = basic(input, regi, posi)
-    print(x.shape)
+class ResOnion_input(nn.Module):
+    def __init__(self, n=100, max_r=100, max_z=100):
+        super(ResOnion_input, self).__init__()
+        self.conv_upsample = ConvEmbModel(max_r, max_z)
+        channels = n
+        self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(4)])
+        self.down1 = DownSample(channels, 2 * channels)
+        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(8)])
+        self.down2 = DownSample(2 * channels, 4 * channels)
+        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(12)])
+
+        final_r = math.ceil(math.ceil(max_r / 2) / 2)
+        final_z = math.ceil(math.ceil(max_z / 2) / 2)
+        fc_in_dim = 4 * channels * final_r * final_z
+        fc_out_dim = max_r * max_z
+
+        self.fc = nn.Sequential(
+            nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
+            nn.ReLU()
+        )
+
+    def forward(self, input):
+        input = self.conv_upsample(input)
+        for net in self.res1:
+            z = net(input)
+        z = self.down1(z)
+        for net in self.res2:
+            z = net(z)
+        z = self.down2(z)
+        for net in self.res3:
+            z = net(z)
+        return z
+
+if __name__ == '__main__':
+    # basic = ResOnion(40, 34, 27)
+    # input = torch.rand(64, 40)
+    # posi = torch.rand(64, 40, 34, 27)
+    # regi = torch.rand(64, 34, 27)
+    # x = basic(input, regi, posi)
+    # print(x.shape)
     # print(basic)
+    n = 40
+    r = 34
+    z = 27
+    input_shapes = [(1,n),(1,r,z),(1,n,r,z)]
+    inputs = [torch.randn(*shape) for shape in input_shapes]
+    onion = ResOnion_PI(n=n, max_r=r, max_z=z)
+    summary(onion,input_data=inputs)
+    # 将summary输出保存到文本文件中
+    with open('onion_resnetmodel.txt', 'w') as f:
+        with redirect_stdout(f):
+            summary(onion, input_data=inputs)

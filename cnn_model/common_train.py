@@ -41,6 +41,7 @@ def train(model, train_loader, val_loader, config: Config):
     train_losses = []
     val_losses = []
     lambda_l1 = config.lambda_l1
+    p = config.p
     for epoch in range(epochs):
         # 训练阶段
         model.train()
@@ -62,7 +63,7 @@ def train(model, train_loader, val_loader, config: Config):
                 alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
                 l1_reg = torch.tensor(0.,device = device)
                 for param in model.parameters():
-                    l1_reg += torch.norm(param, p=1)
+                    l1_reg += torch.norm(param, p)
                 loss = loss_1 + alpha * loss_2 + lambda_l1 * l1_reg
                 # loss = weighted_mse_loss(pred, label, 10)
             else:
@@ -96,7 +97,7 @@ def train(model, train_loader, val_loader, config: Config):
                 alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
                 l1_reg = torch.tensor(0.,device = device)
                 for param in model.parameters():
-                    l1_reg += torch.norm(param, p=1)
+                    l1_reg += torch.norm(param, p)
                 loss = loss_1 + alpha * loss_2 + lambda_l1 * l1_reg
             else:
                 loss = loss_fn(pred, label)
@@ -171,31 +172,31 @@ def run(Module, config: Config):
     plot_loss(train_losses, val_losses, out_dir)
 
 
-def tmp_runner(Module, predict_only=False, visualize_only=False):
+def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=None):
     # train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
     # val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
     # test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
-    # train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_100.h5"
-    # val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_100.h5"
-    # test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_100.h5"
-    train_path = "../data_East/data/EAST_train_database.h5"
-    val_path = "../data_East/data/EAST_valid_database.h5"
-    test_path = "../data_East/data/EAST_test_database.h5"
+    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_1000.h5"
+    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_1000.h5"
+    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5"
+    # train_path = "../data_East/data/EAST_train_database.h5"
+    # val_path = "../data_East/data/EAST_valid_database.h5"
+    # test_path = "../data_East/data/EAST_test_database.h5"
 
     if Module == CNN_Base:
-        out_dir = "output/CNN_Base_input"
+        out_dir = "/mnt/e/onion_output/cnn_model/output/CNN_Base_input"
         no_regi = True
         addloss = False
     elif Module == Onion_gavin:
-        out_dir = "output/Onion_gavin"
+        out_dir = "/mnt/e/onion_output/cnn_model/output/Onion_gavin"
         no_regi = False
         addloss = False
     elif Module == Onion_input:
-        out_dir = "output/Onion_input"
+        out_dir = "/mnt/e/onion_output/cnn_model/output/phantom2A_Onion_input_addlossL2_0.1"
         no_regi = True
-        addloss = False
+        addloss = True
     elif Module == Onion_PI:
-        out_dir = "output/Onion_PI"
+        out_dir = "/mnt/e/onion_output/cnn_model/output/Onion_PI"
         no_regi = False
         addloss = True
     else:
@@ -203,7 +204,8 @@ def tmp_runner(Module, predict_only=False, visualize_only=False):
         exit(1)
 
     config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, randomnumseed, early_stop=-1, epochs=20,
-                    batch_size=256,lambda_l1= 0.1)
+                    batch_size=256,lambda_l1= 0.1, p=2)
+
     if config.randomnumseed == False:
         seed_everything(42)
 
@@ -227,4 +229,4 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
 
-    tmp_runner(Onion_input, predict_only=False, visualize_only=False,randomnumseed=False)
+    tmp_runner(Onion_input, predict_only=False, visualize_only=False,randomnumseed=True)

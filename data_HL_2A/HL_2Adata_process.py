@@ -23,7 +23,7 @@ def extend_row(row,values_to_add):
 
 if __name__ == '__main__':
     # data_root = './data_HL_2A'
-    data_root = 'D:\Onion_data\data_HL_2A\data'
+    data_root = '/mnt/e/onion_output/origin_data/data_HL_2A/data'
     name_list = ["val","train","test"]
     os.makedirs("./data",exist_ok=True)
     for name in name_list:
@@ -41,6 +41,8 @@ if __name__ == '__main__':
         # 将处理后的DataFrame转换为NumPy数组
         df_inp_array = np.array(df_inp_dropped_both)
         df_out_temp = np.array(df_out.drop(0))
+        with open("info.txt", "a") as info:
+            info.write(f"samples number = {len(df_inp_array)}")
         with h5py.File("./data"+"/HL_2A_" + name + "_database.h5", 'a') as f:
             input_group = f.create_group("x")
             label_group = f.create_group("y")

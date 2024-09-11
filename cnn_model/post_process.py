@@ -24,21 +24,21 @@ def plot_data(data, title, save_path,i):
         plt.colorbar(label='ne')
     else:
         plt.pcolor(data, cmap='jet')
-        plt.colorbar(label='error(%)')
+        plt.colorbar(label='error')
     plt.title(title)
     ax = plt.gca()
     ax.set_aspect(1.0)
     plt.savefig(save_path + "/" +f"{i}-"+ title)
     # plt.show()
     plt.close()
-def plot_scatter(input,result,label2results,title,save_path,i):
+def plot_scatter(input,result,label2results,ave_label2result_error,title,save_path,i):
     plt.figure()
     plt.figure(figsize=(5, 4))
-    error = 0.1 * abs(np.array(input))
+    error = np.average(np.array(ave_label2result_error)) * abs(np.array(input))
     plt.scatter(range(len(input)), input, color='b', marker='^', s=15, alpha=0.8)
-    plt.errorbar(range(len(input)), input, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
     plt.scatter(range(len(result)), result, color='g', marker='o', s=15, alpha=0.5)
     plt.scatter(range(len(label2results)), label2results, color='r', marker='o', s=15, alpha=0.5)
+    plt.errorbar(range(len(input)), label2results, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
     plt.legend(labels=['Input', 'Pre2result','Label2result'])
     plt.title(title)
     plt.savefig(save_path + "/" +f"{i}-"+ title)
@@ -70,9 +70,9 @@ def visualize(case_file):
     ave_pre2result_error_list = []# 由pre获得的弦积分结果与input的偏差
     error_record_path = case_file+"/error_record.txt"
     for i in tqdm(range(len(preds)), desc='Visualizing'):
-        relative_error = abs(np.matrix(preds[i]).T-np.matrix(labels[i]).T)/np.max(np.matrix(labels[i]).T)*100
-        ave_label2result_error = abs(np.array(label2results[i])-np.array(inputs[i]))/np.max(np.array(inputs[i]))*100
-        ave_pre2result_error = abs(np.array(results[i])-np.array(inputs[i]))/np.max(np.array(inputs[i]))*100
+        relative_error = abs(np.matrix(preds[i]).T-np.matrix(labels[i]).T)/np.max(np.matrix(labels[i]).T)
+        ave_label2result_error = abs(np.array(label2results[i])-np.array(inputs[i]))/np.max(np.array(inputs[i]))
+        ave_pre2result_error = abs(np.array(results[i])-np.array(inputs[i]))/np.max(np.array(inputs[i]))
         ave_error_list.append(np.average(relative_error))
         ave_label2result_error_list.append(np.average(ave_label2result_error))
         ave_pre2result_error_list.append(np.average(ave_pre2result_error))
@@ -80,7 +80,7 @@ def visualize(case_file):
             plot_data(np.matrix(preds[i]),title_pred,save_path,i)
             plot_data(np.matrix(labels[i]),title_label,save_path,i)
             plot_data(relative_error,title_error,save_path,i)
-            plot_scatter(inputs[i],results[i],label2results[i],title_data,save_path,i)
+            plot_scatter(inputs[i],results[i],label2results[i],ave_label2result_error_list[i],title_data,save_path,i)
             # print(f"finish {i}")
     ave_error_all = np.average(ave_error_list)
     ave_label2result_error_all = np.average(ave_label2result_error_list)

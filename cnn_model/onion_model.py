@@ -13,7 +13,7 @@ from contextlib import redirect_stdout
 class Config:
     def __init__(self, train_path, val_path, test_path, out_dir, no_regi, addloss, randomnumseed, n_layer=None,
             n_head=None, dropout=None, bias=True, dtype=torch.float32, batch_size=64,
-            max_n=100, max_r=100, max_z=100, lr=0.001, epochs=20, early_stop=5,lambda_l1 = 0.01 ):
+            max_n=100, max_r=100, max_z=100, lr=0.001, epochs=20, early_stop=5,lambda_l1 = 0.01,p=2 ):
         self.n_layer = n_layer
         self.n_head = n_head
         self.dropout = dropout
@@ -36,6 +36,7 @@ class Config:
         self.addloss = addloss
         self.lambda_l1 = lambda_l1
         self.randomnumseed = randomnumseed
+        self.p = p
 
 class ConvEmbModel(nn.Module):
     """
@@ -52,6 +53,34 @@ class ConvEmbModel(nn.Module):
         x = self.conv(x.unsqueeze(1)).transpose(1, 2)
         x = x.reshape(x.shape[0], x.shape[1], self.r, self.z)
         return x
+
+
+class ResidualBasic(nn.Module):
+    def __init__(self, channels):
+        super().__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.ReLU(),
+            nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.ReLU()
+        )
+
+    def forward(self, x):
+        return self.features(x) + x
+
+
+class DownSample(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.feature = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), padding=(1, 1), stride=(2, 2)),
+            nn.ReLU(),
+            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), padding=(1, 1), stride=(1, 1)),
+            nn.ReLU()
+        )
+
+    def forward(self, x):
+        return self.feature(x)
 
 class Onion_gavin(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
@@ -154,45 +183,33 @@ class Onion_PI(nn.Module):
         channels = n * 2 + 1
 
         self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels, out_channels=128, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=128),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
-
-            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=256),
+            nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=2*channels),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2,stride=2),
 
-            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=512),
+            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4*channels),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2,stride=2),
+
+            nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8*channels),
             nn.ReLU(inplace=True),
             nn.AdaptiveMaxPool2d(output_size=(2, 2))
         )
-        self.deconv_net = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=channels*2,out_channels=channels*2,kernel_size=(3,3),stride=2,padding=1,output_padding=1),
-            nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(in_channels=channels*2,out_channels=channels,kernel_size=(3,3),stride=2,padding=1,output_padding=1),
-            nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(in_channels=channels,out_channels=channels,kernel_size=(3,3),stride=2,padding=1,output_padding=1),
-            nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(in_channels=channels,out_channels=channels,kernel_size=(3,3),stride=2,padding=1,output_padding=1),
-            nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), stride=2, padding=1,
-                               output_padding=1),
-            nn.ReLU(inplace=True)
-        )
-        conv_out_dim = 512*2*2
+
+        conv_out_dim = 8*channels*2*2
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
@@ -218,36 +235,37 @@ class Onion_input(nn.Module):
         super(Onion_input, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         # channels = n * 2 + 1
-        channels = n
+        channel = n
+        channels = 64
 
         self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels, out_channels=128, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=channel, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=128),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
-
-            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=256),
+            nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=2*channels),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2,stride=2),
 
-            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=512),
+            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4*channels),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2,stride=2),
+
+            nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8*channels),
             nn.ReLU(inplace=True),
             nn.AdaptiveMaxPool2d(output_size=(2, 2))
         )
 
-        conv_out_dim = 512*2*2
+        conv_out_dim = 8*channels*2*2
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
@@ -295,7 +313,79 @@ class CNN_Base(nn.Module):
         z = self.fc2(z)
         return z
 
+class ResOnion_PI(nn.Module):
+    def __init__(self, n=100, max_r=100, max_z=100):
+        super(ResOnion_PI, self).__init__()
+        self.conv_upsample = ConvEmbModel(max_r, max_z)
+        channels = n * 2 + 1
+        self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(4)])
+        self.down1 = DownSample(channels, 2 * channels)
+        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(8)])
+        self.down2 = DownSample(2 * channels, 4 * channels)
+        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(12)])
 
+        final_r = math.ceil(math.ceil(max_r / 2) / 2)
+        final_z = math.ceil(math.ceil(max_z / 2) / 2)
+        fc_in_dim = 4 * channels * final_r * final_z
+        fc_out_dim = max_r * max_z
+
+        self.fc = nn.Sequential(
+            nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
+            nn.ReLU()
+        )
+
+    def forward(self, input, regi, posi):
+        input = self.conv_upsample(input)
+        regi = regi.unsqueeze(dim=0).transpose(0, 1)
+        z = torch.concat([input, regi, posi], dim=1)
+        for net in self.res1:
+            z = net(z)
+        z = self.down1(z)
+        for net in self.res2:
+            z = net(z)
+        z = self.down2(z)
+        for net in self.res3:
+            z = net(z)
+        return z
+
+class ResOnion_input(nn.Module):
+    def __init__(self, n=100, max_r=100, max_z=100):
+        super(ResOnion_input, self).__init__()
+        self.conv_upsample = ConvEmbModel(max_r, max_z)
+        channels = n
+        self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(4)])
+        self.down1 = DownSample(channels, 2 * channels)
+        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(8)])
+        self.down2 = DownSample(2 * channels, 4 * channels)
+        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(12)])
+
+        final_r = math.ceil(math.ceil(max_r / 2) / 2)
+        final_z = math.ceil(math.ceil(max_z / 2) / 2)
+        fc_in_dim = 4 * channels * final_r * final_z
+        fc_out_dim = max_r * max_z
+
+        self.fc = nn.Sequential(
+            nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
+            nn.ReLU()
+        )
+
+    def forward(self, input):
+        input = self.conv_upsample(input)
+        for net in self.res1:
+            z = net(input)
+        z = self.down1(z)
+        for net in self.res2:
+            z = net(z)
+        z = self.down2(z)
+        for net in self.res3:
+            z = net(z)
+        return z
 
 def weighted_mse_loss(pred, target, weight=None):
     '''
@@ -314,13 +404,13 @@ if __name__ =="__main__":
     r = 32
     z = 36
     flatten_len = r*z
-    input_shapes = [(1,n),(1,r,z),(1,n,r,z)]
+    # input_shapes = [(1,n),(1,r,z),(1,n,r,z)]
+    input_shapes = [(1,n)]
     inputs = [torch.randn(*shape) for shape in input_shapes]
-    onion = Onion_PI(n=n, max_r=r, max_z=z)
-    summary(onion,input_data=inputs)
+    onion = Onion_input(n=n, max_r=r, max_z=z)
 
     # 将summary输出保存到文本文件中
     summary(onion, input_data=inputs)
-    with open('onion_model.txt', 'w') as f:
+    with open('onion_input_model.txt', 'w') as f:
         with redirect_stdout(f):
             summary(onion, input_data=inputs)

@@ -35,7 +35,7 @@ def plotdata(input,result,result1):
     # plt.close()
 
 # 使用方法
-directory_path = 'D:\Onion_data\data_East\data\DATA_set_MCW'
+directory_path = '/mnt/e/onion_output/origin_data/data_East/data/DATA_set_MCW'
 mat_files_list = search_mat_files(directory_path)
 c_matrix_sss = sio.loadmat("./Poly_SXR.mat")
 c_matrix_s = c_matrix_sss['Poly_SXR'][0][0]
@@ -67,7 +67,8 @@ for file_path in mat_files_list:
     plotdata(df_inp_array, df_inp_array_49,df_inp_array_out)
     input_list.append(df_inp_i)
     label_list.append(df_out_array.T[0])
-
+with open("info.txt","a") as info:
+    info.write(f"samples number = {len(input_list)}")
 assert len(input_list) == len(label_list), "输入列表和标签列表长度必须相同"
 print("load finish")
 # 合并输入和标签
@@ -96,6 +97,8 @@ val_inputs, val_labels = shuffled_inputs[train_end:val_end], shuffled_labels[tra
 test_inputs, test_labels = shuffled_inputs[val_end:], shuffled_labels[val_end:]
 name = ['train','valid','test']
 os.makedirs("./data",exist_ok=True)
+
+
 
 with h5py.File(f"./data/EAST_{name[0]}_database.h5", 'a') as data0:
     data_input_group = data0.create_group("x")
