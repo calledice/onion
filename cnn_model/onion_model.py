@@ -11,7 +11,7 @@ from torchinfo import summary
 from contextlib import redirect_stdout
 
 class Config:
-    def __init__(self, train_path, val_path, test_path, out_dir, no_regi, addloss, n_layer=None,
+    def __init__(self, train_path, val_path, test_path, out_dir, no_regi, addloss, randomnumseed, n_layer=None,
             n_head=None, dropout=None, bias=True, dtype=torch.float32, batch_size=64,
             max_n=100, max_r=100, max_z=100, lr=0.001, epochs=20, early_stop=5,lambda_l1 = 0.01 ):
         self.n_layer = n_layer
@@ -35,6 +35,7 @@ class Config:
         self.no_regi = no_regi
         self.addloss = addloss
         self.lambda_l1 = lambda_l1
+        self.randomnumseed = randomnumseed
 
 class ConvEmbModel(nn.Module):
     """

@@ -8,13 +8,23 @@ import torch.nn as nn
 from tqdm import tqdm
 import os
 import json
+import numpy as np
+import random
 
 # 获取当前源程序所在的目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # 切换工作目录到源程序所在的目录
 os.chdir(script_dir)
-
+# 固定随机种子
+def seed_everything(seed=42):
+    random.seed(seed)  # 为Python内置的random模块设置随机种子
+    os.environ['PYTHONHASHSEED'] = str(seed)  # 为Python的哈希行为设置随机种子
+    np.random.seed(seed)  # 为numpy设置随机种子
+    torch.manual_seed(seed)  # 为CPU设置随机种子
+    torch.cuda.manual_seed_all(seed)  # 为所有GPU设置随机种子
+    torch.backends.cudnn.deterministic = True  # 设置cuDNN为确定性模式
+    torch.backends.cudnn.benchmark = False  # 禁止使用cuDNN的benchmark功能
 
 def train(model, train_loader, val_loader, config: Config):
     '''
@@ -192,9 +202,12 @@ def tmp_runner(Module, predict_only=False, visualize_only=False):
         print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
         exit(1)
 
-    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, early_stop=-1, epochs=20,
+    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, randomnumseed, early_stop=-1, epochs=20,
                     batch_size=256,lambda_l1= 0.1)
+    if config.randomnumseed == False:
+        seed_everything(42)
 
+    print(out_dir)
     if predict_only:
         print("start predict")
         predict(config)
@@ -214,4 +227,4 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
 
-    tmp_runner(Onion_input, predict_only=False, visualize_only=False)
+    tmp_runner(Onion_input, predict_only=False, visualize_only=False,randomnumseed=False)
