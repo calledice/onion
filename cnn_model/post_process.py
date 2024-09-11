@@ -77,8 +77,8 @@ def visualize(case_file):
         ave_label2result_error_list.append(np.average(ave_label2result_error))
         ave_pre2result_error_list.append(np.average(ave_pre2result_error))
         if i < 10:
-            plot_data(np.matrix(preds[i]).T,title_pred,save_path,i)
-            plot_data(np.matrix(labels[i]).T,title_label,save_path,i)
+            plot_data(np.matrix(preds[i]),title_pred,save_path,i)
+            plot_data(np.matrix(labels[i]),title_label,save_path,i)
             plot_data(relative_error,title_error,save_path,i)
             plot_scatter(inputs[i],results[i],label2results[i],title_data,save_path,i)
             # print(f"finish {i}")
