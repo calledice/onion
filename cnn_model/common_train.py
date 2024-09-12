@@ -57,12 +57,13 @@ def train(model, train_loader, val_loader, config: Config):
                 pred = model(input, regi, posi)
                 with open(f'{out_dir}/model_structure.txt', 'w') as f:
                     with redirect_stdout(f):
-                        summary(model, input_data=input)
+                        summary(model, input_data=[input, regi, posi])
+
             else:
                 pred = model(input)
                 with open(f'{out_dir}/model_structure.txt', 'w') as f:
                     with redirect_stdout(f):
-                        summary(model, input_data=[input, regi, posi])
+                        summary(model, input_data=input)
             pred_temp = pred.unsqueeze(-1)
             result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
 
@@ -206,7 +207,7 @@ def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=N
         with_PI = False
         addloss = False
     elif Module == Onion_PI:
-        out_dir = "/mnt/e/onion_output/cnn_model/output/phantom2A_Onion_PI_addlossL2_0.0001"
+        out_dir = "/mnt/e/onion_output/cnn_model/output/phantom2A_Onion_PI_addlossL2_0.0001_softplus"
         with_PI = True
         addloss = True
     elif Module == ResOnion_input:
@@ -256,4 +257,4 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
 
-    tmp_runner(Onion_PI, predict_only=False, visualize_only=False, randomnumseed=False)
+    tmp_runner(Onion_PI, predict_only=False, visualize_only=True, randomnumseed=False)

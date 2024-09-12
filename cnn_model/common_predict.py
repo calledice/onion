@@ -26,6 +26,8 @@ def predict(config: Config):
     batch_size = 64
     test_loader = DataLoader(dataset, batch_size=64, shuffle=False)
     out_dir = config.out_dir
+    lambda_l1 = config.lambda_l1
+    p = config.p
     device = torch.device('cpu')
     model = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cpu'))
     model.eval()
@@ -39,10 +41,10 @@ def predict(config: Config):
     loss_fn = nn.MSELoss()
     for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
         input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-        if config.no_regi:
-                pred = model(input)
-        else:
+        if config.with_PI:
             pred = model(input, regi, posi)
+        else:
+            pred = model(input)
         pred_temp = pred.unsqueeze(-1)
         result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1) #pre2results
         label2result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), label.unsqueeze(-1)).squeeze(-1)
@@ -50,7 +52,10 @@ def predict(config: Config):
             loss_1 = loss_fn(pred, label)
             loss_2 = loss_fn(input, result)
             alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-            loss = loss_1 + alpha * loss_2
+            l1_reg = torch.tensor(0., device=device)
+            for param in model.parameters():
+                l1_reg += torch.norm(param, p)
+            loss = loss_1 + alpha * loss_2 + lambda_l1 * l1_reg
         else:
             loss = loss_fn(pred, label)
 

@@ -54,7 +54,6 @@ class ConvEmbModel(nn.Module):
         x = x.reshape(x.shape[0], x.shape[1], self.r, self.z)
         return x
 
-
 class ResidualBasic(nn.Module):
     def __init__(self, channels):
         super().__init__()
@@ -67,7 +66,6 @@ class ResidualBasic(nn.Module):
 
     def forward(self, x):
         return self.features(x) + x
-
 
 class DownSample(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -217,12 +215,15 @@ class Onion_PI(nn.Module):
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU()
+            # nn.ReLU()
+            nn.Softplus()
         )
 
     def forward(self, input, regi, posi):
         input = self.conv_upsample(input)
         regi = regi.unsqueeze(dim=0).transpose(0, 1)
+        # 在 posi 上加一个非常小的正值
+        # posi = posi + 1e-6
         final_input = torch.concat([input, regi, posi], dim=1)
         conv_out = self.net(final_input)
         # conv_out = self.deconv_net(conv_out)
@@ -328,7 +329,7 @@ class ResOnion_PI(nn.Module):
         final_z = math.ceil(math.ceil(max_z / 2) / 2)
         fc_in_dim = 4 * channels * final_r * final_z
         fc_out_dim = max_r * max_z
-
+        self.flatten = nn.Flatten(start_dim=1)
         self.fc = nn.Sequential(
             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
             nn.ReLU(),
@@ -349,6 +350,9 @@ class ResOnion_PI(nn.Module):
         z = self.down2(z)
         for net in self.res3:
             z = net(z)
+        # z = z.reshape(z.size(0), -1)
+        z = self.flatten(z)
+        z = self.fc(z)
         return z
 
 class ResOnion_input(nn.Module):
