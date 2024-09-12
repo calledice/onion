@@ -116,8 +116,10 @@ def train(model, train_loader, val_loader, config: Config):
             labels.append(label.detach().reshape(-1, config.max_r, config.max_z))
             losses.append(loss.detach().item())
         val_loss = sum(losses) / len(losses)
-        print(f"epoch{epoch} validation loss: {val_loss}")
+        
         print(f"epoch{epoch} min loss: {min_val_loss}")
+        print(f"epoch{epoch} validation loss: {val_loss}")
+        
         if val_loss < min_val_loss:
             min_val_loss = val_loss
             torch.save(model, f"{out_dir}/train/model_best.pth")
@@ -187,35 +189,38 @@ def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=N
     # train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
     # val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
     # test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
-    train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
-    val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
-    test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
+    # train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
+    # val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
+    # test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
     # train_path = "../data_East/data/EAST_train_database.h5"
     # val_path = "../data_East/data/EAST_valid_database.h5"
     # test_path = "../data_East/data/EAST_test_database.h5"
+    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_1000.h5"
+    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_1000.h5"
+    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5"
 
     if Module == CNN_Base:
-        out_dir = ".../onion_output/cnn_model/output/CNN_Base_input"
+        out_dir = "../../onion_output/cnn_model/output/CNN_Base_input"
         with_PI = False
         addloss = False
     elif Module == Onion_gavin:
-        out_dir = ".../onion_output/cnn_model/output/Onion_gavin"
+        out_dir = "../../onion_output/cnn_model/output/Onion_gavin"
         with_PI = False
         addloss = False
     elif Module == Onion_input:
-        out_dir = ".../onion_output/cnn_model/output/phantom2A_Onion_input"
+        out_dir = "../../onion_output/cnn_model/output/phantom2A_Onion_input"
         with_PI = False
         addloss = False
     elif Module == Onion_PI:
-        out_dir = ".../onion_output/cnn_model/output/phantom2A_Onion_PI_addlossL2_0.0001_softplus"
+        out_dir = "../../onion_output/cnn_model/output/phantom2A_Onion_PI_addlossL2_0.0001_softplus"
         with_PI = True
         addloss = True
     elif Module == ResOnion_input:
-        out_dir = ".../onion_output/cnn_model/output/ResOnion_input"
+        out_dir = "../../onion_output/cnn_model/output/ResOnion_input"
         with_PI = False
         addloss = True
     elif Module == ResOnion_PI:
-        out_dir = ".../onion_output/cnn_model/output/ResOnion_PI"
+        out_dir = "../../onion_output/cnn_model/output/ResOnion_PI"
         with_PI = True
         addloss = True
     else:
@@ -229,6 +234,7 @@ def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=N
         seed_everything(42)
 
     print(out_dir)
+    os.makedirs(out_dir, exist_ok=True)
     if predict_only:
         print("start predict")
         predict(config)
@@ -257,4 +263,4 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
 
-    tmp_runner(Onion_PI, predict_only=False, visualize_only=True, randomnumseed=False)
+    tmp_runner(ResOnion_PI, predict_only=False, visualize_only=False, randomnumseed=False)

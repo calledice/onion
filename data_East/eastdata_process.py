@@ -35,7 +35,7 @@ def plotdata(input,result,result1):
     # plt.close()
 
 # 使用方法
-directory_path = '/mnt/e/onion_output/origin_data/data_East/data/DATA_set_MCW'
+directory_path = '../../onion_output/origin_data/data_East/data/DATA_set_MCW'
 mat_files_list = search_mat_files(directory_path)
 c_matrix_sss = sio.loadmat("./Poly_SXR.mat")
 c_matrix_s = c_matrix_sss['Poly_SXR'][0][0]

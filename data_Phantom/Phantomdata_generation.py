@@ -6,6 +6,12 @@ import random
 import h5py
 import matplotlib.pyplot as plt
 
+# 获取当前源程序所在的目录
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# 切换工作目录到源程序所在的目录
+os.chdir(script_dir)
+
 class BeamDef:
     def __init__(self, beams):
         num = len(beams)
