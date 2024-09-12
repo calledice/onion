@@ -11,7 +11,7 @@ from torchinfo import summary
 from contextlib import redirect_stdout
 
 class Config:
-    def __init__(self, train_path, val_path, test_path, out_dir, no_regi, addloss, randomnumseed, n_layer=None,
+    def __init__(self, train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, n_layer=None,
             n_head=None, dropout=None, bias=True, dtype=torch.float32, batch_size=64,
             max_n=100, max_r=100, max_z=100, lr=0.001, epochs=20, early_stop=5,lambda_l1 = 0.01,p=2 ):
         self.n_layer = n_layer
@@ -32,7 +32,7 @@ class Config:
         self.val_path = val_path
         self.test_path = test_path
         self.out_dir = out_dir
-        self.no_regi = no_regi
+        self.with_PI = with_PI
         self.addloss = addloss
         self.lambda_l1 = lambda_l1
         self.randomnumseed = randomnumseed
@@ -235,11 +235,11 @@ class Onion_input(nn.Module):
         super(Onion_input, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         # channels = n * 2 + 1
-        channel = n
-        channels = 64
+        channels = n
+        # channels = 64
 
         self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channel, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2*channels),

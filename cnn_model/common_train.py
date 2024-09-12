@@ -9,6 +9,7 @@ from tqdm import tqdm
 import os
 import json
 import numpy as np
+import time
 import random
 
 # 获取当前源程序所在的目录
@@ -16,6 +17,8 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # 切换工作目录到源程序所在的目录
 os.chdir(script_dir)
+
+
 # 固定随机种子
 def seed_everything(seed=42):
     random.seed(seed)  # 为Python内置的random模块设置随机种子
@@ -26,9 +29,10 @@ def seed_everything(seed=42):
     torch.backends.cudnn.deterministic = True  # 设置cuDNN为确定性模式
     torch.backends.cudnn.benchmark = False  # 禁止使用cuDNN的benchmark功能
 
+
 def train(model, train_loader, val_loader, config: Config):
     '''
-    no_regi: 判断是不是没有regi和posi的模型
+    with_PI: 判断是不是没有regi和posi的模型
     '''
     out_dir = config.out_dir
     epochs = config.epochs
@@ -49,13 +53,13 @@ def train(model, train_loader, val_loader, config: Config):
         losses = []
         for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-            if config.no_regi:
-                pred = model(input)
+            if config.with_PI:
+                pred = model(input, regi, posi)
                 with open(f'{out_dir}/model_structure.txt', 'w') as f:
                     with redirect_stdout(f):
-                        summary(model, input_data=inputs)
+                        summary(model, input_data=input)
             else:
-                pred = model(input, regi, posi)
+                pred = model(input)
                 with open(f'{out_dir}/model_structure.txt', 'w') as f:
                     with redirect_stdout(f):
                         summary(model, input_data=[input, regi, posi])
@@ -67,7 +71,7 @@ def train(model, train_loader, val_loader, config: Config):
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
                 alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-                l1_reg = torch.tensor(0.,device = device)
+                l1_reg = torch.tensor(0., device=device)
                 for param in model.parameters():
                     l1_reg += torch.norm(param, p)
                 loss = loss_1 + alpha * loss_2 + lambda_l1 * l1_reg
@@ -91,17 +95,17 @@ def train(model, train_loader, val_loader, config: Config):
         loss_fn = nn.MSELoss()
         for (input, regi, posi, info), label in tqdm(val_loader, desc="Validating"):
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-            if config.no_regi:
-                pred = model(input)
-            else:
+            if config.with_PI:
                 pred = model(input, regi, posi)
+            else:
+                pred = model(input)
             pred_temp = pred.unsqueeze(-1)
             result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
                 alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-                l1_reg = torch.tensor(0.,device = device)
+                l1_reg = torch.tensor(0., device=device)
                 for param in model.parameters():
                     l1_reg += torch.norm(param, p)
                 loss = loss_1 + alpha * loss_2 + lambda_l1 * l1_reg
@@ -182,43 +186,43 @@ def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=N
     # train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
     # val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
     # test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
-    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_1000.h5"
-    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_1000.h5"
-    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5"
+    train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
+    val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
+    test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
     # train_path = "../data_East/data/EAST_train_database.h5"
     # val_path = "../data_East/data/EAST_valid_database.h5"
     # test_path = "../data_East/data/EAST_test_database.h5"
 
     if Module == CNN_Base:
         out_dir = "/mnt/e/onion_output/cnn_model/output/CNN_Base_input"
-        no_regi = True
+        with_PI = False
         addloss = False
     elif Module == Onion_gavin:
         out_dir = "/mnt/e/onion_output/cnn_model/output/Onion_gavin"
-        no_regi = False
+        with_PI = False
         addloss = False
     elif Module == Onion_input:
-        out_dir = "/mnt/e/onion_output/cnn_model/output/phantom2A_Onion_input_addlossL2_0.1"
-        no_regi = True
-        addloss = True
+        out_dir = "/mnt/e/onion_output/cnn_model/output/phantom2A_Onion_input"
+        with_PI = False
+        addloss = False
     elif Module == Onion_PI:
-        out_dir = "/mnt/e/onion_output/cnn_model/output/Onion_PI"
-        no_regi = False
+        out_dir = "/mnt/e/onion_output/cnn_model/output/phantom2A_Onion_PI_addlossL2_0.0001"
+        with_PI = True
         addloss = True
     elif Module == ResOnion_input:
         out_dir = "/mnt/e/onion_output/cnn_model/output/ResOnion_input"
-        no_regi = False
+        with_PI = False
         addloss = True
     elif Module == ResOnion_PI:
         out_dir = "/mnt/e/onion_output/cnn_model/output/ResOnion_PI"
-        no_regi = False
+        with_PI = True
         addloss = True
     else:
-        print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
+        print("模型不在列表中")
         exit(1)
 
-    config = Config(train_path, val_path, test_path, out_dir, no_regi, addloss, randomnumseed, early_stop=-1, epochs=20,
-                    batch_size=256,lambda_l1= 0.1, p=2)
+    config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=-1, epochs=20,
+                    batch_size=256, lambda_l1=0.0001, p=2)
 
     if config.randomnumseed == False:
         seed_everything(42)
@@ -232,7 +236,16 @@ def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=N
         visualize(out_dir)
     else:
         print("start train")
+        # 记录训练开始时间
+        start_time = time.time()
         run(Module, config)
+        # 记录训练结束时间
+        end_time = time.time()
+        # 计算训练总耗时
+        training_time = (end_time - start_time)/60
+        with open(f"{out_dir}/train/best_epoch.txt", 'a') as f:
+            f.write(f"training time:{training_time} min \n")
+        print(f"Total training time: {training_time:.2f} mins")
         predict(config)
         visualize(out_dir)
 
@@ -243,4 +256,4 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
 
-    tmp_runner(Onion_input, predict_only=False, visualize_only=False, randomnumseed=False)
+    tmp_runner(Onion_PI, predict_only=False, visualize_only=False, randomnumseed=False)

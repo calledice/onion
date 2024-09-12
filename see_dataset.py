@@ -24,6 +24,7 @@ if __name__ == '__main__':
     regi = dataset['regi']
     posi = dataset['posi']
     inputs_list = [x[dkey][:][:-3].flatten() for dkey in x.keys()]  # 收集输入数据
+    print(f"num = {len(inputs_list)}")
     outputs_list = [y[dkey][:].flatten() for dkey in y.keys()]
     r = int(x["0"][-2])
     z = int(x["0"][-1])

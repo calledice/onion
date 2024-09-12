@@ -279,8 +279,12 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
     train_inputs, train_labels = shuffled_inputs[:train_end], shuffled_labels[:train_end]
     val_inputs, val_labels = shuffled_inputs[train_end:val_end], shuffled_labels[train_end:val_end]
     test_inputs, test_labels = shuffled_inputs[val_end:], shuffled_labels[val_end:]
+    with open('EAST_Phan_info.txt','w') as file:
+        file.write(f'train_num: {len(train_inputs)}\n')
+        file.write(f'valid_num: {len(val_inputs)}\n')
+        file.write(f'test_num: {len(test_inputs)}\n')
 
-    with h5py.File(f"./phantomdata/mini_1_{name[0]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data0:
+    with h5py.File(f"./phantomdata/EAST_{name[0]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data0:
         data_input_group = data0.create_group("x")
         data_label_group = data0.create_group("y")
         data_posi_group = data0.create_group("posi")
@@ -291,7 +295,7 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
         for j in range(len(train_inputs)):
             data_input_group.create_dataset(str(j), data=train_inputs[j])
             data_label_group.create_dataset(str(j), data=train_labels[j])
-    with h5py.File(f"./phantomdata/mini_1_{name[1]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data1:
+    with h5py.File(f"./phantomdata/EAST_{name[1]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data1:
         data_input_group = data1.create_group("x")
         data_label_group = data1.create_group("y")
         data_posi_group = data1.create_group("posi")
@@ -302,7 +306,7 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
         for j in range(len(val_inputs)):
             data_input_group.create_dataset(str(j), data=val_inputs[j])
             data_label_group.create_dataset(str(j), data=val_labels[j])
-    with h5py.File(f"./phantomdata/mini_1_{name[2]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data2:
+    with h5py.File(f"./phantomdata/EAST_{name[2]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data2:
         data_input_group = data2.create_group("x")
         data_label_group = data2.create_group("y")
         data_posi_group = data2.create_group("posi")
