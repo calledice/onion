@@ -195,27 +195,27 @@ def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=N
     # test_path = "../data_East/data/EAST_test_database.h5"
 
     if Module == CNN_Base:
-        out_dir = "/mnt/e/onion_output/cnn_model/output/CNN_Base_input"
+        out_dir = ".../onion_output/cnn_model/output/CNN_Base_input"
         with_PI = False
         addloss = False
     elif Module == Onion_gavin:
-        out_dir = "/mnt/e/onion_output/cnn_model/output/Onion_gavin"
+        out_dir = ".../onion_output/cnn_model/output/Onion_gavin"
         with_PI = False
         addloss = False
     elif Module == Onion_input:
-        out_dir = "/mnt/e/onion_output/cnn_model/output/phantom2A_Onion_input"
+        out_dir = ".../onion_output/cnn_model/output/phantom2A_Onion_input"
         with_PI = False
         addloss = False
     elif Module == Onion_PI:
-        out_dir = "/mnt/e/onion_output/cnn_model/output/phantom2A_Onion_PI_addlossL2_0.0001_softplus"
+        out_dir = ".../onion_output/cnn_model/output/phantom2A_Onion_PI_addlossL2_0.0001_softplus"
         with_PI = True
         addloss = True
     elif Module == ResOnion_input:
-        out_dir = "/mnt/e/onion_output/cnn_model/output/ResOnion_input"
+        out_dir = ".../onion_output/cnn_model/output/ResOnion_input"
         with_PI = False
         addloss = True
     elif Module == ResOnion_PI:
-        out_dir = "/mnt/e/onion_output/cnn_model/output/ResOnion_PI"
+        out_dir = ".../onion_output/cnn_model/output/ResOnion_PI"
         with_PI = True
         addloss = True
     else:
