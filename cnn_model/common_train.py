@@ -51,8 +51,14 @@ def train(model, train_loader, val_loader, config: Config):
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
             if config.no_regi:
                 pred = model(input)
+                with open(f'{out_dir}/model_structure.txt', 'w') as f:
+                    with redirect_stdout(f):
+                        summary(model, input_data=inputs)
             else:
                 pred = model(input, regi, posi)
+                with open(f'{out_dir}/model_structure.txt', 'w') as f:
+                    with redirect_stdout(f):
+                        summary(model, input_data=[input, regi, posi])
             pred_temp = pred.unsqueeze(-1)
             result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
 
@@ -199,6 +205,14 @@ def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=N
         out_dir = "/mnt/e/onion_output/cnn_model/output/Onion_PI"
         no_regi = False
         addloss = True
+    elif Module == ResOnion_input:
+        out_dir = "/mnt/e/onion_output/cnn_model/output/ResOnion_input"
+        no_regi = False
+        addloss = True
+    elif Module == ResOnion_PI:
+        out_dir = "/mnt/e/onion_output/cnn_model/output/ResOnion_PI"
+        no_regi = False
+        addloss = True
     else:
         print("目前只支持CNN_Base, Onion, OnionWithoutRegi这三个模型")
         exit(1)
@@ -229,4 +243,4 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
 
-    tmp_runner(Onion_input, predict_only=False, visualize_only=False,randomnumseed=True)
+    tmp_runner(Onion_input, predict_only=False, visualize_only=False, randomnumseed=False)
