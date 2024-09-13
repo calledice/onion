@@ -1,11 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="Black">
-    <option name="sdkName" value="Python 3.10" />
-  </component>
-<<<<<<< HEAD
-  <component name="ProjectRootManager" version="2" project-jdk-name="$USER_HOME$/miniconda3" project-jdk-type="Python SDK" />
-=======
-  <component name="ProjectRootManager" version="2" project-jdk-name="cc" project-jdk-type="Python SDK" />
->>>>>>> cong
+  <component name="ProjectRootManager" version="2" project-jdk-name="onion" project-jdk-type="Python SDK" />
 </project>

@@ -11,13 +11,13 @@ import json
 import numpy as np
 import time
 import random
+import argparse
 
 # 获取当前源程序所在的目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # 切换工作目录到源程序所在的目录
 os.chdir(script_dir)
-
 
 # 固定随机种子
 def seed_everything(seed=42):
@@ -161,8 +161,7 @@ def run(Module, config: Config):
     val_path = config.val_path
     test_path = config.test_path
     out_dir = config.out_dir
-
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     device = config.device
 
     train_set = OnionDataset(train_path)
@@ -185,48 +184,57 @@ def run(Module, config: Config):
     plot_loss(train_losses, val_losses, out_dir)
 
 
-def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=None):
+def tmp_runner(Module, addloss = True ,predict_visualize=False, randomnumseed=None):
     # train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
     # val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
     # test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
-    # train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
-    # val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
-    # test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
+    train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
+    val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
+    test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
+    name_dataset = "phantom2A"
     # train_path = "../data_East/data/EAST_train_database.h5"
     # val_path = "../data_East/data/EAST_valid_database.h5"
     # test_path = "../data_East/data/EAST_test_database.h5"
-    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_1000.h5"
-    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_1000.h5"
-    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5"
+    if addloss:
+        add = "addloss"
+    else:
+        add = ""
 
     if Module == CNN_Base:
-        out_dir = "../../onion_output/cnn_model/output/CNN_Base_input"
+        out_dir = "../../onion_data/cnn_model/output/CNN_Base_input"
         with_PI = False
-        addloss = False
     elif Module == Onion_gavin:
-        out_dir = "../../onion_output/cnn_model/output/Onion_gavin"
+        out_dir = "../../onion_data/cnn_model/output/Onion_gavin"
         with_PI = False
-        addloss = False
     elif Module == Onion_input:
-        out_dir = "../../onion_output/cnn_model/output/phantom2A_Onion_input"
+        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_input_{add}"
         with_PI = False
-        addloss = False
+    elif Module == Onion_input_softplus:
+        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_input_{add}_softplus"
+        with_PI = False
     elif Module == Onion_PI:
-        out_dir = "../../onion_output/cnn_model/output/phantom2A_Onion_PI_addlossL2_0.0001_softplus"
+        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}"
         with_PI = True
-        addloss = True
+    elif Module == Onion_PI_softplus:
+        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}_softplus"
+        with_PI = True
+    elif Module == Onion_PI_posiplus:
+        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}_posiplus"
+        with_PI = True
+    elif Module == Onion_PI_softplus_posiplus:
+        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}_softplus_posiplus"
+        with_PI = True
     elif Module == ResOnion_input:
-        out_dir = "../../onion_output/cnn_model/output/ResOnion_input"
+        out_dir = "../../onion_data/cnn_model/output/ResOnion_input"
         with_PI = False
-        addloss = True
     elif Module == ResOnion_PI:
-        out_dir = "../../onion_output/cnn_model/output/ResOnion_PI"
+        out_dir = "../../onion_data/cnn_model/output/ResOnion_PI"
         with_PI = True
-        addloss = True
     else:
         print("模型不在列表中")
         exit(1)
-
+    print(f"with_PI: {with_PI} /n")
+    print(f"addloss: {addloss} /n")
     config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=-1, epochs=20,
                     batch_size=256, lambda_l1=0.0001, p=2)
 
@@ -234,11 +242,10 @@ def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=N
         seed_everything(42)
 
     print(out_dir)
-    os.makedirs(out_dir, exist_ok=True)
-    if predict_only:
+
+    if predict_visualize:
         print("start predict")
         predict(config)
-    elif visualize_only:
         print("start visualize")
         visualize(out_dir)
     else:
@@ -256,11 +263,22 @@ def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=N
         predict(config)
         visualize(out_dir)
 
-
 if __name__ == '__main__':
     '''
-    对于已经开发好的三个模型，直接通过这一个common_train文件就可以开启训练和预测，如果只需要预测，则开启predict_only=True.
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
+    parser = argparse.ArgumentParser(description='Train or predict with specified parameters.')
+    parser.add_argument('--model', help='Path to the dataset',default=Onion_input)
+    parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=False)
+    parser.add_argument('--predict_visualize', action='store_true', help='Visualize predictions',default=False)
+    parser.add_argument('--randomnumseed', action='store_true', help='Use random seed for reproducibility',default=False)
 
-    tmp_runner(ResOnion_PI, predict_only=False, visualize_only=False, randomnumseed=False)
+    args = parser.parse_args()
+
+    # 调用 tmp_runner 函数并传入参数
+    tmp_runner(Module=globals()[args.model],
+               addloss=args.addloss,
+               predict_visualize=args.predict_visualize,
+               randomnumseed=args.randomnumseed)
+    # tmp_runner(Onion_input, addloss=True, predict_visualize=False, randomnumseed=False)
+    # python onion/cnn_model/common_train.py --model ResOnion_input
