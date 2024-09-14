@@ -559,6 +559,45 @@ class ResOnion_PI(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
+            nn.ReLU()
+        )
+
+    def forward(self, input, regi, posi):
+        input = self.conv_upsample(input)
+        regi = regi.unsqueeze(dim=0).transpose(0, 1)
+        z = torch.concat([input, regi, posi], dim=1)
+        for net in self.res1:
+            z = net(z)
+        z = self.down1(z)
+        for net in self.res2:
+            z = net(z)
+        z = self.down2(z)
+        for net in self.res3:
+            z = net(z)
+        z = z.reshape(z.size(0), -1)
+        z = self.fc(z)
+        return z
+class ResOnion_PI_softplus(nn.Module):
+    def __init__(self, n=100, max_r=100, max_z=100):
+        super(ResOnion_PI, self).__init__()
+        self.conv_upsample = ConvEmbModel(max_r, max_z)
+        channels = n * 2 + 1
+        self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(4)])
+        self.down1 = DownSample(channels, 2 * channels)
+        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(8)])
+        self.down2 = DownSample(2 * channels, 4 * channels)
+        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(12)])
+
+        final_r = math.ceil(math.ceil(max_r / 2) / 2)
+        final_z = math.ceil(math.ceil(max_z / 2) / 2)
+        fc_in_dim = 4 * channels * final_r * final_z
+        fc_out_dim = max_r * max_z
+        self.flatten = nn.Flatten(start_dim=1)
+        self.fc = nn.Sequential(
+            nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
             nn.Softplus()
         )
 
@@ -574,8 +613,7 @@ class ResOnion_PI(nn.Module):
         z = self.down2(z)
         for net in self.res3:
             z = net(z)
-        # z = z.reshape(z.size(0), -1)
-        z = self.flatten(z)
+        z = z.reshape(z.size(0), -1)
         z = self.fc(z)
         return z
 
@@ -613,6 +651,45 @@ class ResOnion_input(nn.Module):
         z = self.down2(z)
         for net in self.res3:
             z = net(z)
+        z = z.reshape(z.size(0), -1)
+        z = self.fc(z)
+        return z
+class ResOnion_input_softplus(nn.Module):
+    def __init__(self, n=100, max_r=100, max_z=100):
+        super(ResOnion_input, self).__init__()
+        self.conv_upsample = ConvEmbModel(max_r, max_z)
+        channels = n
+        self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(4)])
+        self.down1 = DownSample(channels, 2 * channels)
+        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(8)])
+        self.down2 = DownSample(2 * channels, 4 * channels)
+        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(12)])
+
+        final_r = math.ceil(math.ceil(max_r / 2) / 2)
+        final_z = math.ceil(math.ceil(max_z / 2) / 2)
+        fc_in_dim = 4 * channels * final_r * final_z
+        fc_out_dim = max_r * max_z
+
+        self.fc = nn.Sequential(
+            nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
+            nn.Softplus()
+        )
+
+    def forward(self, input):
+        input = self.conv_upsample(input)
+        for net in self.res1:
+            z = net(input)
+        z = self.down1(z)
+        for net in self.res2:
+            z = net(z)
+        z = self.down2(z)
+        for net in self.res3:
+            z = net(z)
+        z = z.reshape(z.size(0), -1)
+        z = self.fc(z)
         return z
 
 def weighted_mse_loss(pred, target, weight=None):

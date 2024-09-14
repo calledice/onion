@@ -200,7 +200,7 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
     elif name_dataset == "EXPEAST":
         train_path = "../data_East/data/EAST_train_database.h5"
-        val_path = "../data_East/data/EAST_val_database.h5"
+        val_path = "../data_East/data/EAST_valid_database.h5"
         test_path = "../data_East/data/EAST_test_database.h5"
     else:
         print("dataset is not included")
@@ -217,28 +217,34 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         out_dir = "../../onion_data/cnn_model/output/Onion_gavin"
         with_PI = False
     elif Module == Onion_input:
-        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_input_{add}"
+        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_{randomnumseed}_Onion_input_{add}"
         with_PI = False
     elif Module == Onion_input_softplus:
-        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_input_{add}_softplus"
+        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_{randomnumseed}_Onion_input_{add}_softplus"
         with_PI = False
     elif Module == Onion_PI:
-        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}"
+        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_{randomnumseed}_Onion_PI_{add}"
         with_PI = True
     elif Module == Onion_PI_softplus:
-        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}_softplus"
+        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_{randomnumseed}_Onion_PI_{add}_softplus"
         with_PI = True
-    elif Module == Onion_PI_posiplus:
-        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}_posiplus"
-        with_PI = True
-    elif Module == Onion_PI_softplus_posiplus:
-        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}_softplus_posiplus"
-        with_PI = True
+    # elif Module == Onion_PI_posiplus:
+    #     out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}_posiplus"
+    #     with_PI = True
+    # elif Module == Onion_PI_softplus_posiplus:
+    #     out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}_softplus_posiplus"
+    #     with_PI = True
     elif Module == ResOnion_input:
-        out_dir = "../../onion_data/cnn_model/output/ResOnion_input"
+        out_dir = f"../../onion_data/res_model/output/{name_dataset}_{randomnumseed}_ResOnion_input_{add}"
+        with_PI = False
+    elif Module == ResOnion_input_softplus:
+        out_dir =  f"../../onion_data/res_model/output/{name_dataset}_{randomnumseed}_ResOnion_input_{add}_softplus"
         with_PI = False
     elif Module == ResOnion_PI:
-        out_dir = "../../onion_data/cnn_model/output/ResOnion_PI"
+        out_dir = f"../../onion_data/res_model/output/{name_dataset}_{randomnumseed}_ResOnion_PI_{add}"
+        with_PI = True
+    elif Module == ResOnion_PI_softplus:
+        out_dir = f"../../onion_data/res_model/output/{name_dataset}_{randomnumseed}_ResOnion_PI_{add}_softplus"
         with_PI = True
     else:
         print("模型不在列表中")
@@ -291,4 +297,21 @@ if __name__ == '__main__':
                predict_visualize=args.predict_visualize,
                randomnumseed=args.randomnumseed)
     # tmp_runner(Onion_input, addloss=True, predict_visualize=False, randomnumseed=False)
-    # python onion/cnn_model/common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42
+'''
+    dataset name: phantom2A  phantomEAST  EXP2A  EXPEAST
+    model name:  
+        Onion_input
+        Onion_input_softplus
+        Onion_PI
+        Onion_PI_softplus
+        ResOnion_input
+        ResOnion_input_softplus
+        ResOnion_PI
+        ResOnion_PI_softplus
+    python common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42
+    
+    ./phantom2A_tain.sh > ../../onion_data/phantom2A_training.log 2>&1 &
+    ./phantomEAST_tain.sh > ../../onion_data/phantomEAST_training.log 2>&1 &
+    ./EXP2A_tain.sh > ../../onion_data/EXP2A_training.log 2>&1 &
+    ./EXPEAST_tain.sh > ../../onion_data/EXPEAST_training.log 2>&1 &
+'''
