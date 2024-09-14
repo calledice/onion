@@ -5,6 +5,7 @@ import os
 import glob
 import h5py
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 # def find_mat_files(directory):
 #     # 递归地查找所有.mat文件
 #     return [os.path.join(root, name)
@@ -49,8 +50,8 @@ region =  np.ones(lengh_vec)
 j = 0
 input_list = []
 label_list = []
-for file_path in mat_files_list:
-    print(file_path)
+for file_path in tqdm(mat_files_list):
+    # print(file_path)
     data = sio.loadmat(file_path)
     xu_mean = np.mean(data["Xu"], axis=1)  # 注意axis参数
     xd_mean = np.mean(data["Xd"], axis=1)  # 注意axis参数

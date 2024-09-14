@@ -192,35 +192,42 @@ def tmp_runner(Module, predict_only=False, visualize_only=False, randomnumseed=N
     # train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
     # val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
     # test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
-    # train_path = "../data_East/data/EAST_train_database.h5"
-    # val_path = "../data_East/data/EAST_valid_database.h5"
-    # test_path = "../data_East/data/EAST_test_database.h5"
-    train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_1000.h5"
-    val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_1000.h5"
-    test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5"
+    train_path = "../data_East/data/EAST_train_database.h5"
+    val_path = "../data_East/data/EAST_valid_database.h5"
+    test_path = "../data_East/data/EAST_test_database.h5"
+    # train_path = "../data_Phantom/phantomdata/mini_1_train_database_1_100_1000.h5"
+    # val_path = "../data_Phantom/phantomdata/mini_1_valid_database_1_100_1000.h5"
+    # test_path = "../data_Phantom/phantomdata/mini_1_test_database_1_100_1000.h5"
+
+    if 'EAST' in train_path:
+        dataset_name = 'EAST'
+    elif 'HL_2A' in train_path:
+        dataset_name = 'HL_2A'
+    elif 'Phantom' in train_path:
+        dataset_name = 'Phantom'
 
     if Module == CNN_Base:
-        out_dir = "../../onion_output/cnn_model/output/CNN_Base_input"
+        out_dir = "../../onion_output/cnn_model/output/CNN_Base_input_" + dataset_name
         with_PI = False
         addloss = False
     elif Module == Onion_gavin:
-        out_dir = "../../onion_output/cnn_model/output/Onion_gavin"
+        out_dir = "../../onion_output/cnn_model/output/Onion_gavin_" + dataset_name
         with_PI = False
         addloss = False
     elif Module == Onion_input:
-        out_dir = "../../onion_output/cnn_model/output/phantom2A_Onion_input"
+        out_dir = "../../onion_output/cnn_model/output/phantom2A_Onion_input_" + dataset_name
         with_PI = False
         addloss = False
     elif Module == Onion_PI:
-        out_dir = "../../onion_output/cnn_model/output/phantom2A_Onion_PI_addlossL2_0.0001_softplus"
+        out_dir = "../../onion_output/cnn_model/output/phantom2A_Onion_PI_addlossL2_0.0001_softplus_" + dataset_name
         with_PI = True
         addloss = True
     elif Module == ResOnion_input:
-        out_dir = "../../onion_output/cnn_model/output/ResOnion_input"
+        out_dir = "../../onion_output/cnn_model/output/ResOnion_input_" + dataset_name
         with_PI = False
         addloss = True
     elif Module == ResOnion_PI:
-        out_dir = "../../onion_output/cnn_model/output/ResOnion_PI"
+        out_dir = "../../onion_output/cnn_model/output/ResOnion_PI_" + dataset_name
         with_PI = True
         addloss = True
     else:

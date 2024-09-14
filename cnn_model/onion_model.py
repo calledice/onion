@@ -335,7 +335,7 @@ class ResOnion_PI(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.Sigmoid()
+            nn.Softplus()
         )
 
     def forward(self, input, regi, posi):
