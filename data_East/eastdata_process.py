@@ -35,7 +35,7 @@ def plotdata(input,result,result1):
     # plt.close()
 
 # 使用方法
-directory_path = '../../onion_output/origin_data/data_East/data/DATA_set_MCW'
+directory_path = '../../onion_data/origin_data/data_East/data/DATA_set_MCW'
 mat_files_list = search_mat_files(directory_path)
 c_matrix_sss = sio.loadmat("./Poly_SXR.mat")
 c_matrix_s = c_matrix_sss['Poly_SXR'][0][0]
@@ -95,9 +95,11 @@ val_end = int((train_split + val_split) * data_size)
 train_inputs, train_labels = shuffled_inputs[:train_end], shuffled_labels[:train_end]
 val_inputs, val_labels = shuffled_inputs[train_end:val_end], shuffled_labels[train_end:val_end]
 test_inputs, test_labels = shuffled_inputs[val_end:], shuffled_labels[val_end:]
+print(f"train: {len(train_inputs)}")
+print(f"val: {len(val_inputs)}")
+print(f"test: {len(test_inputs)}")
 name = ['train','valid','test']
 os.makedirs("./data",exist_ok=True)
-
 
 
 with h5py.File(f"./data/EAST_{name[0]}_database.h5", 'a') as data0:

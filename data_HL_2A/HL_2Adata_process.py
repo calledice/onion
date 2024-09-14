@@ -31,7 +31,7 @@ def extend_row(row,values_to_add):
 
 if __name__ == '__main__':
     # data_root = './data_HL_2A'
-    data_root = '../../onion_output/origin_data/data_HL_2A/data'
+    data_root = '../../onion_data/origin_data/data_HL_2A/data'
     name_list = ["val","train","test"]
     if os.path.exists("./data/HL_2A_train_database.h5"):
         print("train set exists.")
