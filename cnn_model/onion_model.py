@@ -232,7 +232,7 @@ class Onion_PI(nn.Module):
         return out
 class Onion_PI_softplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
-        super(Onion_PI, self).__init__()
+        super(Onion_PI_softplus, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n * 2 + 1
 
@@ -456,7 +456,7 @@ class Onion_input(nn.Module):
         return out
 class Onion_input_softplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
-        super(Onion_input, self).__init__()
+        super(Onion_input_softplus, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         # channels = n * 2 + 1
         channels = n
@@ -579,7 +579,7 @@ class ResOnion_PI(nn.Module):
         return z
 class ResOnion_PI_softplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
-        super(ResOnion_PI, self).__init__()
+        super(ResOnion_PI_softplus, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n * 2 + 1
         self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(4)])
@@ -656,7 +656,7 @@ class ResOnion_input(nn.Module):
         return z
 class ResOnion_input_softplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
-        super(ResOnion_input, self).__init__()
+        super(ResOnion_input_softplus, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n
         self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(4)])

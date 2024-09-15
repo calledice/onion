@@ -161,7 +161,7 @@ def run(Module, config: Config):
     val_path = config.val_path
     test_path = config.test_path
     out_dir = config.out_dir
-    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     device = config.device
 
     train_set = OnionDataset(train_path)
@@ -292,7 +292,7 @@ if __name__ == '__main__':
 
     # 调用 tmp_runner 函数并传入参数
     tmp_runner(dataset = args.dataset,
-        Module=globals()[args.model],
+                Module=globals()[args.model],
                addloss=args.addloss,
                predict_visualize=args.predict_visualize,
                randomnumseed=args.randomnumseed)
