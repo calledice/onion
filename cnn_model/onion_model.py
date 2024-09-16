@@ -441,11 +441,11 @@ class Onion_input(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True),
+            nn.Softplus(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU()
-            # nn.Softplus()
+            # nn.ReLU()
+            nn.Softplus()
         )
 
     def forward(self, input):

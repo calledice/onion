@@ -5,3 +5,5 @@
 /data_East/data/
 /data_HL_3/
 /cnn_model/output/
+/cnn_model/__pycache__/
+.vscode/

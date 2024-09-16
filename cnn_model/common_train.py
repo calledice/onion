@@ -161,7 +161,7 @@ def run(Module, config: Config):
     val_path = config.val_path
     test_path = config.test_path
     out_dir = config.out_dir
-    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     device = config.device
 
     train_set = OnionDataset(train_path)
@@ -286,7 +286,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset',type = str, help='dataset name', default="phantomEAST")
     parser.add_argument('--model', help='model name',default=Onion_input)
     parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=False)
-    parser.add_argument('--predict_visualize', action='store_true', help='Visualize predictions',default=True)
+    parser.add_argument('--predict_visualize', action='store_true', help='Visualize predictions',default=False)
     parser.add_argument('--randomnumseed',type = int, help='Use random seed for reproducibility',default=42)
     args = parser.parse_args()
 
