@@ -204,10 +204,10 @@ class Onion_PI(nn.Module):
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8*channels),
             nn.ReLU(inplace=True),
-            nn.AdaptiveMaxPool2d(output_size=(2, 2))
+            nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
 
-        conv_out_dim = 8*channels*2*2
+        conv_out_dim = 8*channels*3*3
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
@@ -260,10 +260,10 @@ class Onion_PI_softplus(nn.Module):
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8*channels),
             nn.ReLU(inplace=True),
-            nn.AdaptiveMaxPool2d(output_size=(2, 2))
+            nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
 
-        conv_out_dim = 8*channels*2*2
+        conv_out_dim = 8*channels*3*3
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
@@ -317,10 +317,10 @@ class Onion_PI_posiplus(nn.Module):
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8*channels),
             nn.ReLU(inplace=True),
-            nn.AdaptiveMaxPool2d(output_size=(2, 2))
+            nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
 
-        conv_out_dim = 8*channels*2*2
+        conv_out_dim = 8*channels*3*3
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
@@ -374,10 +374,10 @@ class Onion_PI_softplus_posiplus(nn.Module):
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8*channels),
             nn.ReLU(inplace=True),
-            nn.AdaptiveMaxPool2d(output_size=(2, 2))
+            nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
 
-        conv_out_dim = 8*channels*2*2
+        conv_out_dim = 8*channels*3*3
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
@@ -433,10 +433,10 @@ class Onion_input(nn.Module):
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8*channels),
             nn.ReLU(inplace=True),
-            nn.AdaptiveMaxPool2d(output_size=(2, 2))
+            nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
 
-        conv_out_dim = 8*channels*2*2
+        conv_out_dim = 8*channels*3*3
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
@@ -486,10 +486,10 @@ class Onion_input_softplus(nn.Module):
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8*channels),
             nn.ReLU(inplace=True),
-            nn.AdaptiveMaxPool2d(output_size=(2, 2))
+            nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
 
-        conv_out_dim = 8*channels*2*2
+        conv_out_dim = 8*channels*3*3
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(

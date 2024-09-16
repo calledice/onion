@@ -17,19 +17,24 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ######################################################
     #查看test/train数据
-    test_input_path = "./data_Phantom/phantomdata/mini_1_test_database.h5"
+    test_input_path = "/home/chengda/project/onion/data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
     dataset = h5py.File(test_input_path, 'r')
     x = dataset["x"]
     y = dataset["y"]
     regi = dataset['regi']
     posi = dataset['posi']
-    inputs_list = [x[dkey][:][:-3].flatten() for dkey in x.keys()]  # 收集输入数据
+    info_list = [tuple(x[str(i)][:][-3:].flatten()) for i in range(len(x))]
+    inputs_list = [x[str(i)][:][:-3].flatten() for i in range(len(x))] 
+     # 收集输入数据
     print(f"num = {len(inputs_list)}")
-    outputs_list = [y[dkey][:].flatten() for dkey in y.keys()]
+    outputs_list = [y[str(i)][:].reshape(int(info_list[i][1]), int(info_list[i][2])) for i in
+                             range(len(y))]
+    regi_list = [regi[str(i)][:] for i in range(len(regi))]  # 收集regi信息
+    posi_list = [posi[str(i)][:] for i in range(len(posi))]
     r = int(x["0"][-2])
     z = int(x["0"][-1])
     n = len(x["0"])-3
-    label = (y["0"][:].reshape(r,z)).T
+    label = (y["0"][:].reshape(r,z))
     # 创建图形和轴
     fig, ax = plt.subplots()
     # 绘制等高线图

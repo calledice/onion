@@ -38,7 +38,7 @@ def plot_scatter(input,result,label2results,ave_label2result_error,title,save_pa
     plt.scatter(range(len(input)), input, color='b', marker='^', s=15, alpha=0.8)
     plt.scatter(range(len(result)), result, color='g', marker='o', s=15, alpha=0.5)
     plt.scatter(range(len(label2results)), label2results, color='r', marker='o', s=15, alpha=0.5)
-    plt.errorbar(range(len(label2results)), label2results, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
+    plt.errorbar(range(len(label2results)), input, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
     plt.legend(labels=['Input', 'Pre2result','Label2result'])
     plt.title(title)
     plt.savefig(save_path + "/" +f"{i}-"+ title)
@@ -70,7 +70,7 @@ def visualize(case_file):
     ave_pre2result_error_list = []# 由pre获得的弦积分结果与input的偏差
     error_record_path = case_file+"/error_record.txt"
     for i in tqdm(range(len(preds)), desc='Visualizing'):
-        relative_error = abs(np.matrix(preds[i]).T-np.matrix(labels[i]).T)/np.max(np.matrix(labels[i]).T)
+        relative_error = abs(np.matrix(preds[i])-np.matrix(labels[i]))/np.max(np.matrix(labels[i]))
         ave_label2result_error = abs(np.array(label2results[i])-np.array(inputs[i]))/np.max(np.array(inputs[i]))
         ave_pre2result_error = abs(np.array(results[i])-np.array(inputs[i]))/np.max(np.array(inputs[i]))
         ave_error_list.append(np.average(relative_error))
