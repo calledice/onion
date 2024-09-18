@@ -130,23 +130,16 @@ def train(model, train_loader, val_loader, config: Config):
 
         if val_loss < min_val_loss:
             min_val_loss = val_loss
-            torch.save(model.state_dict(), f"{out_dir}/train/model_best.pth")
-            # 记录最佳 epoch
+            torch.save(model, f"{out_dir}/train/model_best.pth")
             with open(f"{out_dir}/train/best_epoch.txt", 'w') as f:
                 f.write(str(epoch))
-            # 重置早停计数器
-            early_stop = early_stop
-        # 保存当前 epoch 的损失
-        losses[f"epoch_{epoch}"] = val_loss
+            if early_stop > 0:
+                early_stop = config.early_stop
+        json.dump(losses, open(f"{out_dir}/train/val_loss{epoch}.json", 'w'))
         val_losses.append(val_loss)
-        # 序列化损失并保存到 JSON 文件
-        with open(f"{out_dir}/train/val_loss_{epoch}.json", 'w') as f:
-            json.dump({f"epoch_{epoch}": val_loss}, f)
-        # 早停机制
         if early_stop >= 0:
             early_stop -= 1
             if early_stop <= 0:
-                print(f"Early stopping at epoch {epoch}")
                 break
     return train_losses, val_losses
 
