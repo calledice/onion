@@ -38,39 +38,39 @@ def pad_arrays_to_length(arrays, target_length=100):
     return arrays, original_lengths
 
 
-def pad_arrays_to_rz(arr, max_r, max_z):
+def pad_arrays_to_rz(arr, max_z, max_r):
     """
     将region和position的r*z的向量拆成[r, z]的矩阵，分别按行和列对r和z进行padding，并做梯度屏蔽
     (region_num, r*z) -> (region_num, r, z) -> (region_num, max_r, max_z)
     """
     original_shape = arr.shape
-    r, z = original_shape[-2], original_shape[-1]
+    r, z = original_shape[-1], original_shape[-2]
 
     # 构造要做padding的数量
     if len(original_shape) == 2:
         # 二维，对regi做padding
-        pad_width = [(0, max_r - r), (0, max_z - z)]
+        pad_width = [(0, max_z - z),(0, max_r - r)]
         arr = np.pad(arr, pad_width=pad_width, mode='constant', constant_values=0)
         arr = torch.tensor(arr, dtype=torch.float32)
         part1 = torch.concat([
-            arr[:r, :z].clone().detach().requires_grad_(True),
-            arr[:r, z:].clone().detach(),
+            arr[:z, :r].clone().detach().requires_grad_(True),
+            arr[:z, r:].clone().detach(),
         ], dim=1)
         # 第二部分，不需要梯度计算
-        part2 = arr[r:, :].clone().detach()
+        part2 = arr[z:, :].clone().detach()
         # 将两部分拼接起来
         arr = torch.concat([part1, part2], dim=0)
     elif len(original_shape) == 3:
         # 三维，对posi做padding
-        pad_width = [(0, 0), (0, max_r - r), (0, max_z - z)]
+        pad_width = [(0, 0),(0, max_z - z),(0, max_r - r)]
         arr = np.pad(arr, pad_width=pad_width, mode='constant', constant_values=0)
         arr = torch.tensor(arr, dtype=torch.float32)
         part1_ = torch.concat([
-            arr[:, :r, :z].clone().detach().requires_grad_(True),
-            arr[:, :r, z:].clone().detach()
+            arr[:, :z, :r].clone().detach().requires_grad_(True),
+            arr[:, :z, r:].clone().detach()
         ], dim=2)
         # 构建不需要梯度的第二部分
-        part2_ = arr[:, r:, :].clone().detach()
+        part2_ = arr[:, z:, :].clone().detach()
         # 将两部分张量沿着维度0拼接
         arr = torch.concat([part1_, part2_], dim=1)
 
@@ -98,14 +98,14 @@ class OnionDataset(Dataset):
         posi = dataset['posi']
         inputs_list = [x[str(i)][:][:-3].flatten() for i in range(len(x))]  # 收集输入数据
         self.info_list = [tuple(x[str(i)][:][-3:].flatten()) for i in range(len(x))]  # 收集输入数据
-        self.outputs_list = [y[str(i)][:].reshape(int(self.info_list[i][1]), int(self.info_list[i][2])) for i in
+        self.outputs_list = [y[str(i)][:].reshape(int(self.info_list[i][2]), int(self.info_list[i][1])) for i in
                              range(len(y))]  # 收集输出数据
         self.regi_list = [regi[str(i)][:] for i in range(len(regi))]  # 收集regi信息
         self.posi_list = [posi[str(i)][:] for i in range(len(posi))]  # 收集posi信息
 
         #  2A:
-        #  posi[0].reshape(32,36)
-        #  regi.reshape(32,36)
+        #  posi[0].reshape(36,32)
+        #  regi.reshape(36,32)
         #  east:
         #  label_list[0].reshape(75,50)
         # 临时加的，为了不做padding操作
@@ -126,7 +126,7 @@ class OnionDataset(Dataset):
             input = self.padded_input[i]
 
             # 对output做padding
-            output = pad_arrays_to_rz(self.outputs_list[i], self.max_r, self.max_z)
+            output = pad_arrays_to_rz(self.outputs_list[i], self.max_z, self.max_r)
             output = output.flatten()
             self.padded_output.append(output)
 
@@ -135,14 +135,14 @@ class OnionDataset(Dataset):
                 visited_regi.add(regi_pos_idx)  # 访问过的下标放到集合中，之后不再做padding
                 
                 # 对regi做padding
-                self.regi_list[regi_pos_idx] = self.regi_list[regi_pos_idx].reshape(r, z)
-                self.regi_list[regi_pos_idx] = pad_arrays_to_rz(self.regi_list[regi_pos_idx], self.max_r, self.max_z)
+                self.regi_list[regi_pos_idx] = self.regi_list[regi_pos_idx].reshape(z, r)
+                self.regi_list[regi_pos_idx] = pad_arrays_to_rz(self.regi_list[regi_pos_idx], self.max_z, self.max_r)
 
                 # 对posi做padding，先还原为三维: (n, r, z)
                 self.posi_list[regi_pos_idx] = self.posi_list[regi_pos_idx].reshape(
-                    self.posi_list[regi_pos_idx].shape[0], r, z)
+                    self.posi_list[regi_pos_idx].shape[0], z, r)
                 # (n, r, z) -> (n, max_r, max_z)
-                posi = pad_arrays_to_rz(self.posi_list[regi_pos_idx], self.max_r, self.max_z)
+                posi = pad_arrays_to_rz(self.posi_list[regi_pos_idx], self.max_z, self.max_r)
                 # (n, max_r, max_z) -> (max_n, max_r, max_z)
                 pad_shape = (input.size(0) - posi.size(0), posi.size(1), posi.size(2))
                 pad = torch.zeros(pad_shape, dtype=torch.float32, requires_grad=False)

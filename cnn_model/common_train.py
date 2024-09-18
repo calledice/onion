@@ -2,8 +2,9 @@ import torch
 from dataset import OnionDataset
 from torch.utils.data import Dataset, DataLoader
 from post_process import visualize
-from onion_model import *
+from onion_model import CNN_Base,Onion_gavin,Onion_input,Onion_PI,ResOnion_input,ResOnion_PI,Onion_input_softplus,Onion_PI_softplus,ResOnion_input_softplus,ResOnion_PI_softplus,Config
 from common_predict import predict
+import matplotlib.pyplot as plt
 import torch.nn as nn
 from tqdm import tqdm
 import os
@@ -52,6 +53,10 @@ def train(model, train_loader, val_loader, config: Config):
         print(f"epoch: {epoch}")
         losses = []
         for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
+            plt.imshow(np.array(label[0].reshape(36, 32)), cmap='gray', interpolation='nearest')
+            # 显示颜色条
+            plt.colorbar()
+            plt.show()
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
             if config.with_PI:
                 pred = model(input, regi, posi)
@@ -211,40 +216,40 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         add = ""
 
     if Module == CNN_Base:
-        out_dir = "../../onion_data/cnn_model/output/CNN_Base_input"
+        out_dir = "../../onion_data/model_train/output/CNN_Base_input"
         with_PI = False
     elif Module == Onion_gavin:
-        out_dir = "../../onion_data/cnn_model/output/Onion_gavin"
+        out_dir = "../../onion_data/model_train/output/Onion_gavin"
         with_PI = False
     elif Module == Onion_input:
-        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_{randomnumseed}_Onion_input_{add}"
+        out_dir = f"../../onion_data/model_train/output/{name_dataset}_{randomnumseed}_Onion_input_{add}"
         with_PI = False
     elif Module == Onion_input_softplus:
-        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_{randomnumseed}_Onion_input_{add}_softplus"
+        out_dir = f"../../onion_data/model_train/output/{name_dataset}_{randomnumseed}_Onion_input_{add}_softplus"
         with_PI = False
     elif Module == Onion_PI:
-        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_{randomnumseed}_Onion_PI_{add}"
+        out_dir = f"../../onion_data/model_train/output/{name_dataset}_{randomnumseed}_Onion_PI_{add}"
         with_PI = True
     elif Module == Onion_PI_softplus:
-        out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_{randomnumseed}_Onion_PI_{add}_softplus"
+        out_dir = f"../../onion_data/model_train/output/{name_dataset}_{randomnumseed}_Onion_PI_{add}_softplus"
         with_PI = True
     # elif Module == Onion_PI_posiplus:
-    #     out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}_posiplus"
+    #     out_dir = f"../../onion_data/model_train/output/{name_dataset}_Onion_PI_{add}_posiplus"
     #     with_PI = True
     # elif Module == Onion_PI_softplus_posiplus:
-    #     out_dir = f"../../onion_data/cnn_model/output/{name_dataset}_Onion_PI_{add}_softplus_posiplus"
+    #     out_dir = f"../../onion_data/model_train/output/{name_dataset}_Onion_PI_{add}_softplus_posiplus"
     #     with_PI = True
     elif Module == ResOnion_input:
-        out_dir = f"../../onion_data/res_model/output/{name_dataset}_{randomnumseed}_ResOnion_input_{add}"
+        out_dir = f"../../onion_data/model_train/output/{name_dataset}_{randomnumseed}_ResOnion_input_{add}"
         with_PI = False
     elif Module == ResOnion_input_softplus:
-        out_dir =  f"../../onion_data/res_model/output/{name_dataset}_{randomnumseed}_ResOnion_input_{add}_softplus"
+        out_dir =  f"../../onion_data/model_train/output/{name_dataset}_{randomnumseed}_ResOnion_input_{add}_softplus"
         with_PI = False
     elif Module == ResOnion_PI:
-        out_dir = f"../../onion_data/res_model/output/{name_dataset}_{randomnumseed}_ResOnion_PI_{add}"
+        out_dir = f"../../onion_data/model_train/output/{name_dataset}_{randomnumseed}_ResOnion_PI_{add}"
         with_PI = True
     elif Module == ResOnion_PI_softplus:
-        out_dir = f"../../onion_data/res_model/output/{name_dataset}_{randomnumseed}_ResOnion_PI_{add}_softplus"
+        out_dir = f"../../onion_data/model_train/output/{name_dataset}_{randomnumseed}_ResOnion_PI_{add}_softplus"
         with_PI = True
     else:
         print("模型不在列表中")
@@ -283,7 +288,7 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
     parser = argparse.ArgumentParser(description='Train or predict with specified parameters.')
-    parser.add_argument('--dataset',type = str, help='dataset name', default="phantomEAST")
+    parser.add_argument('--dataset',type = str, help='dataset name', default="phantom2A")
     parser.add_argument('--model', help='model name',default=Onion_input)
     parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=False)
     parser.add_argument('--predict_visualize', action='store_true', help='Visualize predictions',default=False)
@@ -292,7 +297,7 @@ if __name__ == '__main__':
 
     # 调用 tmp_runner 函数并传入参数
     tmp_runner(dataset = args.dataset,
-            Module=globals()[args.model],
+            Module=args.model,
             addloss=args.addloss,
             predict_visualize=args.predict_visualize,
             randomnumseed=args.randomnumseed)

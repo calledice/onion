@@ -17,7 +17,7 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ######################################################
     #查看test/train数据
-    test_input_path = "/home/chengda/project/onion/data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
+    test_input_path = "/mnt/d/project/onion/data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
     dataset = h5py.File(test_input_path, 'r')
     x = dataset["x"]
     y = dataset["y"]
@@ -31,6 +31,10 @@ if __name__ == '__main__':
                              range(len(y))]
     regi_list = [regi[str(i)][:] for i in range(len(regi))]  # 收集regi信息
     posi_list = [posi[str(i)][:] for i in range(len(posi))]
+    plt.imshow(np.sum(np.array(posi_list[0]),axis=0).reshape(32,36), cmap='gray', interpolation='nearest')
+    # 显示颜色条
+    plt.colorbar()
+    plt.show()
     r = int(x["0"][-2])
     z = int(x["0"][-1])
     n = len(x["0"])-3

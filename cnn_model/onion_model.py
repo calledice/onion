@@ -289,7 +289,7 @@ class Onion_PI_softplus(nn.Module):
 
 class Onion_PI_posiplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
-        super(Onion_PI, self).__init__()
+        super(Onion_PI_posiplus, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n * 2 + 1
 
@@ -345,7 +345,7 @@ class Onion_PI_posiplus(nn.Module):
 
 class Onion_PI_softplus_posiplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
-        super(Onion_PI, self).__init__()
+        super(Onion_PI_softplus_posiplus, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n * 2 + 1
 

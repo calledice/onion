@@ -1,2 +1,2 @@
 input n=92
-output 75*50samples number = 43378
+output 75*50samples number = 43378samples number = 43378

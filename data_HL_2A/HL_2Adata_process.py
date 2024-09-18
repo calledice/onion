@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import h5py
 import os
-
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 # 获取当前源程序所在的目录
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     name_list = ["val","train","test"]
     if os.path.exists("./data/HL_2A_train_database.h5"):
         print("train set exists.")
-        exit(1)       
+        exit(1)
 
     os.makedirs("./data",exist_ok=True)
 
@@ -45,10 +45,21 @@ if __name__ == '__main__':
         inp_pth = data_root + '/' + name + '_inputs_0604.csv'
         print(inp_pth + " loaded successfully.")
         out_pth = data_root + '/' + name + '_outputs_0604.csv'
+        c_matrix = np.loadtxt(data_root + '/' +'0_cMatrix.txt')/1000
+        for i in range(len(c_matrix)):
+            c_matrix[i] = c_matrix[i].reshape(32, 36).T.flatten()
+        # plt.imshow(np.sum(np.array(c_matrix), axis=0).reshape(36, 32), cmap='gray', interpolation='nearest')
+        # # 显示颜色条
+        # plt.colorbar()
+        # plt.show()
+        region = np.loadtxt(data_root + '/' +'0_region_list.txt')
+        region = region.reshape(32, 36).T.flatten()
+        # plt.imshow(np.array(region.reshape(36, 32)), cmap='gray', interpolation='nearest')
+        # # 显示颜色条
+        # plt.colorbar()
+        # plt.show()
         df_inp = pd.read_csv(inp_pth, header=None)
         df_out = pd.read_csv(out_pth, header=None)
-        c_matrix = np.loadtxt(data_root + '/' +'0_cMatrix.txt')/1000
-        region = np.loadtxt(data_root + '/' +'0_region_list.txt')
         values_to_add = [0, 32, 36]
         # 删除第一行，这里使用.iloc来排除第一行
         df_inp_dropped_both = df_inp.iloc[1:]
@@ -67,7 +78,13 @@ if __name__ == '__main__':
             region_group.create_dataset(str(0), data=region)
 
             for i in tqdm(range(len(df_inp_array))):
+                df_out_i = df_out_temp[i] * 1000
+                # plt.imshow(np.array(df_out_i.reshape(36, 32)), cmap='gray', interpolation='nearest')
+                # # 显示颜色条
+                # plt.colorbar()
+                # plt.show()
                 df_inp_i = np.append(df_inp_array[i],values_to_add)
                 input_group.create_dataset(str(i), data=df_inp_i)
-                label_group.create_dataset(str(i), data=df_out_temp[i].reshape(36, 32).T.flatten()*1000)
+                label_group.create_dataset(str(i), data=df_out_i)
+
     print('finish')

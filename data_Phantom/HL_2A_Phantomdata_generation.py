@@ -241,17 +241,27 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
             print(f'regi {k}/{num_region_maxvalue}: grad_coff = {grad_coff}')
             print(f'regi {k}/{num_region_maxvalue}: threshhold_coff = {threshhold_coff}')
             c_matrix_list.append(c_matrix)
+            region = region.reshape(32, 36).T.flatten()
             region_list.append(region)
+            # plt.imshow(np.array(region.reshape(36, 32)), cmap='gray', interpolation='nearest')
+            # # 显示颜色条
+            # plt.colorbar()
+            # plt.show()
             for j in range(num_value):
                 value = random.uniform(0.5, 1)
                 label = label_generate(randn_indexr, randn_indexz, value, numgridr, numgridz, grid, grad_coff,
                                        threshhold_coff)
-                input = input_generate(c_matrix, label)
+                label = label.reshape(32, 36).T.flatten()
+                # plt.imshow(np.array(label.reshape(36, 32)), cmap='gray', interpolation='nearest')
+                # # 显示颜色条
+                # plt.colorbar()
+                # plt.show()
+                input = input_generate(c_matrix, np.matrix(label).T)
                 new_columns = np.array([[l, numgridr, numgridz]], dtype=np.float64)
                 # 将id和网格数量拼接，用于后续可视化
                 input_contact = np.column_stack((np.array(input.T), new_columns))
                 input_list.append(input_contact[0])#(n,)
-                label_list.append(label.T[0])#(r*z,)
+                label_list.append(label)#(r*z,)
             l += 1
     assert len(input_list) == len(label_list), "输入列表和标签列表长度必须相同"
 
@@ -330,6 +340,16 @@ if __name__ == '__main__':
     c_matrix = np.matrix(np.loadtxt('../data_HL_2A/0_cMatrix.txt')/1000)
     numgridr = 32
     numgridz = 36
+    for i in range(len(c_matrix)):
+        c_matrix[i] = c_matrix[i].reshape(32, 36).T.flatten()
+    # plt.imshow(np.array(c_matrix[0].reshape(36, 32)), cmap='gray', interpolation='nearest')
+    # # 显示颜色条
+    # plt.colorbar()
+    # plt.show()
+    # plt.imshow(np.sum(np.array(c_matrix), axis=0).reshape(36, 32), cmap='gray', interpolation='nearest')
+    # # 显示颜色条
+    # plt.colorbar()
+    # plt.show()
 
     generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,numgridz,c_matrix)
 

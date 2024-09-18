@@ -44,9 +44,17 @@ c_matrix_ss = c_matrix_sss['Poly_SXR'][1][0]
 c_matrix_1 = c_matrix_s.reshape(-1, c_matrix_s.shape[2]).T
 c_matrix_2 = c_matrix_ss.reshape(-1, c_matrix_ss.shape[2]).T
 c_matrix = np.vstack((c_matrix_1, c_matrix_2))*2000
-values_to_add = [0, 75, 50]
+# plt.imshow(np.sum(np.array(c_matrix), axis=0).reshape(75, 50), cmap='gray', interpolation='nearest')
+# # 显示颜色条
+# plt.colorbar()
+# plt.show()
+values_to_add = [0, 50, 75]
 lengh_vec= values_to_add[1]*values_to_add[2]
 region =  np.ones(lengh_vec)
+# plt.imshow(np.array(region.reshape(75, 50)), cmap='gray', interpolation='nearest')
+# # 显示颜色条
+# plt.colorbar()
+# plt.show()
 j = 0
 input_list = []
 label_list = []
@@ -65,9 +73,15 @@ for file_path in tqdm(mat_files_list):
     df_out_array = np.array(y)
     df_inp_array_out = c_matrix@df_out_array
     df_inp_i = np.append(df_inp_array, values_to_add)
-    plotdata(df_inp_array, df_inp_array_49,df_inp_array_out)
+    # plotdata(df_inp_array, df_inp_array_49,df_inp_array_out)
     input_list.append(df_inp_i)
-    label_list.append(df_out_array.T[0])
+    df_out_i=df_out_array.T[0]
+    label_list.append(df_out_i)
+    # plt.imshow(np.array(df_out_i.reshape(75, 50)), cmap='gray', interpolation='nearest')
+    # # 显示颜色条
+    # plt.colorbar()
+    # plt.show()
+    # print(file_path)
 with open("info.txt","a") as info:
     info.write(f"samples number = {len(input_list)}")
 assert len(input_list) == len(label_list), "输入列表和标签列表长度必须相同"
