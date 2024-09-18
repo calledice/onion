@@ -286,7 +286,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset',type = str, help='dataset name', default="phantomEAST")
     parser.add_argument('--model', help='model name',default=Onion_input)
     parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=False)
-    parser.add_argument('--predict_visualize', action='store_true', help='Visualize predictions',default=True)
+    parser.add_argument('--predict_visualize', action='store_true', help='Visualize predictions',default=False)
     parser.add_argument('--randomnumseed',type = int, help='Use random seed for reproducibility',default=42)
     args = parser.parse_args()
 
@@ -310,8 +310,8 @@ if __name__ == '__main__':
         ResOnion_PI_softplus
     python common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42
     
-      ./phantom2A_tain.sh > ../../onion_data/phantom2A_training.log 2>&1 &
-      ./phantomEAST_tain.sh > ../../onion_data/phantomEAST_training.log 2>&1 &
-    1 ./EXP2A_tain.sh > ../../onion_data/EXP2A_training.log 2>&1 &
-      ./EXPEAST_tain.sh > ../../onion_data/EXPEAST_training.log 2>&1 &
+      nohup ./phantom2A_tain.sh > ../../onion_data/phantom2A_training.log 2>&1 &
+      nohup ./phantomEAST_tain.sh > ../../onion_data/phantomEAST_training.log 2>&1 &
+    1 nohup ./EXP2A_tain.sh > ../../onion_data/EXP2A_training.log 2>&1 &
+      nohup ./EXPEAST_tain.sh > ../../onion_data/EXPEAST_training.log 2>&1 &
 '''
