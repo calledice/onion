@@ -64,8 +64,8 @@ def predict(config: Config):
         # print(pred[0])
 
         # 还原output形状
-        preds.append(pred.detach().reshape(-1, r, z))
-        labels.append(label.detach().reshape(-1, r, z))
+        preds.append(pred.detach().reshape(-1, z, r))
+        labels.append(label.detach().reshape(-1, z, r))
         losses.append(loss.item())
         results.append(result.detach())
         label2results.append(label2result.detach())

@@ -288,7 +288,7 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
     parser = argparse.ArgumentParser(description='Train or predict with specified parameters.')
-    parser.add_argument('--dataset',type = str, help='dataset name', default="phantom2A")
+    parser.add_argument('--dataset',type = str, help='dataset name', default="phantomEAST")
     parser.add_argument('--model', help='model name',default=Onion_input)
     parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=False)
     parser.add_argument('--predict_visualize', action='store_true', help='Visualize predictions',default=False)
