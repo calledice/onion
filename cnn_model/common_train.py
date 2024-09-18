@@ -7,12 +7,15 @@ from common_predict import predict
 import matplotlib.pyplot as plt
 import torch.nn as nn
 from tqdm import tqdm
+import math
 import os
 import json
 import numpy as np
 import time
 import random
 import argparse
+from contextlib import redirect_stdout
+from torchinfo import summary
 
 # 获取当前源程序所在的目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -124,19 +127,26 @@ def train(model, train_loader, val_loader, config: Config):
         
         print(f"epoch{epoch} min loss: {min_val_loss}")
         print(f"epoch{epoch} validation loss: {val_loss}")
-        
+
         if val_loss < min_val_loss:
             min_val_loss = val_loss
-            torch.save(model, f"{out_dir}/train/model_best.pth")
+            torch.save(model.state_dict(), f"{out_dir}/train/model_best.pth")
+            # 记录最佳 epoch
             with open(f"{out_dir}/train/best_epoch.txt", 'w') as f:
                 f.write(str(epoch))
-            if early_stop > 0:
-                early_stop = 5
-        json.dump(losses, open(f"{out_dir}/train/val_loss{epoch}.json", 'w'))
+            # 重置早停计数器
+            early_stop = early_stop
+        # 保存当前 epoch 的损失
+        losses[f"epoch_{epoch}"] = val_loss
         val_losses.append(val_loss)
+        # 序列化损失并保存到 JSON 文件
+        with open(f"{out_dir}/train/val_loss_{epoch}.json", 'w') as f:
+            json.dump({f"epoch_{epoch}": val_loss}, f)
+        # 早停机制
         if early_stop >= 0:
             early_stop -= 1
             if early_stop <= 0:
+                print(f"Early stopping at epoch {epoch}")
                 break
     return train_losses, val_losses
 
@@ -166,7 +176,7 @@ def run(Module, config: Config):
     val_path = config.val_path
     test_path = config.test_path
     out_dir = config.out_dir
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     device = config.device
 
     train_set = OnionDataset(train_path)
