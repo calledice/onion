@@ -53,10 +53,10 @@ def train(model, train_loader, val_loader, config: Config):
         print(f"epoch: {epoch}")
         losses = []
         for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
-            plt.imshow(np.array(label[0].reshape(36, 32)), cmap='gray', interpolation='nearest')
-            # 显示颜色条
-            plt.colorbar()
-            plt.show()
+            # plt.imshow(np.array(label[0].reshape(36, 32)), cmap='gray', interpolation='nearest')
+            # # 显示颜色条
+            # plt.colorbar()
+            # plt.show()
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
             if config.with_PI:
                 pred = model(input, regi, posi)
