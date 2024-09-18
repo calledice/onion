@@ -216,7 +216,6 @@ class Onion_PI(nn.Module):
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
             nn.ReLU()
-            # nn.Softplus()
         )
 
     def forward(self, input, regi, posi):
@@ -268,7 +267,8 @@ class Onion_PI_softplus(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True),
+            # nn.ReLU(inplace=True),
+            nn.Softplus(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
             # nn.ReLU()
@@ -329,7 +329,6 @@ class Onion_PI_posiplus(nn.Module):
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
             nn.ReLU()
-            # nn.Softplus()
         )
 
     def forward(self, input, regi, posi):
@@ -385,7 +384,6 @@ class Onion_PI_softplus_posiplus(nn.Module):
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            # nn.ReLU()
             nn.Softplus()
         )
 
@@ -441,11 +439,10 @@ class Onion_input(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.Softplus(),
+            nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            # nn.ReLU()
-            nn.Softplus()
+            nn.ReLU()
         )
 
     def forward(self, input):
@@ -494,7 +491,8 @@ class Onion_input_softplus(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True),
+            # nn.ReLU(inplace=True),
+            nn.Softplus(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
             # nn.ReLU()
@@ -595,7 +593,8 @@ class ResOnion_PI_softplus(nn.Module):
         self.flatten = nn.Flatten(start_dim=1)
         self.fc = nn.Sequential(
             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
-            nn.ReLU(),
+            # nn.ReLU(),
+            nn.Softplus(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
             nn.Softplus()
@@ -672,7 +671,8 @@ class ResOnion_input_softplus(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
-            nn.ReLU(),
+            # nn.ReLU(),
+            nn.Softplus(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
             nn.Softplus()

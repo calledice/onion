@@ -310,8 +310,8 @@ if __name__ == '__main__':
         ResOnion_PI_softplus
     python common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42
     
-      ./phantom2A_tain.sh > ../../onion_data/phantom2A_training.log 2>&1 &
-      ./phantomEAST_tain.sh > ../../onion_data/phantomEAST_training.log 2>&1 &
-    1 ./EXP2A_tain.sh > ../../onion_data/EXP2A_training.log 2>&1 &
-      ./EXPEAST_tain.sh > ../../onion_data/EXPEAST_training.log 2>&1 &
+      nohup ./phantom2A_tain.sh > ../../onion_data/phantom2A_training.log 2>&1 &
+      nohup ./phantomEAST_tain.sh > ../../onion_data/phantomEAST_training.log 2>&1 &
+    1 nohup ./EXP2A_tain.sh > ../../onion_data/EXP2A_training.log 2>&1 &
+      nohup ./EXPEAST_tain.sh > ../../onion_data/EXPEAST_training.log 2>&1 &
 '''
