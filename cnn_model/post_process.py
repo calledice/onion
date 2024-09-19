@@ -83,7 +83,6 @@ def visualize(case_file):
             max_val_error = np.max(relative_error)
             plot_data(relative_error,title_error,save_path,i,max_val_error)
             plot_scatter(inputs[i],results[i],label2results[i],ave_label2result_error,title_data,save_path,i)
-            print(f"finish {i}")
     ave_error_all = np.average(ave_error_list)
     ave_label2result_error_all = np.average(ave_label2result_error_list)
     ave_pre2result_error_all = np.average(ave_pre2result_error_list)

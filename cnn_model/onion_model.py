@@ -74,8 +74,9 @@ class DownSample(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.feature = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, padding=(1, 1), stride=1,bias = False),
-            nn.BatchNorm2d(out_channels)
+            nn.Conv2d(in_channels, out_channels, kernel_size=1, padding=0, stride=2, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU()
         )
 
     def forward(self, x):
@@ -669,6 +670,7 @@ class ResOnion_input(nn.Module):
         z = z.reshape(z.size(0), -1)
         z = self.fc(z)
         return z
+    
 class ResOnion_input_softplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(ResOnion_input_softplus, self).__init__()
