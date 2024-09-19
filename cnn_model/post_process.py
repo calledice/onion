@@ -1,20 +1,19 @@
 import os
-
 import numpy as np
 import matplotlib.pyplot as plt
 import json
-
 from tqdm import tqdm
+
 # 获取当前源程序所在的目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # 切换工作目录到源程序所在的目录
 os.chdir(script_dir)
 
-def plot_data(data, title, save_path,i):
+def plot_data(data, title, save_path,i,max_val):
     # 计算最大值和最小值
-    max_val = data.max()
-    min_val = data.min()
+    max_val = max_val
+    min_val = 0
 
     # 创建等高线级别
     levels = np.linspace(min_val, max_val, 20)
@@ -28,7 +27,7 @@ def plot_data(data, title, save_path,i):
     plt.title(title)
     ax = plt.gca()
     ax.set_aspect(1.0)
-    plt.savefig(save_path + "/" +f"{i}-"+ title)
+    plt.savefig(save_path + "/" +f"{i}-"+ title,dpi = 300)
     # plt.show()
     plt.close()
 def plot_scatter(input,result,label2results,ave_label2result_error,title,save_path,i):
@@ -39,9 +38,10 @@ def plot_scatter(input,result,label2results,ave_label2result_error,title,save_pa
     plt.scatter(range(len(result)), result, color='g', marker='o', s=15, alpha=0.5)
     plt.scatter(range(len(label2results)), label2results, color='r', marker='o', s=15, alpha=0.5)
     plt.errorbar(range(len(label2results)), input, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
-    plt.legend(labels=['Input', 'Pre2result','Label2result'])
+    # plt.legend(labels=['Input','Label@C_matrix'])
+    plt.legend(labels=['Input','Label@C_matrix',"Pre@C_matrix"])
     plt.title(title)
-    plt.savefig(save_path + "/" +f"{i}-"+ title)
+    plt.savefig(save_path + "/" +f"{i}-"+ title,dpi = 300)
     # plt.show()
     plt.close()
 
@@ -77,11 +77,13 @@ def visualize(case_file):
         ave_label2result_error_list.append(np.average(ave_label2result_error))
         ave_pre2result_error_list.append(np.average(ave_pre2result_error))
         if i < 10:
-            plot_data(np.matrix(preds[i]),title_pred,save_path,i)
-            plot_data(np.matrix(labels[i]),title_label,save_path,i)
-            plot_data(relative_error,title_error,save_path,i)
+            max_val = max(np.max(preds[i]),np.max(labels[i]))
+            plot_data(np.matrix(preds[i]),title_pred,save_path,i,max_val)
+            plot_data(np.matrix(labels[i]),title_label,save_path,i,max_val)
+            max_val_error = np.max(relative_error)
+            plot_data(relative_error,title_error,save_path,i,max_val_error)
             plot_scatter(inputs[i],results[i],label2results[i],ave_label2result_error,title_data,save_path,i)
-            # print(f"finish {i}")
+            print(f"finish {i}")
     ave_error_all = np.average(ave_error_list)
     ave_label2result_error_all = np.average(ave_label2result_error_list)
     ave_pre2result_error_all = np.average(ave_pre2result_error_list)
@@ -97,3 +99,8 @@ def visualize(case_file):
     print(f"ave_pre2result_error_all = {ave_pre2result_error_all}")
     # print(f"error_all = {error_all}")
     print("good")
+
+if __name__ == "__main__":
+    print("start")
+    case_file = "/mnt/d/project/onion_data/model_train/output_v0/phantom2A_42_Onion_PI_addloss_softplus"
+    visualize(case_file)

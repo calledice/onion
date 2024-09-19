@@ -1,25 +1,21 @@
 #!/bin/bash
 
 # 定义日志文件路径
-LOG_FILE="../../onion_data/cnn_model/EXPEAST_training.log"
+LOG_FILE="../../onion_data/model_train/EXPEAST_training.log"
 # 定义要运行的命令
 COMMANDS=(
-    "python common_train.py --dataset EXPEAST --model Onion_input --randomnumseed 42"
-#    "python common_train.py --dataset EXPEAST --model Onion_input --addloss --randomnumseed 42"
-    "python common_train.py --dataset EXPEAST --model Onion_input_softplus --randomnumseed 42"
-    "python common_train.py --dataset EXPEAST --model Onion_input_softplus --addloss --randomnumseed 42"
-    "python common_train.py --dataset EXPEAST --model Onion_PI --randomnumseed 42"
-#    "python common_train.py --dataset EXPEAST --model Onion_PI --addloss --randomnumseed 42"
-    "python common_train.py --dataset EXPEAST --model Onion_PI_softplus --randomnumseed 42"
-    "python common_train.py --dataset EXPEAST --model Onion_PI_softplus --addloss --randomnumseed 42"
-    "python common_train.py --dataset EXPEAST --model ResOnion_input --randomnumseed 42"
-#    "python common_train.py --dataset EXPEAST --model ResOnion_input --addloss --randomnumseed 42"
-    "python common_train.py --dataset EXPEAST --model ResOnion_input_softplus --randomnumseed 42"
-    "python common_train.py --dataset EXPEAST --model ResOnion_input_softplus --addloss --randomnumseed 42"
-    "python common_train.py --dataset EXPEAST --model ResOnion_PI --randomnumseed 42"
-#    "python common_train.py --dataset EXPEAST --model ResOnion_PI --addloss --randomnumseed 42"
-    "python common_train.py --dataset EXPEAST --model ResOnion_PI_softplus --randomnumseed 42"
-    "python common_train.py --dataset EXPEAST --model ResOnion_PI_softplus --addloss --randomnumseed 42"
+    "python common_train.py --dataset EXPEAST --model Onion_input --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model Onion_input_softplus --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model Onion_input_softplus --addloss --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model Onion_PI --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model Onion_PI_softplus --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model Onion_PI_softplus --addloss --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model ResOnion_input --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model ResOnion_input_softplus --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model ResOnion_input_softplus --addloss --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model ResOnion_PI --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model ResOnion_PI_softplus --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model ResOnion_PI_softplus --addloss --randomnumseed 42 --device_num 1"
 
 )
 

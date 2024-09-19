@@ -28,8 +28,9 @@ def predict(config: Config):
     out_dir = config.out_dir
     lambda_l1 = config.lambda_l1
     p = config.p
-    device = torch.device('cpu')
-    model = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cpu'))
+    device = config.device
+    os.environ['CUDA_VISIBLE_DEVICES'] = config.device_num
+    model = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cuda'))
     model.eval()
     losses = []
     preds = []
