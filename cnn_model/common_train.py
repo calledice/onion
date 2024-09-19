@@ -54,12 +54,18 @@ def train(model, train_loader, val_loader, config: Config):
     val_losses = []
     lambda_l1 = config.lambda_l1
     p = config.p
+
+    val_len = len(val_loader)
+    current_len = 0
+    
     for epoch in range(epochs):
         # 训练阶段
+        iter = 0
         model.train()
         print(f"epoch: {epoch}")
         losses = []
         for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
+            current_len += 1
             # plt.imshow(np.array(label[0].reshape(36, 32)), cmap='gray', interpolation='nearest')
             # # 显示颜色条
             # plt.colorbar()
@@ -96,63 +102,71 @@ def train(model, train_loader, val_loader, config: Config):
             loss.backward()
             optim.step()
             losses.append(loss.item())
+
+            if current_len % val_len == 0:
+                # 计算当前iter的平均loss
+                train_loss = sum(losses) / len(losses)
+                train_losses.append(train_loss)
+                print(f"epoch{epoch} iter{iter} training loss: {train_loss}\n")
+                losses = []
+
+                # 验证阶段
+                model.eval()
+                best_epoch = -1
+                preds = []
+                labels = []
+                loss_fn = nn.MSELoss()
+                for (input, regi, posi, info), label in tqdm(val_loader, desc="Validating"):
+                    input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
+                    if config.with_PI:
+                        pred = model(input, regi, posi)
+                    else:
+                        pred = model(input)
+                    pred_temp = pred.unsqueeze(-1)
+                    result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
+                    if config.addloss:
+                        loss_1 = loss_fn(pred, label)
+                        loss_2 = loss_fn(input, result)
+                        # alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+                        alpha = loss_1.item() / (loss_1.item() + loss_2.item())
+                        beta = loss_2.item() / (loss_1.item() + loss_2.item())
+                        l1_reg = torch.tensor(0., device=device)
+                        for param in model.parameters():
+                            l1_reg += torch.norm(param, p)
+                        loss = alpha * loss_1 + beta * loss_2 + lambda_l1 * l1_reg
+                        # loss = weighted_mse_loss(pred, label, 10)
+                    else:
+                        loss = loss_fn(pred, label)
+                    preds.append(pred.detach().reshape(-1, config.max_z, config.max_r))
+                    labels.append(label.detach().reshape(-1, config.max_z, config.max_r))
+                    losses.append(loss.detach().item())
+                val_loss = sum(losses) / len(losses)
+                
+                print(f"epoch{epoch} iter{iter} min loss: {min_val_loss}")
+                print(f"epoch{epoch} iter{iter} validation loss: {val_loss}")
+
+                if val_loss < min_val_loss:
+                    min_val_loss = val_loss
+                    torch.save(model, f"{out_dir}/train/model_best.pth")
+                    with open(f"{out_dir}/train/best_epoch.txt", 'w') as f:
+                        f.write(f"epoch{epoch} iter{iter}")
+                    if early_stop > 0:
+                        early_stop = config.early_stop
+                val_losses.append(val_loss)
+                if early_stop >= 0:
+                    early_stop -= 1
+                    print(f"early stop: {early_stop}")
+                    if early_stop <= 0:
+                        break
+                iter += 1
+                losses = []
+
         scheduler.step()
-        train_loss = sum(losses) / len(losses)
-        print(f"epoch{epoch} training loss: {train_loss}\n")
         current_lr = scheduler.get_last_lr()[0]
         print(f"epoch{epoch} Learning Rate: {current_lr}\n")
-        json.dump(losses, open(f"{out_dir}/train/training_loss{epoch}.json", 'w'))
-        train_losses.append(train_loss)
-
-        # 验证阶段
-        model.eval()
-        best_epoch = -1
-        losses = []
-        preds = []
-        labels = []
-        loss_fn = nn.MSELoss()
-        for (input, regi, posi, info), label in tqdm(val_loader, desc="Validating"):
-            input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
-            if config.with_PI:
-                pred = model(input, regi, posi)
-            else:
-                pred = model(input)
-            pred_temp = pred.unsqueeze(-1)
-            result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
-            if config.addloss:
-                loss_1 = loss_fn(pred, label)
-                loss_2 = loss_fn(input, result)
-                # alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-                alpha = loss_1.item() / (loss_1.item() + loss_2.item())
-                beta = loss_2.item() / (loss_1.item() + loss_2.item())
-                l1_reg = torch.tensor(0., device=device)
-                for param in model.parameters():
-                    l1_reg += torch.norm(param, p)
-                loss = alpha * loss_1 + beta * loss_2 + lambda_l1 * l1_reg
-                # loss = weighted_mse_loss(pred, label, 10)
-            else:
-                loss = loss_fn(pred, label)
-            preds.append(pred.detach().reshape(-1, config.max_r, config.max_z))
-            labels.append(label.detach().reshape(-1, config.max_r, config.max_z))
-            losses.append(loss.detach().item())
-        val_loss = sum(losses) / len(losses)
+    json.dump(train_losses, open(f"{out_dir}/train/training_loss.json", 'w'))
+    json.dump(val_losses, open(f"{out_dir}/train/validation_loss.json", 'w'))
         
-        print(f"epoch{epoch} min loss: {min_val_loss}")
-        print(f"epoch{epoch} validation loss: {val_loss}")
-
-        if val_loss < min_val_loss:
-            min_val_loss = val_loss
-            torch.save(model, f"{out_dir}/train/model_best.pth")
-            with open(f"{out_dir}/train/best_epoch.txt", 'w') as f:
-                f.write(str(epoch))
-            if early_stop > 0:
-                early_stop = config.early_stop
-        json.dump(losses, open(f"{out_dir}/train/val_loss{epoch}.json", 'w'))
-        val_losses.append(val_loss)
-        if early_stop >= 0:
-            early_stop -= 1
-            if early_stop <= 0:
-                break
     return train_losses, val_losses
 
 

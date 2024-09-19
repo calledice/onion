@@ -27,9 +27,11 @@ class ResidualBasic(nn.Module):
         super().__init__()
         self.features = nn.Sequential(
                 nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
+                nn.BatchNorm2d(channels),
                 nn.ReLU(),
                 nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
-                nn.ReLU()
+                nn.BatchNorm2d(channels),
+                nn.ReLU(),
             )
     
     def forward(self, x):
@@ -40,9 +42,7 @@ class DownSample(nn.Module):
         super().__init__()
         self.feature = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), padding=(1, 1), stride=(2, 2)),
-            nn.ReLU(),
-            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), padding=(1, 1), stride=(1, 1)),
-            nn.ReLU()
+            nn.BatchNorm2d(out_channels)
         )
 
     def forward(self, x):
