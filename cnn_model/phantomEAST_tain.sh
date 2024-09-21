@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义日志文件路径
-LOG_FILE="../../onion_data/model_train/phantomEAST_training.log"
+LOG_FILE="../../onion_data/model_train/phantomEAST_training-50-20.log"
 # 定义要运行的命令
 COMMANDS=(
     "python common_train.py --dataset phantomEAST --model Onion_input --randomnumseed 42 --device_num 1"
