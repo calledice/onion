@@ -55,33 +55,6 @@ class ConvEmbModel(nn.Module):
         x = x.reshape(x.shape[0], x.shape[1], self.z, self.r)
         return x
 
-class ResidualBasic(nn.Module):
-    def __init__(self, channels):
-        super().__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(channels),
-            nn.ReLU(),
-            nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(channels),
-            nn.ReLU()
-        )
-
-    def forward(self, x):
-        return self.features(x) + x
-
-class DownSample(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super().__init__()
-        self.feature = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, padding=0, stride=2, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU()
-        )
-
-    def forward(self, x):
-        return self.feature(x)
-
 class Onion_gavin(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(Onion_gavin, self).__init__()
@@ -537,6 +510,42 @@ class CNN_Base(nn.Module):
         z = z.reshape(-1, self.out_dim)
         z = self.fc2(z)
         return z
+    
+
+class ResidualBasic(nn.Module):
+    def __init__(self, channels):
+        super().__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(channels),
+            nn.ReLU(),
+            nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(channels),
+            nn.ReLU()
+        )
+
+    def forward(self, x):
+        return self.features(x) + x
+
+class DownSample(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.feature = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=2),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, stride=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU()
+        )
+        self.residual = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=1, padding=0, stride=2, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU()
+        )
+
+    def forward(self, x):
+        return self.feature(x) + self.residual(x)
 
 class ResOnion_PI(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
@@ -582,6 +591,7 @@ class ResOnion_PI(nn.Module):
         z = z.reshape(z.size(0), -1)
         z = self.fc(z)
         return z
+    
 class ResOnion_PI_softplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(ResOnion_PI_softplus, self).__init__()
