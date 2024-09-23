@@ -2,7 +2,7 @@ import torch
 from dataset import OnionDataset
 from torch.utils.data import Dataset, DataLoader
 from post_process import visualize
-from onion_model import CNN_Base,Onion_gavin,Onion_input,Onion_PI,ResOnion_input,ResOnion_PI,Onion_input_softplus,Onion_PI_softplus,ResOnion_input_softplus,ResOnion_PI_softplus,Config
+from onion_model import Onion_input,Onion_PI,ResOnion_input,ResOnion_PI,Onion_input_softplus,Onion_PI_softplus,ResOnion_input_softplus,ResOnion_PI_softplus,Config
 from common_predict import predict
 import matplotlib.pyplot as plt
 from torch.optim.lr_scheduler import CosineAnnealingLR
@@ -99,6 +99,9 @@ def train(model, train_loader, val_loader, config: Config):
             optim.step()
             losses.append(loss.item())
         scheduler.step()
+        # 打印当前的学习率
+        current_lr = optim.param_groups[0]['lr']
+        print(f'Epoch {epoch + 1}: Learning Rate = {current_lr}')
         train_loss = sum(losses) / len(losses)
         print(f"epoch{epoch} training loss: {train_loss}\n")
         current_lr = scheduler.get_last_lr()[0]
@@ -231,14 +234,9 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         add = "addloss"
     else:
         add = ""
-    out_root_path = "../../onion_data/model_train/output-50-20/"
-    if Module == CNN_Base:
-        out_dir = out_root_path+"CNN_Base_input"
-        with_PI = False
-    elif Module == Onion_gavin:
-        out_dir = out_root_path+"Onion_gavin"
-        with_PI = False
-    elif Module == Onion_input:
+    out_root_path = "../../onion_data/model_train_f/output-50/"
+
+    if Module == Onion_input:
         out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_input_{add}"
         with_PI = False
     elif Module == Onion_input_softplus:
@@ -250,12 +248,6 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
     elif Module == Onion_PI_softplus:
         out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_PI_{add}_softplus"
         with_PI = True
-    # elif Module == Onion_PI_posiplus:
-    #     out_dir = out_root_path+f"{name_dataset}_Onion_PI_{add}_posiplus"
-    #     with_PI = True
-    # elif Module == Onion_PI_softplus_posiplus:
-    #     out_dir = out_root_path+f"{name_dataset}_Onion_PI_{add}_softplus_posiplus"
-    #     with_PI = True
     elif Module == ResOnion_input:
         out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_ResOnion_input_{add}"
         with_PI = False
@@ -273,8 +265,8 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         exit(1)
     print(f"with_PI: {with_PI} /n")
     print(f"addloss: {addloss} /n")
-    config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=20, epochs=50,
-                    batch_size=256, lambda_l1=0.0001, p=2, lr=lr,device_num=device_num)
+    config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=15, epochs=50,
+                    batch_size=256, lambda_l1=0.001, p=2, lr=lr,device_num=device_num)
 
     seed_everything(randomnumseed)
 
@@ -337,8 +329,8 @@ if __name__ == '__main__':
         ResOnion_PI_softplus
     python common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42
     
-      nohup ./phantom2A_tain.sh > ../../onion_data/model_train/phantom2A_training-50-20.log 2>&1 & 
-      nohup ./phantomEAST_tain.sh > ../../onion_data/model_train/phantomEAST_training-50-20.log 2>&1 & 
-      nohup ./EXP2A_tain.sh > ../../onion_data/model_train/EXP2A_training-50-20.log 2>&1 & 765873
-      nohup ./EXPEAST_tain.sh > ../../onion_data/model_train/EXPEAST_training-50-20.log 2>&1 & 766109
+      nohup ./phantom2A_tain.sh > ../../onion_data/model_train_f/phantom2A_training-50.log 2>&1 & 2878317
+      nohup ./phantomEAST_tain.sh > ../../onion_data/model_train_f/phantomEAST_training-50.log 2>&1 & 
+      nohup ./EXP2A_tain.sh > ../../onion_data/model_train_f/EXP2A_training-50.log 2>&1 &
+      nohup ./EXPEAST_tain.sh > ../../onion_data/model_train_f/EXPEAST_training-50.log 2>&1 &
 '''
