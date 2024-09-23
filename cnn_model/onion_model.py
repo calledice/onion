@@ -55,126 +55,46 @@ class ConvEmbModel(nn.Module):
         x = x.reshape(x.shape[0], x.shape[1], self.z, self.r)
         return x
 
+
 class ResidualBasic(nn.Module):
     def __init__(self, channels):
         super().__init__()
         self.features = nn.Sequential(
             nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(channels),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(channels),
-            nn.ReLU()
         )
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
-        return self.features(x) + x
+        x = self.features(x) + x
+        x = self.relu(x)
+        return x
 
-class DownSample(nn.Module):
+class Residualscale(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
-        self.feature = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, padding=0, stride=2, bias=False),
+        self.feature_r = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), stride=2, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU()
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), stride=1, padding=1),
+            nn.BatchNorm2d(out_channels)
         )
+        self.feature_x = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), stride=2, padding=0),
+            nn.BatchNorm2d(out_channels),
+        )
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
-        return self.feature(x)
-
-class Onion_gavin(nn.Module):
-    def __init__(self, n=100, max_r=100, max_z=100):
-        super(Onion_gavin, self).__init__()
-        self.conv_upsample = ConvEmbModel(max_r, max_z)
-        channels = n * 2 + 1
-
-        self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.GELU(),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            # nn.BatchNorm2d(num_features=channels),
-            nn.GELU(),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.GELU(),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            # nn.BatchNorm2d(num_features=channels),
-            nn.GELU(),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(in_channels=channels, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
-            nn.GELU(),
-            nn.Conv2d(in_channels=channels * 2, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
-            # nn.BatchNorm2d(num_features=channels * 2),
-            nn.GELU(),
-            nn.AdaptiveMaxPool2d(output_size=(10, 10))
-        )
-
-        conv_out_dim = channels * 2 * 10 * 10
-        fc_out_dim = max_r * max_z
-
-        self.fc = nn.Sequential(
-            nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.GELU(),
-            nn.Dropout(0.5),
-            nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU()
-        )
-
-    def forward(self, input, regi, posi):
-        input = self.conv_upsample(input)
-        regi = regi.unsqueeze(dim=0).transpose(0, 1)
-        final_input = torch.concat([input, regi, posi], dim=1)
-        conv_out = self.net(final_input)    
-        conv_out = conv_out.reshape(conv_out.size(0), -1)
-        out = self.fc(conv_out)
-        return out
-
-class Onion_gavin_original(nn.Module):
-    def __init__(self, n=100, max_r=100, max_z=100):
-        super(Onion_gavin_original, self).__init__()
-        self.conv_upsample = ConvEmbModel(max_r, max_z)
-        channels = n * 2 + 1
-
-        self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.GELU(),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels),
-            nn.GELU(),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.GELU(),
-            nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels),
-            nn.GELU(),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(in_channels=channels, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
-            nn.GELU(),
-            nn.Conv2d(in_channels=channels * 2, out_channels=channels * 2, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=channels * 2),
-            nn.GELU(),
-            nn.AdaptiveMaxPool2d(output_size=(10, 10))
-        )
-
-        conv_out_dim = channels * 2 * 10 * 10
-        fc_out_dim = max_r * max_z
-
-        self.fc = nn.Sequential(
-            nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.GELU(),
-            nn.Dropout(0.5),
-            nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU()
-        )
-
-    def forward(self, input, regi, posi):
-        input = self.conv_upsample(input)
-        regi = regi.unsqueeze(dim=0).transpose(0, 1)
-        final_input = torch.concat([input, regi, posi], dim=1)
-        conv_out = self.net(final_input)    
-        conv_out = conv_out.reshape(conv_out.size(0), -1)
-        out = self.fc(conv_out)
-        return out
+        x_scale = self.feature_x(x)
+        r = self.feature_r(x)
+        x = r + x_scale
+        x = self.relu(x)
+        return x
 
 class Onion_PI(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
@@ -184,6 +104,7 @@ class Onion_PI(nn.Module):
 
         self.net = nn.Sequential(
             nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=2 * channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2*channels),
@@ -191,8 +112,10 @@ class Onion_PI(nn.Module):
             nn.MaxPool2d(kernel_size=2,stride=2),
 
             nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4 * channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4 * channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4*channels),
@@ -200,8 +123,10 @@ class Onion_PI(nn.Module):
             nn.MaxPool2d(kernel_size=2,stride=2),
 
             nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8 * channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8 * channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8*channels),
@@ -217,17 +142,14 @@ class Onion_PI(nn.Module):
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU()
+            nn.ReLU(inplace=True)
         )
 
     def forward(self, input, regi, posi):
         input = self.conv_upsample(input)
         regi = regi.unsqueeze(dim=0).transpose(0, 1)
-        # 在 posi 上加一个非常小的正值
-        # posi = posi + 1e-6
         final_input = torch.concat([input, regi, posi], dim=1)
         conv_out = self.net(final_input)
-        # conv_out = self.deconv_net(conv_out)
         conv_out = conv_out.reshape(conv_out.size(0), -1)
         out = self.fc(conv_out)
         return out
@@ -238,28 +160,33 @@ class Onion_PI_softplus(nn.Module):
         channels = n * 2 + 1
 
         self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=2 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=2*channels),
+            nn.Conv2d(in_channels=2 * channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=2 * channels),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=2 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=4*channels),
+            nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4 * channels),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=4 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=8*channels),
+            nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8 * channels),
             nn.ReLU(inplace=True),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
@@ -269,138 +196,20 @@ class Onion_PI_softplus(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            # nn.ReLU(inplace=True),
             nn.Softplus(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            # nn.ReLU()
             nn.Softplus()
         )
 
     def forward(self, input, regi, posi):
         input = self.conv_upsample(input)
         regi = regi.unsqueeze(dim=0).transpose(0, 1)
-        # 在 posi 上加一个非常小的正值
-        # posi = posi + 1e-6
         final_input = torch.concat([input, regi, posi], dim=1)
         conv_out = self.net(final_input)
-        # conv_out = self.deconv_net(conv_out)
         conv_out = conv_out.reshape(conv_out.size(0), -1)
         out = self.fc(conv_out)
         return out
-
-class Onion_PI_posiplus(nn.Module):
-    def __init__(self, n=100, max_r=100, max_z=100):
-        super(Onion_PI_posiplus, self).__init__()
-        self.conv_upsample = ConvEmbModel(max_r, max_z)
-        channels = n * 2 + 1
-
-        self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=2*channels),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
-
-            nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=4*channels),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
-
-            nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=8*channels),
-            nn.ReLU(inplace=True),
-            nn.AdaptiveMaxPool2d(output_size=(3, 3))
-        )
-
-        conv_out_dim = 8*channels*3*3
-        fc_out_dim = max_r * max_z
-
-        self.fc = nn.Sequential(
-            nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
-            nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU()
-        )
-
-    def forward(self, input, regi, posi):
-        input = self.conv_upsample(input)
-        regi = regi.unsqueeze(dim=0).transpose(0, 1)
-        # 在 posi 上加一个非常小的正值
-        posi = posi + 1e-6
-        final_input = torch.concat([input, regi, posi], dim=1)
-        conv_out = self.net(final_input)
-        # conv_out = self.deconv_net(conv_out)
-        conv_out = conv_out.reshape(conv_out.size(0), -1)
-        out = self.fc(conv_out)
-        return out
-
-class Onion_PI_softplus_posiplus(nn.Module):
-    def __init__(self, n=100, max_r=100, max_z=100):
-        super(Onion_PI_softplus_posiplus, self).__init__()
-        self.conv_upsample = ConvEmbModel(max_r, max_z)
-        channels = n * 2 + 1
-
-        self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=2*channels),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
-
-            nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=4*channels),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
-
-            nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=8*channels),
-            nn.ReLU(inplace=True),
-            nn.AdaptiveMaxPool2d(output_size=(3, 3))
-        )
-
-        conv_out_dim = 8*channels*3*3
-        fc_out_dim = max_r * max_z
-
-        self.fc = nn.Sequential(
-            nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
-            nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.Softplus()
-        )
-
-    def forward(self, input, regi, posi):
-        input = self.conv_upsample(input)
-        regi = regi.unsqueeze(dim=0).transpose(0, 1)
-        # 在 posi 上加一个非常小的正值
-        posi = posi + 1e-6
-        final_input = torch.concat([input, regi, posi], dim=1)
-        conv_out = self.net(final_input)
-        # conv_out = self.deconv_net(conv_out)
-        conv_out = conv_out.reshape(conv_out.size(0), -1)
-        out = self.fc(conv_out)
-        return out
-
 class Onion_input(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(Onion_input, self).__init__()
@@ -410,28 +219,33 @@ class Onion_input(nn.Module):
         # channels = 64
 
         self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=2 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=2*channels),
+            nn.Conv2d(in_channels=2 * channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=2 * channels),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=2 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=4*channels),
+            nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4 * channels),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=4 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=8*channels),
+            nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8 * channels),
             nn.ReLU(inplace=True),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
@@ -441,10 +255,10 @@ class Onion_input(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU()
+            nn.ReLU(inplace=True)
         )
 
     def forward(self, input):
@@ -457,33 +271,36 @@ class Onion_input_softplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(Onion_input_softplus, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
-        # channels = n * 2 + 1
         channels = n
-        # channels = 64
 
         self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=2 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=2*channels),
+            nn.Conv2d(in_channels=2 * channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=2 * channels),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=2 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=4*channels),
+            nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=4 * channels),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=4 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8 * channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(num_features=8*channels),
+            nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(num_features=8 * channels),
             nn.ReLU(inplace=True),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
@@ -493,11 +310,9 @@ class Onion_input_softplus(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            # nn.ReLU(inplace=True),
             nn.Softplus(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            # nn.ReLU()
             nn.Softplus()
         )
 
@@ -507,36 +322,6 @@ class Onion_input_softplus(nn.Module):
         conv_out = conv_out.reshape(conv_out.size(0), -1)
         out = self.fc(conv_out)
         return out
-    
-class CNN_Base(nn.Module):
-    def __init__(self, n, r, z):
-        super().__init__()
-        self.n = n
-        self.r = r
-        self.z = z
-        self.out_dim = n * r * z * 4
-        self.fc1 = nn.Sequential(
-            nn.Linear(n, 4096),
-            nn.GELU(),
-            nn.Linear(4096, n * r * z),
-            nn.GELU()
-        )
-        self.conv = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=n, out_channels=n, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.ReLU()
-        )
-        self.fc2 = nn.Sequential(
-            nn.Linear(self.out_dim, r * z),
-            nn.ReLU()
-        )
-
-    def forward(self, x):
-        z = self.fc1(x)
-        z = z.reshape(-1, self.n, self.z, self.r)
-        z = self.conv(z)
-        z = z.reshape(-1, self.out_dim)
-        z = self.fc2(z)
-        return z
 
 class ResOnion_PI(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
@@ -544,12 +329,12 @@ class ResOnion_PI(nn.Module):
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n * 2 + 1
         self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(2)])
-        self.down1 = DownSample(channels, 2 * channels)
-        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(2)])
-        self.down2 = DownSample(2 * channels, 4 * channels)
-        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(2)])
-        self.down3 = DownSample(4 * channels, 8 * channels)
-        self.res4 = nn.ModuleList([ResidualBasic(8 * channels) for _ in range(2)])
+        self.res2scale = Residualscale(channels, 2 * channels)
+        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(1)])
+        self.res3scale = Residualscale(2 * channels, 4 * channels)
+        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(1)])
+        self.res4scale = Residualscale(4 * channels, 8 * channels)
+        self.res4 = nn.ModuleList([ResidualBasic(8 * channels) for _ in range(1)])
 
         final_r = math.ceil(math.ceil(math.ceil(max_r / 2) / 2) / 2)
         final_z = math.ceil(math.ceil(math.ceil(max_z / 2) / 2) / 2)
@@ -558,10 +343,10 @@ class ResOnion_PI(nn.Module):
         self.flatten = nn.Flatten(start_dim=1)
         self.fc = nn.Sequential(
             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU()
+            nn.ReLU(inplace=True)
         )
 
     def forward(self, input, regi, posi):
@@ -570,13 +355,13 @@ class ResOnion_PI(nn.Module):
         z = torch.concat([input, regi, posi], dim=1)
         for net in self.res1:
             z = net(z)
-        z = self.down1(z)
+        z = self.res2scale(z)
         for net in self.res2:
             z = net(z)
-        z = self.down2(z)
+        z = self.res3scale(z)
         for net in self.res3:
             z = net(z)
-        z = self.down3(z)
+        z = self.res4scale(z)
         for net in self.res4:
             z = net(z)
         z = z.reshape(z.size(0), -1)
@@ -588,12 +373,12 @@ class ResOnion_PI_softplus(nn.Module):
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n * 2 + 1
         self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(2)])
-        self.down1 = DownSample(channels, 2 * channels)
-        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(2)])
-        self.down2 = DownSample(2 * channels, 4 * channels)
-        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(2)])
-        self.down3 = DownSample(4 * channels, 8 * channels)
-        self.res4 = nn.ModuleList([ResidualBasic(8 * channels) for _ in range(2)])
+        self.res2scale = Residualscale(channels, 2 * channels)
+        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(1)])
+        self.res3scale = Residualscale(2 * channels, 4 * channels)
+        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(1)])
+        self.res4scale = Residualscale(4 * channels, 8 * channels)
+        self.res4 = nn.ModuleList([ResidualBasic(8 * channels) for _ in range(1)])
 
         final_r = math.ceil(math.ceil(math.ceil(max_r / 2) / 2) / 2)
         final_z = math.ceil(math.ceil(math.ceil(max_z / 2) / 2) / 2)
@@ -602,7 +387,6 @@ class ResOnion_PI_softplus(nn.Module):
         self.flatten = nn.Flatten(start_dim=1)
         self.fc = nn.Sequential(
             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
-            # nn.ReLU(),
             nn.Softplus(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
@@ -615,13 +399,13 @@ class ResOnion_PI_softplus(nn.Module):
         z = torch.concat([input, regi, posi], dim=1)
         for net in self.res1:
             z = net(z)
-        z = self.down1(z)
+        z = self.res2scale(z)
         for net in self.res2:
             z = net(z)
-        z = self.down2(z)
+        z = self.res3scale(z)
         for net in self.res3:
             z = net(z)
-        z = self.down3(z)
+        z = self.res4scale(z)
         for net in self.res4:
             z = net(z)
         z = z.reshape(z.size(0), -1)
@@ -634,12 +418,12 @@ class ResOnion_input(nn.Module):
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n
         self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(2)])
-        self.down1 = DownSample(channels, 2 * channels)
-        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(2)])
-        self.down2 = DownSample(2 * channels, 4 * channels)
-        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(2)])
-        self.down3 = DownSample(4 * channels, 8 * channels)
-        self.res4 = nn.ModuleList([ResidualBasic(8 * channels) for _ in range(2)])
+        self.res2scale = Residualscale(channels, 2 * channels)
+        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(1)])
+        self.res3scale = Residualscale(2 * channels, 4 * channels)
+        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(1)])
+        self.res4scale = Residualscale(4 * channels, 8 * channels)
+        self.res4 = nn.ModuleList([ResidualBasic(8 * channels) for _ in range(1)])
 
         final_r = math.ceil(math.ceil(math.ceil(max_r / 2) / 2) / 2)
         final_z = math.ceil(math.ceil(math.ceil(max_z / 2) / 2) / 2)
@@ -648,23 +432,23 @@ class ResOnion_input(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU()
+            nn.ReLU(inplace=True)
         )
 
     def forward(self, input):
         input = self.conv_upsample(input)
         for net in self.res1:
             z = net(input)
-        z = self.down1(z)
+        z = self.res2scale(z)
         for net in self.res2:
             z = net(z)
-        z = self.down2(z)
+        z = self.res3scale(z)
         for net in self.res3:
             z = net(z)
-        z = self.down3(z)
+        z = self.res4scale(z)
         for net in self.res4:
             z = net(z)
         z = z.reshape(z.size(0), -1)
@@ -677,12 +461,12 @@ class ResOnion_input_softplus(nn.Module):
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n
         self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(2)])
-        self.down1 = DownSample(channels, 2 * channels)
-        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(2)])
-        self.down2 = DownSample(2 * channels, 4 * channels)
-        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(2)])
-        self.down3 = DownSample(4 * channels, 8 * channels)
-        self.res4 = nn.ModuleList([ResidualBasic(8 * channels) for _ in range(2)])
+        self.res2scale = Residualscale(channels, 2 * channels)
+        self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(1)])
+        self.res3scale = Residualscale(2 * channels, 4 * channels)
+        self.res3 = nn.ModuleList([ResidualBasic(4 * channels) for _ in range(1)])
+        self.res4scale = Residualscale(4 * channels, 8 * channels)
+        self.res4 = nn.ModuleList([ResidualBasic(8 * channels) for _ in range(1)])
 
         final_r = math.ceil(math.ceil(math.ceil(max_r / 2) / 2) / 2)
         final_z = math.ceil(math.ceil(math.ceil(max_z / 2) / 2) / 2)
@@ -691,7 +475,6 @@ class ResOnion_input_softplus(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
-            # nn.ReLU(),
             nn.Softplus(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
@@ -702,13 +485,13 @@ class ResOnion_input_softplus(nn.Module):
         input = self.conv_upsample(input)
         for net in self.res1:
             z = net(input)
-        z = self.down1(z)
+        z = self.res2scale(z)
         for net in self.res2:
             z = net(z)
-        z = self.down2(z)
+        z = self.res3scale(z)
         for net in self.res3:
             z = net(z)
-        z = self.down3(z)
+        z = self.res4scale(z)
         for net in self.res4:
             z = net(z)
         z = z.reshape(z.size(0), -1)
