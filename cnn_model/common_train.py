@@ -209,7 +209,7 @@ def run(Module, config: Config):
     plot_loss(train_losses, val_losses, out_dir)
 
 
-def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnumseed=None,lr = 0.001,device_num = "0"):
+def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnumseed=None,lr = None,device_num = "0"):
     name_dataset = dataset
     if name_dataset == "phantom2A":
         train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
@@ -330,7 +330,7 @@ if __name__ == '__main__':
     python common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42
     
       nohup ./phantom2A_tain.sh > ../../onion_data/model_train_f/phantom2A_training-50.log 2>&1 & 2878317
-      nohup ./phantomEAST_tain.sh > ../../onion_data/model_train_f/phantomEAST_training-50.log 2>&1 & 
+      nohup ./phantomEAST_tain.sh > ../../onion_data/model_train_f/phantomEAST_training-50.log 2>&1 & 3921141
       nohup ./EXP2A_tain.sh > ../../onion_data/model_train_f/EXP2A_training-50.log 2>&1 &
       nohup ./EXPEAST_tain.sh > ../../onion_data/model_train_f/EXPEAST_training-50.log 2>&1 &
 '''

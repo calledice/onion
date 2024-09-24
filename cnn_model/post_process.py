@@ -38,8 +38,8 @@ def plot_scatter(input,result,label2results,ave_label2result_error,title,save_pa
     plt.scatter(range(len(result)), result, color='g', marker='o', s=15, alpha=0.5)
     plt.scatter(range(len(label2results)), label2results, color='r', marker='o', s=15, alpha=0.5)
     plt.errorbar(range(len(label2results)), input, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
-    # plt.legend(labels=['Input','Label@C_matrix'])
-    plt.legend(labels=['Input','Label@C_matrix',"Pre@C_matrix"])
+    # plt.legend(labels=['Input','Label@BP'])
+    plt.legend(labels=['Input','Label@BP',"Pre@BP"])
     plt.title(title)
     plt.savefig(save_path + "/" +f"{i}-"+ title,dpi = 300)
     # plt.show()
@@ -101,5 +101,5 @@ def visualize(case_file):
 
 if __name__ == "__main__":
     print("start")
-    case_file = "/mnt/d/project/onion_data/model_train/output_v0/phantom2A_42_Onion_PI_addloss_softplus"
+    case_file = "../../onion_data/model_train_f/output-50/phantomEAST_42_Onion_input_"
     visualize(case_file)

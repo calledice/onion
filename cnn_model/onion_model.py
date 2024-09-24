@@ -213,9 +213,7 @@ class Onion_input(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(Onion_input, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
-        # channels = n * 2 + 1
         channels = n
-        # channels = 64
 
         self.net = nn.Sequential(
             nn.Conv2d(in_channels=channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
