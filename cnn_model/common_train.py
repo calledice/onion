@@ -265,7 +265,7 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         exit(1)
     print(f"with_PI: {with_PI} /n")
     print(f"addloss: {addloss} /n")
-    config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=15, epochs=50,
+    config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=20, epochs=50,
                     batch_size=256, lambda_l1=0.001, p=2, lr=lr,device_num=device_num)
 
     seed_everything(randomnumseed)
@@ -329,8 +329,8 @@ if __name__ == '__main__':
         ResOnion_PI_softplus
     python common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42
     
-      nohup ./phantom2A_tain.sh > ../../onion_data/model_train_f/phantom2A_training-50.log 2>&1 & 2878317
-      nohup ./phantomEAST_tain.sh > ../../onion_data/model_train_f/phantomEAST_training-50.log 2>&1 & 3921141
+      nohup ./phantom2A_tain.sh > ../../onion_data/model_train_f/phantom2A_training-50-1.log 2>&1 & 2878317
+      nohup ./phantomEAST_tain.sh > ../../onion_data/model_train_f/phantomEAST_training-50-1.log 2>&1 & 3921141
       nohup ./EXP2A_tain.sh > ../../onion_data/model_train_f/EXP2A_training-50.log 2>&1 &
       nohup ./EXPEAST_tain.sh > ../../onion_data/model_train_f/EXPEAST_training-50.log 2>&1 &
 '''
