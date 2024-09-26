@@ -52,7 +52,7 @@ def train(model, train_loader, val_loader, config: Config):
     scheduler = CosineAnnealingLR(optim, T_max=T_max, eta_min=0.00001)
     train_losses = []
     val_losses = []
-    lambda_l1 = config.lambda_l1
+    lambda_l2 = config.lambda_l2
     p = config.p
     for epoch in range(epochs):
         # 训练阶段
@@ -85,14 +85,14 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                # alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-                alpha = loss_1.item() / (loss_1.item() + loss_2.item())
-                beta = loss_2.item() / (loss_1.item() + loss_2.item())
-                l1_reg = torch.tensor(0., device=device)
+                alpha = (1.0-0.618)*loss_1.item() / loss_2.item() if loss_2 > 0 else 0.0
+                beta = 1.0
+                # alpha = loss_1.item() / (loss_1.item() + loss_2.item())
+                # beta = loss_2.item() / (loss_1.item() + loss_2.item())
+                l2_reg = torch.tensor(0., device=device)
                 for param in model.parameters():
-                    l1_reg += torch.norm(param, p)
-                loss = alpha * loss_1 + beta * loss_2 + lambda_l1 * l1_reg
-                # loss = weighted_mse_loss(pred, label, 10)
+                    l2_reg += torch.norm(param, p)
+                loss = beta * loss_1 + alpha * loss_2 + lambda_l2 * l2_reg
             else:
                 loss = loss_fn(pred, label)
             loss.backward()
@@ -127,14 +127,14 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                # alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-                alpha = loss_1.item() / (loss_1.item() + loss_2.item())
-                beta = loss_2.item() / (loss_1.item() + loss_2.item())
-                l1_reg = torch.tensor(0., device=device)
+                alpha = (1.0 - 0.618) * loss_1.item() / loss_2.item() if loss_2 > 0 else 0.0
+                beta = 1.0
+                # beta = loss_1.item() / (loss_1.item() + loss_2.item())
+                # alpha = loss_2.item() / (loss_1.item() + loss_2.item())
+                l2_reg = torch.tensor(0., device=device)
                 for param in model.parameters():
-                    l1_reg += torch.norm(param, p)
-                loss = alpha * loss_1 + beta * loss_2 + lambda_l1 * l1_reg
-                # loss = weighted_mse_loss(pred, label, 10)
+                    l2_reg += torch.norm(param, p)
+                loss = beta * loss_1 + alpha * loss_2 + lambda_l2 * l2_reg
             else:
                 loss = loss_fn(pred, label)
             preds.append(pred.detach().reshape(-1, config.max_r, config.max_z))
@@ -266,7 +266,7 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
     print(f"with_PI: {with_PI} /n")
     print(f"addloss: {addloss} /n")
     config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=20, epochs=50,
-                    batch_size=256, lambda_l1=0.001, p=2, lr=lr,device_num=device_num)
+                    batch_size=256, lambda_l2=0.0001, p=2, lr=lr,device_num=device_num)
 
     seed_everything(randomnumseed)
 
