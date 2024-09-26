@@ -53,10 +53,10 @@ def predict(config: Config):
             loss_1 = loss_fn(pred, label)
             loss_2 = loss_fn(input, result)
             alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
-            l1_reg = torch.tensor(0., device=device)
+            l2_reg = torch.tensor(0., device=device)
             for param in model.parameters():
-                l1_reg += torch.norm(param, p)
-            loss = loss_1 + alpha * loss_2 + lambda_l1 * l1_reg
+                l2_reg += torch.norm(param, p)
+            loss = loss_1 + alpha * loss_2 + lambda_l1 * l2_reg
         else:
             loss = loss_fn(pred, label)
 

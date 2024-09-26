@@ -4,19 +4,15 @@
 LOG_FILE="../../onion_data/model_train_f/phantomEAST_training-50-1.log"
 # 定义要运行的命令
 COMMANDS=(
-    "python common_train.py --dataset phantomEAST --model Onion_input --randomnumseed 42 --lr 0.0001 --device_num 1"
-    "python common_train.py --dataset phantomEAST --model Onion_input_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
-#    "python common_train.py --dataset phantomEAST --model Onion_input_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 1"
-#    "python common_train.py --dataset phantomEAST --model Onion_PI --randomnumseed 42 --lr 0.0001 --device_num 1"
-    "python common_train.py --dataset phantomEAST --model Onion_PI_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
+#    "python common_train.py --dataset phantomEAST --model Onion_input --randomnumseed 42 --lr 0.0001 --device_num 1"
+#    "python common_train.py --dataset phantomEAST --model Onion_input_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
+#    "python common_train.py --dataset phantomEAST --model Onion_PI_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
     "python common_train.py --dataset phantomEAST --model Onion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 1"
+
     "python common_train.py --dataset phantomEAST --model ResOnion_input --randomnumseed 42 --lr 0.0001 --device_num 1"
     "python common_train.py --dataset phantomEAST --model ResOnion_input_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
-#    "python common_train.py --dataset phantomEAST --model ResOnion_input_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 1"
-#    "python common_train.py --dataset phantomEAST --model ResOnion_PI --randomnumseed 42 --lr 0.0001 --device_num 1"
     "python common_train.py --dataset phantomEAST --model ResOnion_PI_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
     "python common_train.py --dataset phantomEAST --model ResOnion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 1"
-
 )
 
 # 遍历命令数组并依次执行每个命令
