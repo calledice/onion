@@ -26,7 +26,7 @@ def predict(config: Config):
     batch_size = 64
     test_loader = DataLoader(dataset, batch_size=64, shuffle=False)
     out_dir = config.out_dir
-    lambda_l1 = config.lambda_l1
+    lambda_l2 = config.lambda_l2
     p = config.p
     device = config.device
     os.environ['CUDA_VISIBLE_DEVICES'] = config.device_num
@@ -56,7 +56,7 @@ def predict(config: Config):
             l2_reg = torch.tensor(0., device=device)
             for param in model.parameters():
                 l2_reg += torch.norm(param, p)
-            loss = loss_1 + alpha * loss_2 + lambda_l1 * l2_reg
+            loss = loss_1 + alpha * loss_2 + lambda_l2 * l2_reg
         else:
             loss = loss_fn(pred, label)
 
