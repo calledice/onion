@@ -85,7 +85,7 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                alpha = 0.618 *loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+                alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
                 beta = 1.0
                 # alpha = loss_1.item() / (loss_1.item() + loss_2.item())
                 # beta = loss_2.item() / (loss_1.item() + loss_2.item())
@@ -127,7 +127,7 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                alpha = 0.618 * loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+                alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
                 beta = 1.0
                 # beta = loss_1.item() / (loss_1.item() + loss_2.item())
                 # alpha = loss_2.item() / (loss_1.item() + loss_2.item())
@@ -297,9 +297,9 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
     parser = argparse.ArgumentParser(description='Train or predict with specified parameters.')
-    parser.add_argument('--dataset',type = str, help='dataset name', default="phantomEAST")
+    parser.add_argument('--dataset',type = str, help='dataset name', default="phantom2A")
     parser.add_argument('--model', help='model name',default=Onion_input)
-    parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=False)
+    parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=True)
     parser.add_argument('--predict_visualize', action='store_true', help='Visualize predictions',default=False)
     parser.add_argument('--randomnumseed',type = int, help='Use random seed for reproducibility',default=42)
     parser.add_argument('--lr',type = float, help='learning rate',default=0.001)

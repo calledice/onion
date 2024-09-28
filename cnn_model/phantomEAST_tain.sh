@@ -7,12 +7,12 @@ COMMANDS=(
 #    "python common_train.py --dataset phantomEAST --model Onion_input --randomnumseed 42 --lr 0.0001 --device_num 1"
 #    "python common_train.py --dataset phantomEAST --model Onion_input_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
 #    "python common_train.py --dataset phantomEAST --model Onion_PI_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
-    "python common_train.py --dataset phantomEAST --model Onion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 1"
+    "python common_train.py --dataset phantomEAST --model Onion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 0"
 
-    "python common_train.py --dataset phantomEAST --model ResOnion_input --randomnumseed 42 --lr 0.0001 --device_num 1"
-    "python common_train.py --dataset phantomEAST --model ResOnion_input_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
-    "python common_train.py --dataset phantomEAST --model ResOnion_PI_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
-    "python common_train.py --dataset phantomEAST --model ResOnion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 1"
+    "python common_train.py --dataset phantomEAST --model ResOnion_input --randomnumseed 42 --lr 0.0001 --device_num 0"
+    "python common_train.py --dataset phantomEAST --model ResOnion_input_softplus --randomnumseed 42 --lr 0.0001 --device_num 0"
+    "python common_train.py --dataset phantomEAST --model ResOnion_PI_softplus --randomnumseed 42 --lr 0.0001 --device_num 0"
+    "python common_train.py --dataset phantomEAST --model ResOnion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 0"
 )
 
 # 遍历命令数组并依次执行每个命令
