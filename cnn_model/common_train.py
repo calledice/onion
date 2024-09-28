@@ -85,7 +85,7 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+                alpha = 0.618*loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
                 beta = 1.0
                 # alpha = loss_1.item() / (loss_1.item() + loss_2.item())
                 # beta = loss_2.item() / (loss_1.item() + loss_2.item())
@@ -127,7 +127,7 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+                alpha = 0.618*loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
                 beta = 1.0
                 # beta = loss_1.item() / (loss_1.item() + loss_2.item())
                 # alpha = loss_2.item() / (loss_1.item() + loss_2.item())
@@ -299,7 +299,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train or predict with specified parameters.')
     parser.add_argument('--dataset',type = str, help='dataset name', default="phantom2A")
     parser.add_argument('--model', help='model name',default=Onion_input)
-    parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=True)
+    parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=False)
     parser.add_argument('--pv', action='store_true', help='Visualize predictions',default=False)
     parser.add_argument('--randomnumseed',type = int, help='Use random seed for reproducibility',default=42)
     parser.add_argument('--lr',type = float, help='learning rate',default=0.0001)
@@ -311,7 +311,7 @@ if __name__ == '__main__':
     tmp_runner(dataset = args.dataset,
             Module=args.model,
             addloss=args.addloss,
-            predict_visualize=args.predict_visualize,
+            predict_visualize=args.pv,
             randomnumseed=args.randomnumseed,
             lr = args.lr,
             device_num = args.device_num)
@@ -329,8 +329,8 @@ if __name__ == '__main__':
         ResOnion_PI_softplus
     python common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42
     
-      nohup ./phantom2A_tain.sh > ../../onion_data/model_train_f/phantom2A_training-50-1.log 2>&1 & 2878317
-      nohup ./phantomEAST_tain.sh > ../../onion_data/model_train_f/phantomEAST_training-50-1.log 2>&1 & 3921141
-      nohup ./EXP2A_tain.sh > ../../onion_data/model_train_f/EXP2A_training-50.log 2>&1 &
-      nohup ./EXPEAST_tain.sh > ../../onion_data/model_train_f/EXPEAST_training-50.log 2>&1 &
+      nohup ./phantom2A_train.sh > ../../onion_data/model_train_f/phantom2A_training-50-1.log 2>&1 & 2878317
+      nohup ./phantomEAST_train.sh > ../../onion_data/model_train_f/phantomEAST_training-50-1.log 2>&1 & 3921141
+      nohup ./EXP2A_train.sh > ../../onion_data/model_train_f/EXP2A_training-50.log 2>&1 &
+      nohup ./EXPEAST_train.sh > ../../onion_data/model_train_f/EXPEAST_training-50.log 2>&1 &
 '''

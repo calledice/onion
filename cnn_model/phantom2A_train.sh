@@ -7,7 +7,7 @@ COMMANDS=(
     "python common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42 --device_num 0"
     "python common_train.py --dataset phantom2A --model Onion_input_softplus --randomnumseed 42 --device_num 0"
     "python common_train.py --dataset phantom2A --model Onion_input_softplus --addloss --randomnumseed 42 --device_num 0"
-#    "python common_train.py --dataset phantom2A --model Onion_PI --randomnumseed 42 --device_num 0"
+#    "python common_train.py --dataset phantom2A --model Onion_PI --lr 0.001--randomnumseed 42 --device_num 0"
 #    "python common_train.py --dataset phantom2A --model Onion_PI_softplus --randomnumseed 42 --device_num 0"
     "python common_train.py --dataset phantom2A --model Onion_PI_softplus --addloss --lr 0.0001 --randomnumseed 42 --device_num 0"
     "python common_train.py --dataset phantom2A --model ResOnion_input --randomnumseed 42 --device_num 0"
