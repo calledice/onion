@@ -9,13 +9,13 @@ COMMANDS=(
     "python common_train.py --dataset phantom2A --model Onion_input_softplus --addloss --randomnumseed 42 --device_num 0"
 #    "python common_train.py --dataset phantom2A --model Onion_PI --randomnumseed 42 --device_num 0"
 #    "python common_train.py --dataset phantom2A --model Onion_PI_softplus --randomnumseed 42 --device_num 0"
-    "python common_train.py --dataset phantom2A --model Onion_PI_softplus --addloss --randomnumseed 42 --device_num 0"
+    "python common_train.py --dataset phantom2A --model Onion_PI_softplus --addloss --lr 0.0001 --randomnumseed 42 --device_num 0"
     "python common_train.py --dataset phantom2A --model ResOnion_input --randomnumseed 42 --device_num 0"
     "python common_train.py --dataset phantom2A --model ResOnion_input_softplus --randomnumseed 42 --device_num 0"
 #    "python common_train.py --dataset phantom2A --model ResOnion_input_softplus --addloss --randomnumseed 42 --device_num 0"
-#    "python common_train.py --dataset phantom2A --model ResOnion_PI --randomnumseed 42 --device_num 0"
-    "python common_train.py --dataset phantom2A --model ResOnion_PI_softplus --randomnumseed 42 --device_num 0"
-    "python common_train.py --dataset phantom2A --model ResOnion_PI_softplus --addloss --randomnumseed 42 --device_num 0"
+#    "python common_train.py --dataset phantom2A --model ResOnion_PI --randomnumseed 42 --lr 0.0001 --device_num 0"
+    "python common_train.py --dataset phantom2A --model ResOnion_PI_softplus --lr 0.0001 --randomnumseed 42 --device_num 0"
+    "python common_train.py --dataset phantom2A --model ResOnion_PI_softplus --lr 0.0001 --addloss --randomnumseed 42 --device_num 0"
 
 )
 

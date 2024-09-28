@@ -300,9 +300,9 @@ if __name__ == '__main__':
     parser.add_argument('--dataset',type = str, help='dataset name', default="phantom2A")
     parser.add_argument('--model', help='model name',default=Onion_input)
     parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=True)
-    parser.add_argument('--predict_visualize', action='store_true', help='Visualize predictions',default=False)
+    parser.add_argument('--pv', action='store_true', help='Visualize predictions',default=False)
     parser.add_argument('--randomnumseed',type = int, help='Use random seed for reproducibility',default=42)
-    parser.add_argument('--lr',type = float, help='learning rate',default=0.001)
+    parser.add_argument('--lr',type = float, help='learning rate',default=0.0001)
     parser.add_argument('--device_num',type = str, help='device',default="0")
     args = parser.parse_args()
     args.model = globals()[args.model]
