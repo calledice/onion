@@ -10,7 +10,7 @@ COMMANDS=(
 #    "python common_train.py --dataset EXP2A --model Onion_PI_softplus --addloss --randomnumseed 42 --device_num 0"
 
 #    "python common_train.py --dataset EXP2A --model ResOnion_input --randomnumseed 42 --device_num 0"
-    "python common_train.py --dataset EXP2A --model ResOnion_input_softplus --randomnumseed 42 --device_num 0"
+#    "python common_train.py --dataset EXP2A --model ResOnion_input_softplus --randomnumseed 42 --device_num 0"
     "python common_train.py --dataset EXP2A --model ResOnion_PI_softplus --randomnumseed 42 --device_num 0"
     "python common_train.py --dataset EXP2A --model ResOnion_PI_softplus --addloss --randomnumseed 42 --device_num 0"
 )
