@@ -85,7 +85,7 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                alpha = 0.618*loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+                alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0 #0.618
                 beta = 1.0
                 # alpha = loss_1.item() / (loss_1.item() + loss_2.item())
                 # beta = loss_2.item() / (loss_1.item() + loss_2.item())
@@ -127,7 +127,7 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                alpha = 0.618*loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0
+                alpha = loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0 #0.618
                 beta = 1.0
                 # beta = loss_1.item() / (loss_1.item() + loss_2.item())
                 # alpha = loss_2.item() / (loss_1.item() + loss_2.item())
@@ -234,7 +234,7 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         add = "addloss"
     else:
         add = ""
-    out_root_path = "../../onion_data/model_train_f/output-50/"
+    out_root_path = "../../onion_data/model_train_0.0001/output-50/"
 
     if Module == Onion_input:
         out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_input_{add}"
@@ -275,8 +275,8 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
     if predict_visualize:
         print("start predict")
         predict(config)
-        print("start visualize")
-        visualize(out_dir)
+        # print("start visualize")
+        # visualize(out_dir)
     else:
         print("start train")
         # 记录训练开始时间
@@ -290,7 +290,7 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
             f.write(f"training time:{training_time} min \n")
         print(f"Total training time: {training_time:.2f} mins")
         predict(config)
-        visualize(out_dir)
+        # visualize(out_dir)
 
 if __name__ == '__main__':
     '''
@@ -329,8 +329,8 @@ if __name__ == '__main__':
         ResOnion_PI_softplus
     python common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42
     
-      nohup ./phantom2A_train.sh > ../../onion_data/model_train_f/phantom2A_training-50-1.log 2>&1 & 2878317
+      nohup ./phantom2A_train.sh > ../../onion_data/model_train_0.0001/phantom2A_training-50-all.log 2>&1 & 2878317
       nohup ./phantomEAST_train.sh > ../../onion_data/model_train_f/phantomEAST_training-50-1.log 2>&1 & 3921141
-      nohup ./EXP2A_train.sh > ../../onion_data/model_train_f/EXP2A_training-50.log 2>&1 &
+      nohup ./EXP2A_train.sh > ../../onion_data/model_train_0.0001/EXP2A_training-50-2.log 2>&1 &
       nohup ./EXPEAST_train.sh > ../../onion_data/model_train_f/EXPEAST_training-50.log 2>&1 &
 '''

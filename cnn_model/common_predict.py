@@ -7,6 +7,7 @@ import json
 import os
 import torch.nn as nn
 import numpy as np
+from post_process import visualize_up
 
 # 获取当前源程序所在的目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -76,14 +77,18 @@ def predict(config: Config):
 
     print(sum(losses) / len(losses))
     json.dump(losses, open(f"{out_dir}/test/testing_loss.json", 'w'), indent=2)
-    preds = torch.concat(preds, dim=0)
-    labels = torch.concat(labels, dim=0)
-    results = torch.concat(results, dim=0)
-    label2results = torch.concat(label2results, dim=0)
-    inputs = torch.concat(inputs, dim=0)
-    json.dump(preds.tolist(), open(f"{out_dir}/test/preds.json", 'w'), indent=2)
-    json.dump(labels.tolist(), open(f"{out_dir}/test/labels.json", 'w'), indent=2)
-    json.dump(results.tolist(), open(f"{out_dir}/test/results.json", 'w'), indent=2)
-    json.dump(label2results.tolist(), open(f"{out_dir}/test/label2results.json", 'w'), indent=2)
-    json.dump(inputs.tolist(), open(f"{out_dir}/test/inputs.json", 'w'), indent=2)
+    preds = torch.concat(preds, dim=0).tolist()
+    labels = torch.concat(labels, dim=0).tolist()
+    results = torch.concat(results, dim=0).tolist()
+    label2results = torch.concat(label2results, dim=0).tolist()
+    inputs = torch.concat(inputs, dim=0).tolist()
+
+    visualize_up(preds, labels, inputs, results, label2results, config.out_dir)
+
+    json.dump(preds, open(f"{out_dir}/test/preds.json", 'w'), indent=2)
+    json.dump(labels, open(f"{out_dir}/test/labels.json", 'w'), indent=2)
+    json.dump(results, open(f"{out_dir}/test/results.json", 'w'), indent=2)
+    json.dump(label2results, open(f"{out_dir}/test/label2results.json", 'w'), indent=2)
+    json.dump(inputs, open(f"{out_dir}/test/inputs.json", 'w'), indent=2)
+    json.dump(config.as_dict(), open(f"{out_dir}/test/config.json", 'w'), indent=4)
     print("finish")

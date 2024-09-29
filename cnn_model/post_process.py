@@ -99,6 +99,48 @@ def visualize(case_file):
     # print(f"error_all = {error_all}")
     print("good")
 
+def visualize_up(preds,labels,inputs,results,label2results,case_file):
+    print("start visualize")
+    title_pred = 'preds'
+    title_label = 'labels'
+    title_error = 'error'
+    title_data = "data"
+    save_path = case_file+"/figures"
+    os.makedirs(save_path,exist_ok=True)
+    ave_error_list = []
+    ave_label2result_error_list = []# 由label获得的弦积分结果与input的偏差
+    ave_pre2result_error_list = []# 由pre获得的弦积分结果与input的偏差
+    error_record_path = case_file+"/error_record.txt"
+    for i in tqdm(range(len(preds)), desc='Visualizing'):
+        relative_error = abs(np.matrix(preds[i])-np.matrix(labels[i]))/np.max(np.matrix(labels[i]))
+        ave_label2result_error = abs(np.array(label2results[i])-np.array(inputs[i]))/np.max(np.array(inputs[i]))
+        ave_pre2result_error = abs(np.array(results[i])-np.array(inputs[i]))/np.max(np.array(inputs[i]))
+        ave_error_list.append(np.average(relative_error))
+        ave_label2result_error_list.append(np.average(ave_label2result_error))
+        ave_pre2result_error_list.append(np.average(ave_pre2result_error))
+        if i < 10:
+            max_val = max(np.max(preds[i]),np.max(labels[i]))
+            plot_data(np.matrix(preds[i]),title_pred,save_path,i,max_val)
+            plot_data(np.matrix(labels[i]),title_label,save_path,i,max_val)
+            max_val_error = np.max(relative_error)
+            plot_data(relative_error,title_error,save_path,i,max_val_error)
+            plot_scatter(inputs[i],results[i],label2results[i],ave_label2result_error,title_data,save_path,i)
+    ave_error_all = np.average(ave_error_list)
+    ave_label2result_error_all = np.average(ave_label2result_error_list)
+    ave_pre2result_error_all = np.average(ave_pre2result_error_list)
+    # error_all = np.sum(ave_error_list)
+
+    with open(error_record_path,"a") as file:
+        file.write(f"ave_error_all = {ave_error_all}\n")
+        file.write(f"ave_label2result_all = {ave_label2result_error_all}\n")
+        file.write(f"ave_pre2result_error_all = {ave_pre2result_error_all}\n")
+        # file.write(f"error_all = {error_all}")
+    print(f"ave_error_all = {ave_error_all}")
+    print(f"ave_label2result_all = {ave_label2result_error_all}")
+    print(f"ave_pre2result_error_all = {ave_pre2result_error_all}")
+    # print(f"error_all = {error_all}")
+    print("good")
+
 if __name__ == "__main__":
     print("start")
     case_file = "../../onion_data/model_train_f/output-50/phantomEAST_42_Onion_input_"

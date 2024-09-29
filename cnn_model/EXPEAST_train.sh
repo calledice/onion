@@ -10,7 +10,7 @@ COMMANDS=(
 #    "python common_train.py --dataset EXPEAST --model ResOnion_input_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
 #    "python common_train.py --dataset EXPEAST --model Onion_PI_softplus --randomnumseed 42 --lr 0.0001 --device_num 0"
     "python common_train.py --dataset EXPEAST --model ResOnion_PI_softplus --randomnumseed 42 --lr 0.0001 --device_num 0"
-    "python common_train.py --dataset EXPEAST --model Onion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 1"
+    "python common_train.py --dataset EXPEAST --model Onion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 0"
     "python common_train.py --dataset EXPEAST --model ResOnion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 1"
 )
 
