@@ -85,8 +85,8 @@ def predict(config: Config):
 
     visualize_up(preds, labels, inputs, results, label2results, config.out_dir)
 
-    json.dump(preds, open(f"{out_dir}/test/preds.json", 'w'), indent=2)
-    json.dump(labels, open(f"{out_dir}/test/labels.json", 'w'), indent=2)
+    # json.dump(preds, open(f"{out_dir}/test/preds.json", 'w'), indent=2)
+    # json.dump(labels, open(f"{out_dir}/test/labels.json", 'w'), indent=2)
     json.dump(results, open(f"{out_dir}/test/results.json", 'w'), indent=2)
     json.dump(label2results, open(f"{out_dir}/test/label2results.json", 'w'), indent=2)
     json.dump(inputs, open(f"{out_dir}/test/inputs.json", 'w'), indent=2)

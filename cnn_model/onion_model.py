@@ -13,7 +13,7 @@ from contextlib import redirect_stdout
 class Config:
     def __init__(self, train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, n_layer=None,
             n_head=None, dropout=None, bias=True, dtype=torch.float32, batch_size=64,
-            max_n=100, max_r=100, max_z=100, lr=0.001, epochs=20, early_stop=5,lambda_l2 = 0.0001,p=2,device_num="0"):
+            max_n=100, max_r=100, max_z=100, lr=0.001, epochs=20, early_stop=20,lambda_l2 = 0.0001,p=2,device_num="0"):
         self.n_layer = n_layer
         self.n_head = n_head
         self.dropout = dropout
@@ -171,7 +171,7 @@ class Onion_PI(nn.Module):
 
 class Onion_PI_up(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
-        super(Onion_PI, self).__init__()
+        super(Onion_PI_up, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n
         channels_pi = n+1

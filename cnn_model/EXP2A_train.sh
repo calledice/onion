@@ -11,8 +11,8 @@ COMMANDS=(
 
 #    "python common_train.py --dataset EXP2A --model ResOnion_input --randomnumseed 42 --device_num 0"
 #    "python common_train.py --dataset EXP2A --model ResOnion_input_softplus --randomnumseed 42 --device_num 0"
-    "python common_train.py --dataset EXP2A --model ResOnion_PI_softplus --randomnumseed 42 --device_num 0"
-    "python common_train.py --dataset EXP2A --model ResOnion_PI_softplus --addloss --randomnumseed 42 --device_num 0"
+    "python common_train.py --dataset EXP2A --model ResOnion_PI_softplus --randomnumseed 42 --device_num 1"
+    "python common_train.py --dataset EXP2A --model ResOnion_PI_softplus --addloss --randomnumseed 42 --device_num 1"
 )
 
 # 遍历命令数组并依次执行每个命令

@@ -268,7 +268,7 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         exit(1)
     print(f"with_PI: {with_PI} /n")
     print(f"addloss: {addloss} /n")
-    config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=20, epochs=50,
+    config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=-1, epochs=50,
                     batch_size=256, lambda_l2=0.0001, p=2, lr=lr,device_num=device_num)
 
     seed_everything(randomnumseed)
@@ -300,8 +300,8 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
     parser = argparse.ArgumentParser(description='Train or predict with specified parameters.')
-    parser.add_argument('--dataset',type = str, help='dataset name', default="phantom2A")
-    parser.add_argument('--model', help='model name',default=Onion_input)
+    parser.add_argument('--dataset',type = str, help='dataset name', default="EXP2A")
+    parser.add_argument('--model', help='model name',default=Onion_PI_up)
     parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=False)
     parser.add_argument('--pv', action='store_true', help='Visualize predictions',default=False)
     parser.add_argument('--randomnumseed',type = int, help='Use random seed for reproducibility',default=42)
@@ -330,7 +330,7 @@ if __name__ == '__main__':
         ResOnion_input_softplus
         ResOnion_PI
         ResOnion_PI_softplus
-    python common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42
+    python common_train.py --dataset EXP2A --model Onion_PI_up
     
       nohup ./phantom2A_train.sh > ../../onion_data/model_train_0.0001/phantom2A_training-50-all.log 2>&1 & 2878317
       nohup ./phantomEAST_train.sh > ../../onion_data/model_train_f/phantomEAST_training-50-1.log 2>&1 & 3921141
