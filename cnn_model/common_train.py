@@ -2,7 +2,7 @@ import torch
 from dataset import OnionDataset
 from torch.utils.data import Dataset, DataLoader
 from post_process import visualize
-from onion_model import Onion_input,Onion_PI,ResOnion_input,ResOnion_PI,Onion_input_softplus,Onion_PI_softplus,ResOnion_input_softplus,ResOnion_PI_softplus,Config
+from onion_model import Onion_input,Onion_PI,Onion_PI_up,ResOnion_input,ResOnion_PI,Onion_input_softplus,Onion_PI_softplus,ResOnion_input_softplus,ResOnion_PI_softplus,Config
 from common_predict import predict
 import matplotlib.pyplot as plt
 from torch.optim.lr_scheduler import CosineAnnealingLR
@@ -244,6 +244,9 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         with_PI = False
     elif Module == Onion_PI:
         out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_PI_{add}"
+        with_PI = True
+    elif Module == Onion_PI_up:
+        out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_PI_up_{add}"
         with_PI = True
     elif Module == Onion_PI_softplus:
         out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_PI_{add}_softplus"
