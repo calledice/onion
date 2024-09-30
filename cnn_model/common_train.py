@@ -2,7 +2,7 @@ import torch
 from dataset import OnionDataset
 from torch.utils.data import Dataset, DataLoader
 from post_process import visualize
-from onion_model import Onion_input,Onion_PI,Onion_PI_up,ResOnion_input,ResOnion_PI,Onion_input_softplus,Onion_PI_softplus,ResOnion_input_softplus,ResOnion_PI_softplus,Config
+from onion_model import Onion_input,Onion_PI,Onion_PI_up,ResOnion_input,ResOnion_PI,ResOnion_PI_up,Onion_input_softplus,Onion_PI_softplus,ResOnion_input_softplus,ResOnion_PI_softplus,Config
 from common_predict import predict
 import matplotlib.pyplot as plt
 from torch.optim.lr_scheduler import CosineAnnealingLR
@@ -43,6 +43,7 @@ def train(model, train_loader, val_loader, config: Config):
     epochs = config.epochs
     early_stop = config.early_stop
     device = config.device
+    alfa = config.alfa
     os.makedirs(f'{out_dir}/train', exist_ok=True)
     min_val_loss = float('inf')
     loss_fn = nn.MSELoss()
@@ -85,7 +86,7 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                alpha = 0.618* loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0 #0.618
+                alpha = alfa * loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0 #0.618
                 beta = 1.0
                 # alpha = loss_1.item() / (loss_1.item() + loss_2.item())
                 # beta = loss_2.item() / (loss_1.item() + loss_2.item())
@@ -127,7 +128,7 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                alpha = 0.618* loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0 #0.618
+                alpha = alfa * loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0 #0.618
                 beta = 1.0
                 # beta = loss_1.item() / (loss_1.item() + loss_2.item())
                 # alpha = loss_2.item() / (loss_1.item() + loss_2.item())
@@ -209,7 +210,7 @@ def run(Module, config: Config):
     plot_loss(train_losses, val_losses, out_dir)
 
 
-def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnumseed=None,lr = None,device_num = "0"):
+def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnumseed=None,lr = 0.0001,device_num = "0",alfa=1.0):
     name_dataset = dataset
     if name_dataset == "phantom2A":
         train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
@@ -231,7 +232,7 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         print("dataset is not included")
 
     if addloss:
-        add = "addloss"
+        add = "addloss"+str(alfa)
     else:
         add = ""
     out_root_path = "../../onion_data/model_train_0.0001/output-50/"
@@ -251,6 +252,9 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
     elif Module == Onion_PI_softplus:
         out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_PI_{add}_softplus"
         with_PI = True
+    elif Module == ResOnion_PI_up:
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_up_{add}"
+        with_PI = True
     elif Module == ResOnion_input:
         out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_ResOnion_input_{add}"
         with_PI = False
@@ -269,7 +273,7 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
     print(f"with_PI: {with_PI} /n")
     print(f"addloss: {addloss} /n")
     config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=-1, epochs=50,
-                    batch_size=256, lambda_l2=0.0001, p=2, lr=lr,device_num=device_num)
+                    batch_size=256, lambda_l2=0.0001, p=2, lr=lr,device_num=device_num,alfa=alfa)
 
     seed_everything(randomnumseed)
 
@@ -306,19 +310,21 @@ if __name__ == '__main__':
     parser.add_argument('--pv', action='store_true', help='Visualize predictions',default=False)
     parser.add_argument('--randomnumseed',type = int, help='Use random seed for reproducibility',default=42)
     parser.add_argument('--lr',type = float, help='learning rate',default=0.0001)
+    parser.add_argument('--alfa',type = float, help='co_loss2',default=1.0)
     parser.add_argument('--device_num',type = str, help='device',default="0")
     args = parser.parse_args()
-    args.model = globals()[args.model]
-
-    # 调用 tmp_runner 函数并传入参数
-    tmp_runner(dataset = args.dataset,
-            Module=args.model,
-            addloss=args.addloss,
-            predict_visualize=args.pv,
-            randomnumseed=args.randomnumseed,
-            lr = args.lr,
-            device_num = args.device_num)
-    # tmp_runner(dataset="phantomEAST" ,Module=Onion_input, addloss=False, predict_visualize=False, randomnumseed=42)
+    # args.model = globals()[args.model]
+    #
+    # # 调用 tmp_runner 函数并传入参数
+    # tmp_runner(dataset = args.dataset,
+    #         Module=args.model,
+    #         addloss=args.addloss,
+    #         predict_visualize=args.pv,
+    #         randomnumseed=args.randomnumseed,
+    #         lr = args.lr,
+    #         device_num = args.device_num,
+    #         alfa=args.alfa)
+    tmp_runner(dataset="phantom2A" ,Module=Onion_PI_up, addloss=False, predict_visualize=False, randomnumseed=42)
 '''
     dataset name: phantom2A  phantomEAST  EXP2A  EXPEAST
     model name:  
@@ -330,7 +336,7 @@ if __name__ == '__main__':
         ResOnion_input_softplus
         ResOnion_PI
         ResOnion_PI_softplus
-    python common_train.py --dataset EXP2A --model Onion_PI_up
+    python common_train.py --dataset EXP2A --model ResOnion_PI_up
     
       nohup ./phantom2A_train.sh > ../../onion_data/model_train_0.0001/phantom2A_training-50-all.log 2>&1 & 2878317
       nohup ./phantomEAST_train.sh > ../../onion_data/model_train_f/phantomEAST_training-50-1.log 2>&1 & 3921141
