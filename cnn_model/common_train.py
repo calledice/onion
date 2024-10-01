@@ -313,18 +313,18 @@ if __name__ == '__main__':
     parser.add_argument('--alfa',type = float, help='co_loss2',default=1.0)
     parser.add_argument('--device_num',type = str, help='device',default="0")
     args = parser.parse_args()
-    # args.model = globals()[args.model]
-    #
-    # # 调用 tmp_runner 函数并传入参数
-    # tmp_runner(dataset = args.dataset,
-    #         Module=args.model,
-    #         addloss=args.addloss,
-    #         predict_visualize=args.pv,
-    #         randomnumseed=args.randomnumseed,
-    #         lr = args.lr,
-    #         device_num = args.device_num,
-    #         alfa=args.alfa)
-    tmp_runner(dataset="phantom2A" ,Module=Onion_PI_up, addloss=False, predict_visualize=False, randomnumseed=42)
+    args.model = globals()[args.model]
+
+    # 调用 tmp_runner 函数并传入参数
+    tmp_runner(dataset = args.dataset,
+            Module=args.model,
+            addloss=args.addloss,
+            predict_visualize=args.pv,
+            randomnumseed=args.randomnumseed,
+            lr = args.lr,
+            device_num = args.device_num,
+            alfa=args.alfa)
+    # tmp_runner(dataset="EXP2A" ,Module=ResOnion_PI_up, addloss=False, predict_visualize=False, randomnumseed=42)
 '''
     dataset name: phantom2A  phantomEAST  EXP2A  EXPEAST
     model name:  

@@ -515,7 +515,7 @@ class ResOnion_PI_up(nn.Module):
             nn.ReLU(inplace=True),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
-        fc_in_dim = 8 * channels * 3 * 3 + 8 * channels_pi * 3 * 3    (40,3,3)  (41,3,3)   (81,3,3)
+        fc_in_dim = 8 * channels * 3 * 3 + 8 * channels_pi * 3 * 3
         fc_out_dim = max_r * max_z
         self.fc = nn.Sequential(
             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
