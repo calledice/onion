@@ -117,7 +117,7 @@ class Onion_PI(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(Onion_PI, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
-        channels = n * 2
+        channels = n * 2 + 1
 
         self.net = nn.Sequential(
             nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
@@ -162,9 +162,10 @@ class Onion_PI(nn.Module):
             nn.ReLU(inplace=True)
         )
 
-    def forward(self, input, posi):
+    def forward(self, input, regi, posi):
         input = self.conv_upsample(input)
-        final_input = torch.concat([input, posi], dim=1)
+        regi = regi.unsqueeze(dim=0).transpose(0, 1)
+        final_input = torch.concat([input, regi, posi], dim=1)
         conv_out = self.net(final_input)
         conv_out = conv_out.reshape(conv_out.size(0), -1)
         out = self.fc(conv_out)
@@ -175,7 +176,7 @@ class Onion_PI_up(nn.Module):
         super(Onion_PI_up, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
         channels = n
-        channels_pi = n
+        channels_pi = n+1
 
         self.net1 = nn.Sequential(
             nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
@@ -248,7 +249,7 @@ class Onion_PI_up(nn.Module):
     def forward(self, input, regi, posi):
         input = self.conv_upsample(input)
         regi = regi.unsqueeze(dim=0).transpose(0, 1)
-        pi = posi
+        pi = torch.concat([regi, posi], dim=1)
         conv_in = self.net1(input)
         conv_pi = self.net2(pi)
         conv_out = torch.concat([conv_in, conv_pi], dim=1)
@@ -260,7 +261,7 @@ class Onion_PI_softplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(Onion_PI_softplus, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
-        channels = n * 2
+        channels = n * 2 + 1
 
         self.net = nn.Sequential(
             nn.Conv2d(in_channels=channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
@@ -305,14 +306,14 @@ class Onion_PI_softplus(nn.Module):
             nn.Softplus()
         )
 
-    def forward(self, input, posi):
+    def forward(self, input, regi, posi):
         input = self.conv_upsample(input)
-        final_input = torch.concat([input, posi], dim=1)
+        regi = regi.unsqueeze(dim=0).transpose(0, 1)
+        final_input = torch.concat([input, regi, posi], dim=1)
         conv_out = self.net(final_input)
         conv_out = conv_out.reshape(conv_out.size(0), -1)
         out = self.fc(conv_out)
         return out
-    
 class Onion_input(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(Onion_input, self).__init__()
@@ -368,7 +369,6 @@ class Onion_input(nn.Module):
         conv_out = conv_out.reshape(conv_out.size(0), -1)
         out = self.fc(conv_out)
         return out
-    
 class Onion_input_softplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(Onion_input_softplus, self).__init__()
@@ -429,7 +429,7 @@ class ResOnion_PI(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(ResOnion_PI, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
-        channels = n * 2
+        channels = n * 2 + 1
         self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(2)])
         self.res2scale = Residualscale(channels, 2 * channels)
         self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(1)])
@@ -451,9 +451,10 @@ class ResOnion_PI(nn.Module):
             nn.ReLU(inplace=True)
         )
 
-    def forward(self, input, posi):
+    def forward(self, input, regi, posi):
         input = self.conv_upsample(input)
-        z = torch.concat([input, posi], dim=1)
+        regi = regi.unsqueeze(dim=0).transpose(0, 1)
+        z = torch.concat([input, regi, posi], dim=1)
         for net in self.res1:
             z = net(z)
         z = self.res2scale(z)
@@ -488,7 +489,7 @@ class ResOnion_PI_up(nn.Module):
 
         self.flatten = nn.Flatten(start_dim=1)
 
-        channels_pi = n
+        channels_pi = n + 1
         self.net2 = nn.Sequential(
             nn.Conv2d(in_channels=channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels_pi),
@@ -514,7 +515,7 @@ class ResOnion_PI_up(nn.Module):
             nn.ReLU(inplace=True),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
-        fc_in_dim = 8 * channels * 3 * 3 + 8 * channels_pi * 3 * 3   # (40,3,3)  (41,3,3)   (81,3,3)
+        fc_in_dim = 8 * channels * 3 * 3 + 8 * channels_pi * 3 * 3    (40,3,3)  (41,3,3)   (81,3,3)
         fc_out_dim = max_r * max_z
         self.fc = nn.Sequential(
             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
@@ -523,9 +524,10 @@ class ResOnion_PI_up(nn.Module):
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
             nn.ReLU(inplace=True)
         )
-    def forward(self, input, posi):
+    def forward(self, input, regi, posi):
         z = self.conv_upsample(input)
-        pi = posi
+        regi = regi.unsqueeze(dim=0).transpose(0, 1)
+        pi = torch.concat([regi, posi], dim=1)
 
         conv_pi = self.net2(pi)
 
@@ -553,7 +555,7 @@ class ResOnion_PI_softplus(nn.Module):
     def __init__(self, n=100, max_r=100, max_z=100):
         super(ResOnion_PI_softplus, self).__init__()
         self.conv_upsample = ConvEmbModel(max_r, max_z)
-        channels = n * 2
+        channels = n * 2 + 1
         self.res1 = nn.ModuleList([ResidualBasic(channels) for _ in range(2)])
         self.res2scale = Residualscale(channels, 2 * channels)
         self.res2 = nn.ModuleList([ResidualBasic(2 * channels) for _ in range(1)])
@@ -575,9 +577,10 @@ class ResOnion_PI_softplus(nn.Module):
             nn.Softplus()
         )
 
-    def forward(self, input, posi):
+    def forward(self, input, regi, posi):
         input = self.conv_upsample(input)
-        z = torch.concat([input, posi], dim=1)
+        regi = regi.unsqueeze(dim=0).transpose(0, 1)
+        z = torch.concat([input, regi, posi], dim=1)
         for net in self.res1:
             z = net(z)
         z = self.res2scale(z)
@@ -696,7 +699,7 @@ if __name__ =="__main__":
     r = 32
     z = 36
     flatten_len = r*z
-    input_shapes = [(1,n), (1,n,z,r)]
+    input_shapes = [(1,n),(1,r,z),(1,n,r,z)]
     # input_shapes = [(1,n)]
     # inputs = [torch.randn(*shape) for shape in input_shapes]
     inputs = [torch.randn(*shape) for shape in input_shapes]

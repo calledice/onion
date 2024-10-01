@@ -60,19 +60,18 @@ def train(model, train_loader, val_loader, config: Config):
         model.train()
         print(f"epoch: {epoch}")
         losses = []
-        for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
+        for input, posi, label in tqdm(train_loader, desc="Training"):
             # plt.imshow(np.array(label[0].reshape(36, 32)), cmap='gray', interpolation='nearest')
             # # 显示颜色条
             # plt.colorbar()
             # plt.show()
-            input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
+            input, posi, label = input.to(device), posi.to(device), label.to(device)
             if config.with_PI:
-                pred = model(input, regi, posi)
+                pred = model(input, posi)
                 if epoch == 0:
                     with open(f'{out_dir}/model_structure.txt', 'w') as f:
                         with redirect_stdout(f):
-                            summary(model, input_data=[input, regi, posi])
-
+                            summary(model, input_data=[input,  posi])
             else:
                 pred = model(input)
                 if epoch == 0:
@@ -117,10 +116,10 @@ def train(model, train_loader, val_loader, config: Config):
         preds = []
         labels = []
         loss_fn = nn.MSELoss()
-        for (input, regi, posi, info), label in tqdm(val_loader, desc="Validating"):
-            input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
+        for input, posi, label in tqdm(val_loader, desc="Validating"):
+            input, posi, label = input.to(device), posi.to(device), label.to(device)
             if config.with_PI:
-                pred = model(input, regi, posi)
+                pred = model(input, posi)
             else:
                 pred = model(input)
             pred_temp = pred.unsqueeze(-1)
