@@ -60,18 +60,18 @@ def train(model, train_loader, val_loader, config: Config):
         model.train()
         print(f"epoch: {epoch}")
         losses = []
-        for input, posi, label in tqdm(train_loader, desc="Training"):
+        for (input, regi, posi, info), label in tqdm(train_loader, desc="Training"):
             # plt.imshow(np.array(label[0].reshape(36, 32)), cmap='gray', interpolation='nearest')
             # # 显示颜色条
             # plt.colorbar()
             # plt.show()
-            input, posi, label = input.to(device), posi.to(device), label.to(device)
+            input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
             if config.with_PI:
-                pred = model(input, posi)
+                pred = model(input, regi, posi)
                 if epoch == 0:
                     with open(f'{out_dir}/model_structure.txt', 'w') as f:
                         with redirect_stdout(f):
-                            summary(model, input_data=[input, posi])
+                            summary(model, input_data=[input, regi, posi])
 
             else:
                 pred = model(input)
@@ -117,10 +117,10 @@ def train(model, train_loader, val_loader, config: Config):
         preds = []
         labels = []
         loss_fn = nn.MSELoss()
-        for input, posi, label in tqdm(val_loader, desc="Validating"):
-            input, posi, label = input.to(device), posi.to(device), label.to(device)
+        for (input, regi, posi, info), label in tqdm(val_loader, desc="Validating"):
+            input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
             if config.with_PI:
-                pred = model(input, posi)
+                pred = model(input, regi, posi)
             else:
                 pred = model(input)
             pred_temp = pred.unsqueeze(-1)
@@ -196,7 +196,7 @@ def run(Module, config: Config):
     val_loader = DataLoader(val_set, batch_size=config.batch_size, shuffle=True)
 
     # 临时加的，为了不做padding
-    n = len(train_set.inputs_list[0])
+    n = int(train_set.input_len_org[0])
     r = int(train_set.info_list[0][1])
     z = int(train_set.info_list[0][2])
     config.max_n = n
@@ -213,9 +213,9 @@ def run(Module, config: Config):
 def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnumseed=None,lr = 0.0001,device_num = "0",alfa=1.0):
     name_dataset = dataset
     if name_dataset == "phantom2A":
-        train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_10.h5"
-        val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_10.h5"
-        test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_10.h5"
+        train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
+        val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
+        test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
     elif name_dataset == "phantomEAST":
         train_path = "../data_Phantom/phantomdata/EAST_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/EAST_valid_database_1_100_1000.h5"

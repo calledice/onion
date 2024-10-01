@@ -245,9 +245,8 @@ class Onion_PI_up(nn.Module):
             nn.ReLU(inplace=True)
         )
 
-    def forward(self, input, regi, posi):
+    def forward(self, input, posi):
         input = self.conv_upsample(input)
-        regi = regi.unsqueeze(dim=0).transpose(0, 1)
         pi = posi
         conv_in = self.net1(input)
         conv_pi = self.net2(pi)

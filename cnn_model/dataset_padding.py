@@ -161,3 +161,11 @@ class OnionDataset(Dataset):
     def __len__(self):
         return len(self.padded_input)
 
+if __name__ == '__main__':
+    # 获取当前源程序所在的目录
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # 切换工作目录到源程序所在的目录
+    os.chdir(script_dir)
+    dataset = OnionDataset('../data_Phantom/phantomdata/HL-2A_valid_database_1_100_10.h5')
+    print(dataset.padded_output[0].shape)
