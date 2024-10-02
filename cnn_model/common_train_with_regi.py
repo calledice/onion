@@ -1,9 +1,10 @@
 import torch
-from dataset import OnionDataset
+from dataset_padding import OnionDataset
 from torch.utils.data import Dataset, DataLoader
 from post_process import visualize
-from onion_model import Onion_input,Onion_PI,Onion_PI_up,ResOnion_input,ResOnion_PI,ResOnion_PI_up,Onion_input_softplus,Onion_PI_softplus,ResOnion_input_softplus,ResOnion_PI_softplus,Config
-from common_predict import predict
+from onion_model_with_regi import Onion_input, Onion_PI, Onion_PI_up, ResOnion_input, ResOnion_PI, ResOnion_PI_up, \
+    Onion_input_softplus, Onion_PI_softplus, ResOnion_input_softplus, ResOnion_PI_softplus, Config
+from common_predict_with_regi import predict
 import matplotlib.pyplot as plt
 from torch.optim.lr_scheduler import CosineAnnealingLR
 import torch.nn as nn
@@ -66,6 +67,7 @@ def train(model, train_loader, val_loader, config: Config):
             # plt.colorbar()
             # plt.show()
             input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
+            # input:(256,40);regi(256,36,32);posi(256,40,36,32);label(256,1152)
             if config.with_PI:
                 pred = model(input, regi, posi)
                 if epoch == 0:
@@ -86,7 +88,7 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                alpha = alfa * loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0 #0.618
+                alpha = alfa * loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0  # 0.618
                 beta = 1.0
                 # alpha = loss_1.item() / (loss_1.item() + loss_2.item())
                 # beta = loss_2.item() / (loss_1.item() + loss_2.item())
@@ -128,7 +130,7 @@ def train(model, train_loader, val_loader, config: Config):
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
-                alpha = alfa * loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0 #0.618
+                alpha = alfa * loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0  # 0.618
                 beta = 1.0
                 # beta = loss_1.item() / (loss_1.item() + loss_2.item())
                 # alpha = loss_2.item() / (loss_1.item() + loss_2.item())
@@ -142,7 +144,6 @@ def train(model, train_loader, val_loader, config: Config):
             labels.append(label.detach().reshape(-1, config.max_r, config.max_z))
             losses.append(loss.detach().item())
         val_loss = sum(losses) / len(losses)
-        
         print(f"epoch{epoch} min loss: {min_val_loss}")
         print(f"epoch{epoch} validation loss: {val_loss}")
 
@@ -210,7 +211,8 @@ def run(Module, config: Config):
     plot_loss(train_losses, val_losses, out_dir)
 
 
-def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnumseed=None,lr = 0.0001,device_num = "0",alfa=1.0):
+def tmp_runner(dataset, Module, addloss=False, predict_visualize=False, randomnumseed=None, lr=0.0001, device_num="0",
+               alfa=1.0):
     name_dataset = dataset
     if name_dataset == "phantom2A":
         train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
@@ -232,40 +234,40 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         print("dataset is not included")
 
     if addloss:
-        add = "addloss"+str(alfa)
+        add = "addloss" + str(alfa)
     else:
         add = ""
     out_root_path = "../../onion_data/model_train_0.0001/output-50/"
 
     if Module == Onion_input:
-        out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_input_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_input_{add}"
         with_PI = False
     elif Module == Onion_input_softplus:
-        out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_input_{add}_softplus"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_input_{add}_softplus"
         with_PI = False
     elif Module == Onion_PI:
-        out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_PI_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_{add}"
         with_PI = True
     elif Module == Onion_PI_up:
-        out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_PI_up_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_up_{add}"
         with_PI = True
     elif Module == Onion_PI_softplus:
-        out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_PI_{add}_softplus"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_{add}_softplus"
         with_PI = True
     elif Module == ResOnion_PI_up:
         out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_up_{add}"
         with_PI = True
     elif Module == ResOnion_input:
-        out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_ResOnion_input_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_input_{add}"
         with_PI = False
     elif Module == ResOnion_input_softplus:
-        out_dir =  out_root_path+f"{name_dataset}_{randomnumseed}_ResOnion_input_{add}_softplus"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_input_{add}_softplus"
         with_PI = False
     elif Module == ResOnion_PI:
-        out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_ResOnion_PI_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_{add}"
         with_PI = True
     elif Module == ResOnion_PI_softplus:
-        out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_ResOnion_PI_{add}_softplus"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_{add}_softplus"
         with_PI = True
     else:
         print("模型不在列表中")
@@ -273,7 +275,7 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
     print(f"with_PI: {with_PI} /n")
     print(f"addloss: {addloss} /n")
     config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=-1, epochs=50,
-                    batch_size=256, lambda_l2=0.0001, p=2, lr=lr,device_num=device_num,alfa=alfa)
+                    batch_size=256, lambda_l2=0.0001, p=2, lr=lr, device_num=device_num, alfa=alfa)
 
     seed_everything(randomnumseed)
 
@@ -292,7 +294,7 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         # 记录训练结束时间
         end_time = time.time()
         # 计算训练总耗时
-        training_time = (end_time - start_time)/60
+        training_time = (end_time - start_time) / 60
         with open(f"{out_dir}/train/best_epoch.txt", 'a') as f:
             f.write(f"training time:{training_time} min \n")
         print(f"Total training time: {training_time:.2f} mins")
@@ -304,14 +306,14 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
     parser = argparse.ArgumentParser(description='Train or predict with specified parameters.')
-    parser.add_argument('--dataset',type = str, help='dataset name', default="EXP2A")
-    parser.add_argument('--model', help='model name',default=Onion_PI_up)
-    parser.add_argument('--addloss', action='store_true', help='Add loss to training',default=False)
-    parser.add_argument('--pv', action='store_true', help='Visualize predictions',default=False)
-    parser.add_argument('--randomnumseed',type = int, help='Use random seed for reproducibility',default=42)
-    parser.add_argument('--lr',type = float, help='learning rate',default=0.0001)
-    parser.add_argument('--alfa',type = float, help='co_loss2',default=1.0)
-    parser.add_argument('--device_num',type = str, help='device',default="0")
+    parser.add_argument('--dataset', type=str, help='dataset name', default="EXP2A")
+    parser.add_argument('--model', help='model name', default=Onion_PI_up)
+    parser.add_argument('--addloss', action='store_true', help='Add loss to training', default=False)
+    parser.add_argument('--pv', action='store_true', help='Visualize predictions', default=False)
+    parser.add_argument('--randomnumseed', type=int, help='Use random seed for reproducibility', default=42)
+    parser.add_argument('--lr', type=float, help='learning rate', default=0.0001)
+    parser.add_argument('--alfa', type=float, help='co_loss2', default=1.0)
+    parser.add_argument('--device_num', type=str, help='device', default="0")
     args = parser.parse_args()
     # args.model = globals()[args.model]
     #
@@ -324,7 +326,7 @@ if __name__ == '__main__':
     #         lr = args.lr,
     #         device_num = args.device_num,
     #         alfa=args.alfa)
-    tmp_runner(dataset="phantom2A" ,Module=Onion_PI_up, addloss=False, predict_visualize=False, randomnumseed=42)
+    tmp_runner(dataset="phantom2A", Module=Onion_PI_up, addloss=False, predict_visualize=False, randomnumseed=42)
 '''
     dataset name: phantom2A  phantomEAST  EXP2A  EXPEAST
     model name:  

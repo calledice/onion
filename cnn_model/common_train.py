@@ -60,12 +60,12 @@ def train(model, train_loader, val_loader, config: Config):
         model.train()
         print(f"epoch: {epoch}")
         losses = []
-        for input, posi, label in tqdm(train_loader, desc="Training"):
+        for input, posi, posi_origin, label in tqdm(train_loader, desc="Training"):
             # plt.imshow(np.array(label[0].reshape(36, 32)), cmap='gray', interpolation='nearest')
             # # 显示颜色条
             # plt.colorbar()
             # plt.show()
-            input, posi, label = input.to(device), posi.to(device), label.to(device)
+            input, posi, posi_origin, label = input.to(device), posi.to(device),posi_origin.to(device), label.to(device)
             if config.with_PI:
                 pred = model(input, posi)
                 if epoch == 0:
@@ -80,7 +80,7 @@ def train(model, train_loader, val_loader, config: Config):
                         with redirect_stdout(f):
                             summary(model, input_data=input)
             pred_temp = pred.unsqueeze(-1)
-            result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
+            result = torch.bmm(posi_origin.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
 
             optim.zero_grad()
             if config.addloss:
@@ -117,14 +117,14 @@ def train(model, train_loader, val_loader, config: Config):
         preds = []
         labels = []
         loss_fn = nn.MSELoss()
-        for input, posi, label in tqdm(val_loader, desc="Validating"):
-            input, posi, label = input.to(device), posi.to(device), label.to(device)
+        for input, posi, posi_origin, label in tqdm(val_loader, desc="Validating"):
+            input, posi, posi_origin, label = input.to(device), posi.to(device), posi_origin.to(device), label.to(device)
             if config.with_PI:
                 pred = model(input, posi)
             else:
                 pred = model(input)
             pred_temp = pred.unsqueeze(-1)
-            result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
+            result = torch.bmm(posi_origin.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
             if config.addloss:
                 loss_1 = loss_fn(pred, label)
                 loss_2 = loss_fn(input, result)
@@ -213,9 +213,9 @@ def run(Module, config: Config):
 def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnumseed=None,lr = 0.0001,device_num = "0",alfa=1.0):
     name_dataset = dataset
     if name_dataset == "phantom2A":
-        train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_10.h5"
-        val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_10.h5"
-        test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_10.h5"
+        train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
+        val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
+        test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
     elif name_dataset == "phantomEAST":
         train_path = "../data_Phantom/phantomdata/EAST_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/EAST_valid_database_1_100_1000.h5"
@@ -235,7 +235,7 @@ def tmp_runner(dataset,Module, addloss = True ,predict_visualize=False, randomnu
         add = "addloss"+str(alfa)
     else:
         add = ""
-    out_root_path = "../../onion_data/model_train_0.0001/output-50/"
+    out_root_path = "../../onion_data/model_train_noregi_Nposi/"
 
     if Module == Onion_input:
         out_dir = out_root_path+f"{name_dataset}_{randomnumseed}_Onion_input_{add}"
@@ -324,7 +324,7 @@ if __name__ == '__main__':
             lr = args.lr,
             device_num = args.device_num,
             alfa=args.alfa)
-    # tmp_runner(dataset="EXP2A" ,Module=ResOnion_PI_up, addloss=False, predict_visualize=False, randomnumseed=42)
+    # tmp_runner(dataset="phantom2A", Module=Onion_PI_up, addloss=False, predict_visualize=False, randomnumseed=42)
 '''
     dataset name: phantom2A  phantomEAST  EXP2A  EXPEAST
     model name:  
@@ -342,4 +342,5 @@ if __name__ == '__main__':
       nohup ./phantomEAST_train.sh > ../../onion_data/model_train_f/phantomEAST_training-50-1.log 2>&1 & 3921141
       nohup ./EXP2A_train.sh > ../../onion_data/model_train_0.0001/EXP2A_training-50-2.log 2>&1 &
       nohup ./EXPEAST_train.sh > ../../onion_data/model_train_f/EXPEAST_training-50.log 2>&1 &
+      nohup ./run.sh > ../../onion_data/model_train_noregi_Nposi/up_training-50-0.log 2>&1 &
 '''

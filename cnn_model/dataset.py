@@ -35,14 +35,18 @@ class OnionDataset(Dataset):
 
         r = int(self.info_list[0][1])
         z = int(self.info_list[0][2])
-        
-        # 对posi做归一化操作
-        # self.posi_norm = F.normalize(self.posi, p=2)
 
-        self.posi = torch.tensor(self.posi, dtype=torch.float32).reshape(self.posi.shape[0], z, r)
+        self.posi = torch.tensor(self.posi, dtype=torch.float32)
+
+        # 对posi做归一化操作
+        self.posi_norm = F.normalize(self.posi, p=2)
+        self.posi_norm = self.posi_norm.reshape(self.posi_norm.shape[0], z, r)
+        self.posi = self.posi.reshape(self.posi.shape[0], z, r)
+
+        self.input_len_org = len(self.inputs_list[0])
         
     def __getitem__(self, idx):
-        return (self.inputs_list[idx], self.posi, self.outputs_list[idx])
+        return (self.inputs_list[idx], self.posi_norm,self.posi, self.outputs_list[idx])
 
     def __len__(self):
         return len(self.inputs_list)
@@ -53,5 +57,5 @@ if __name__ == '__main__':
 
     # 切换工作目录到源程序所在的目录
     os.chdir(script_dir)
-    dataset = OnionDataset('../data_Phantom/phantomdata/HL-2A_valid_database_1_100_10.h5')
+    dataset = OnionDataset('../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5')
     print(dataset.outputs_list[0].shape)

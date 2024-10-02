@@ -1,6 +1,6 @@
 import torch 
 from dataset import OnionDataset
-from onion_model import *
+from onion_model_with_regi import *
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import json
@@ -19,7 +19,7 @@ def predict(config: Config):
     dataset = OnionDataset(config.test_path)
 
     # 临时加的，为了不做padding
-    # n = int(dataset.input_len_org)
+    n = int(dataset.input_len_org[0])
     r = int(dataset.info_list[0][1])
     z = int(dataset.info_list[0][2])
     
@@ -41,15 +41,15 @@ def predict(config: Config):
     inputs = []
     os.makedirs(out_dir+'/test', exist_ok=True)
     loss_fn = nn.MSELoss()
-    for input, posi,posi_origin, label in tqdm(test_loader, desc="Testing"):
-        input,  posi,posi_origin, label = input.to(device), posi.to(device),posi_origin.to(device), label.to(device)
+    for (input, regi, posi, info), label in tqdm(test_loader, desc="Testing"):
+        input, regi, posi, label = input.to(device), regi.to(device), posi.to(device), label.to(device)
         if config.with_PI:
-            pred = model(input, posi)
+            pred = model(input, regi, posi)
         else:
             pred = model(input)
         pred_temp = pred.unsqueeze(-1)
-        result = torch.bmm(posi_origin.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1) #pre2results
-        label2result = torch.bmm(posi_origin.view(len(posi), len(posi[0]), -1), label.unsqueeze(-1)).squeeze(-1)
+        result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1) #pre2results
+        label2result = torch.bmm(posi.view(len(posi), len(posi[0]), -1), label.unsqueeze(-1)).squeeze(-1)
         if config.addloss:
             loss_1 = loss_fn(pred, label)
             loss_2 = loss_fn(input, result)

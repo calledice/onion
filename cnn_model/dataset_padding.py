@@ -101,7 +101,7 @@ class OnionDataset(Dataset):
         self.outputs_list = [y[str(i)][:].reshape(int(self.info_list[i][2]), int(self.info_list[i][1])) for i in
                              range(len(y))]  # 收集输出数据
         self.regi_list = [regi[str(i)][:] for i in range(len(regi))]  # 收集regi信息
-        self.posi_list = [posi[str(i)][:] for i in range(len(posi))]  # 收集posi信息
+        self.posi_list = [posi[str(i)][:] for i in range(len(posi))]  # 收集posi信息,100个（40,1152）
 
         #  2A:
         #  posi[0].reshape(36,32)
@@ -167,5 +167,5 @@ if __name__ == '__main__':
 
     # 切换工作目录到源程序所在的目录
     os.chdir(script_dir)
-    dataset = OnionDataset('../data_Phantom/phantomdata/HL-2A_valid_database_1_100_10.h5')
+    dataset = OnionDataset('../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5')
     print(dataset.padded_output[0].shape)
