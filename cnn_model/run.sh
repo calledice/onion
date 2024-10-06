@@ -1,16 +1,19 @@
 #!/bin/bash
 
 # 定义日志文件路径
-LOG_FILE="../../onion_data/model_train_noregi_Nposi/up_training-50-0.log"
+LOG_FILE="../../onion_data/model_train_noregi_Nposi/up_training-50-4.log"
 # 定义要运行的命令
 COMMANDS=(
 #    "python common_train.py --dataset EXP2A --model ResOnion_PI"
-    "python common_train.py --dataset EXP2A --model ResOnion_PI_up"
-    "python common_train.py --dataset EXP2A --model ResOnion_PI_upadd "
+#    "python common_train.py --dataset EXP2A --model ResOnion_PI_up"
+    "python common_train.py --dataset EXP2A --model ResOnion_PI_uptime_softplus --addloss"
+    "python common_train.py --dataset EXP2A --model ResOnion_PI_uptime_softplus"
+    "python common_train.py --dataset EXP2A --model Onion_PI_uptime_softplus --addloss"
+    "python common_train.py --dataset EXP2A --model Onion_PI_uptime_softplus"
 
 #    "python common_train.py --dataset phantom2A --model Onion_PI"
-    "python common_train.py --dataset phantom2A --model Onion_PI_up"
-    "python common_train.py --dataset phantom2A --model Onion_PI_upadd"
+#    "python common_train.py --dataset phantom2A --model Onion_PI_up"
+#    "python common_train.py --dataset phantom2A --model Onion_PI_uptime"
 
 
 )

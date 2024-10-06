@@ -5,6 +5,7 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import time
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
@@ -91,7 +92,9 @@ class OnionDataset(Dataset):
         super().__init__()
         self.max_r = max_r
         self.max_z = max_z
+
         dataset = h5py.File(pth_, 'r')
+
         x = dataset["x"]
         y = dataset["y"]
         regi = dataset['regi']

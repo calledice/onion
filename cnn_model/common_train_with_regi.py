@@ -191,10 +191,15 @@ def run(Module, config: Config):
     device = config.device
     os.environ['CUDA_VISIBLE_DEVICES'] = config.device_num
 
+    start_time = time.time()
     train_set = OnionDataset(train_path)
     val_set = OnionDataset(val_path)
+
     train_loader = DataLoader(train_set, batch_size=config.batch_size, shuffle=True)
     val_loader = DataLoader(val_set, batch_size=config.batch_size, shuffle=True)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"加载验证集耗时: {elapsed_time / 60.0:.2f} min")
 
     # 临时加的，为了不做padding
     n = int(train_set.input_len_org[0])
@@ -315,18 +320,18 @@ if __name__ == '__main__':
     parser.add_argument('--alfa', type=float, help='co_loss2', default=1.0)
     parser.add_argument('--device_num', type=str, help='device', default="0")
     args = parser.parse_args()
-    # args.model = globals()[args.model]
-    #
-    # # 调用 tmp_runner 函数并传入参数
-    # tmp_runner(dataset = args.dataset,
-    #         Module=args.model,
-    #         addloss=args.addloss,
-    #         predict_visualize=args.pv,
-    #         randomnumseed=args.randomnumseed,
-    #         lr = args.lr,
-    #         device_num = args.device_num,
-    #         alfa=args.alfa)
-    tmp_runner(dataset="phantom2A", Module=Onion_PI_up, addloss=False, predict_visualize=False, randomnumseed=42)
+    args.model = globals()[args.model]
+
+    # 调用 tmp_runner 函数并传入参数
+    tmp_runner(dataset = args.dataset,
+            Module=args.model,
+            addloss=args.addloss,
+            predict_visualize=args.pv,
+            randomnumseed=args.randomnumseed,
+            lr = args.lr,
+            device_num = args.device_num,
+            alfa=args.alfa)
+    # tmp_runner(dataset="phantom2A", Module=Onion_PI_up, addloss=False, predict_visualize=False, randomnumseed=42)
 '''
     dataset name: phantom2A  phantomEAST  EXP2A  EXPEAST
     model name:  
@@ -338,7 +343,7 @@ if __name__ == '__main__':
         ResOnion_input_softplus
         ResOnion_PI
         ResOnion_PI_softplus
-    python common_train.py --dataset EXP2A --model ResOnion_PI_up
+    python common_train_with_regi.py --dataset EXP2A --model Onion_PI_up
     
       nohup ./phantom2A_train.sh > ../../onion_data/model_train_0.0001/phantom2A_training-50-all.log 2>&1 & 2878317
       nohup ./phantomEAST_train.sh > ../../onion_data/model_train_f/phantomEAST_training-50-1.log 2>&1 & 3921141

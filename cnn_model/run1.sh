@@ -1,16 +1,19 @@
 #!/bin/bash
 
 # 定义日志文件路径
-LOG_FILE="../../onion_data/model_train_noregi_Nposi/up_training-50-1.log"
+LOG_FILE="../../onion_data/model_train_noregi_Nposi/up_training-50-5.log"
 # 定义要运行的命令
 COMMANDS=(
 #    "python common_train.py --dataset EXP2A --model Onion_PI --device_num 1"
-    "python common_train.py --dataset EXP2A --model Onion_PI_up --device_num 1"
-    "python common_train.py --dataset EXP2A --model Onion_PI_upadd --device_num 1"
+#    "python common_train.py --dataset EXP2A --model Onion_PI_up --device_num 1"
+#    "python common_train.py --dataset EXP2A --model Onion_PI_uptime --device_num 1"
 
 #    "python common_train.py --dataset phantom2A --model ResOnion_PI --device_num 1"
-    "python common_train.py --dataset phantom2A --model ResOnion_PI_up --device_num 1"
-    "python common_train.py --dataset phantom2A --model ResOnion_PI_upadd --device_num 1"
+#    "python common_train.py --dataset phantom2A --model ResOnion_PI_up --device_num 1"
+    "python common_train.py --dataset phantom2A --model ResOnion_PI_uptime_softplus --addloss --device_num 1"
+    "python common_train.py --dataset phantom2A --model ResOnion_PI_uptime_softplus --device_num 1"
+    "python common_train.py --dataset phantom2A --model Onion_PI_uptime_softplus --addloss --device_num 1"
+    "python common_train.py --dataset phantom2A --model Onion_PI_uptime_softplus --device_num 1"
 
 )
 

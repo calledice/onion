@@ -23,7 +23,7 @@ class OnionDataset(Dataset):
         dataset = h5py.File(pth_, 'r')
         x = dataset["x"]
         y = dataset["y"]
-        self.posi = dataset['posi']['0'][:]   # 所有posi都相同，只需要第一个
+        posi = dataset['posi']['0'][:]
         self.inputs_list = [
             torch.tensor(x[str(i)][:][:-3].flatten(), dtype=torch.float32) for i in range(len(x))
         ]  # 收集输入数据
@@ -36,7 +36,7 @@ class OnionDataset(Dataset):
         r = int(self.info_list[0][1])
         z = int(self.info_list[0][2])
 
-        self.posi = torch.tensor(self.posi, dtype=torch.float32)
+        self.posi = torch.tensor(posi, dtype=torch.float32)
 
         # 对posi做归一化操作
         self.posi_norm = F.normalize(self.posi, p=2)
@@ -46,7 +46,7 @@ class OnionDataset(Dataset):
         self.input_len_org = len(self.inputs_list[0])
         
     def __getitem__(self, idx):
-        return (self.inputs_list[idx], self.posi_norm,self.posi, self.outputs_list[idx])
+        return (self.inputs_list[idx], self.posi_norm, self.posi, self.outputs_list[idx])
 
     def __len__(self):
         return len(self.inputs_list)
