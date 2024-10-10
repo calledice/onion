@@ -17,7 +17,7 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ######################################################
     #查看test/train数据
-    test_input_path = "/mnt/d/project/onion/data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
+    test_input_path = "/onion/data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
     dataset = h5py.File(test_input_path, 'r')
     x = dataset["x"]
     y = dataset["y"]
