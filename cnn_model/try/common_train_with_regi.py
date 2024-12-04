@@ -2,7 +2,7 @@ import torch
 from dataset_padding import OnionDataset
 from torch.utils.data import Dataset, DataLoader
 from post_process import visualize
-from onion_model_with_regi import Onion_input, Onion_PI, Onion_PI_up, ResOnion_input, ResOnion_PI, ResOnion_PI_up, \
+from cnn_model.try.onion_model_with_regi import Onion_input, Onion_PI, Onion_PI_up, ResOnion_input, ResOnion_PI, ResOnion_PI_up, \
     Onion_input_softplus, Onion_PI_softplus, ResOnion_input_softplus, ResOnion_PI_softplus, Config
 from common_predict_with_regi import predict
 import matplotlib.pyplot as plt

@@ -241,7 +241,7 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
             print(f'regi {k}/{num_region_maxvalue}: grad_coff = {grad_coff}')
             print(f'regi {k}/{num_region_maxvalue}: threshhold_coff = {threshhold_coff}')
             c_matrix_list.append(c_matrix)
-            region = region.reshape(50, 75).T.flatten()
+            region = region.reshape(numgridr, numgridz).T.flatten()
             region_list.append(region)
             # plt.imshow(np.array(region.reshape(75, 50)), cmap='gray', interpolation='nearest')
             # # 显示颜色条
@@ -251,7 +251,7 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
                 value = random.uniform(0.5, 1)
                 label = label_generate(randn_indexr, randn_indexz, value, numgridr, numgridz, grid, grad_coff,
                                        threshhold_coff)
-                label = label.reshape(50, 75).T.flatten()
+                label = label.reshape(numgridr, numgridz).T.flatten()
                 # plt.imshow(np.array(label.reshape(75, 50)), cmap='gray', interpolation='nearest')
                 # # 显示颜色条
                 # plt.colorbar()
@@ -343,6 +343,8 @@ if __name__ == '__main__':
     c_matrix_1 = c_matrix_s.reshape(-1, c_matrix_s.shape[2]).T
     c_matrix_2 = c_matrix_ss.reshape(-1, c_matrix_ss.shape[2]).T
     c_matrix = np.matrix(np.vstack((c_matrix_1, c_matrix_2)) * 2000)
+    numgridr = 50
+    numgridz = 75
     # plt.imshow(np.array(c_matrix[0].reshape(75, 50)), cmap='gray', interpolation='nearest')
     # # 显示颜色条
     # plt.colorbar()
@@ -351,8 +353,6 @@ if __name__ == '__main__':
     # # 显示颜色条
     # plt.colorbar()
     # plt.show()
-    numgridr = 50
-    numgridz = 75
 
     generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,numgridz,c_matrix)
 

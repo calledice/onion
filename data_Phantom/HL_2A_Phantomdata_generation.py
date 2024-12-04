@@ -241,7 +241,7 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
             print(f'regi {k}/{num_region_maxvalue}: grad_coff = {grad_coff}')
             print(f'regi {k}/{num_region_maxvalue}: threshhold_coff = {threshhold_coff}')
             c_matrix_list.append(c_matrix)
-            region = region.reshape(32, 36).T.flatten()
+            region = region.reshape(numgridr, numgridz).T.flatten()
             region_list.append(region)
             # plt.imshow(np.array(region.reshape(36, 32)), cmap='gray', interpolation='nearest')
             # # 显示颜色条
@@ -251,7 +251,7 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
                 value = random.uniform(0.5, 1)
                 label = label_generate(randn_indexr, randn_indexz, value, numgridr, numgridz, grid, grad_coff,
                                        threshhold_coff)
-                label = label.reshape(32, 36).T.flatten()
+                label = label.reshape(numgridr, numgridz).T.flatten()
                 # plt.imshow(np.array(label.reshape(36, 32)), cmap='gray', interpolation='nearest')
                 # # 显示颜色条
                 # plt.colorbar()

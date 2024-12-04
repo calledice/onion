@@ -173,16 +173,16 @@ def plot_loss(train_losses, val_losses, out_dir):
     # 创建一个新的图形
     plt.figure()
     # 绘制第一条曲线
-    plt.plot(iters, train_losses, label='training loss', color='blue')
+    plt.plot(iters, train_losses, label='Training loss', color='blue')
     # 绘制第二条曲线
-    plt.plot(iters, val_losses, label='validation loss', color='red')
+    plt.plot(iters, val_losses, label='Validation loss', color='red')
     # 添加标题和标签
     plt.title('Loss curve')
-    plt.xlabel('epochs')
-    plt.ylabel('loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
     # 显示图例
     plt.legend()
-    plt.savefig(f'{out_dir}/train/loss_curve.png')
+    plt.savefig(f'{out_dir}/train/loss_curve.png',dpi=300, bbox_inches='tight')
     # 显示图形
     plt.show()
 
@@ -228,18 +228,22 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
         train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
+        out_root_path = "../../onion_train_data/train_results_2A/"
     elif name_dataset == "phantomEAST":
         train_path = "../data_Phantom/phantomdata/EAST_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/EAST_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/EAST_test_database_1_100_1000.h5"
+        out_root_path = "../../onion_train_data/train_results_EAST/"
     elif name_dataset == "EXP2A":
         train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
         val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
         test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
+        out_root_path = "../../onion_train_data/train_results_2A/"
     elif name_dataset == "EXPEAST":
         train_path = "../data_East/data/EAST_train_database.h5"
         val_path = "../data_East/data/EAST_valid_database.h5"
         test_path = "../data_East/data/EAST_test_database.h5"
+        out_root_path = "../../onion_train_data/train_results_EAST/"
     else:
         print("dataset is not included")
 
@@ -247,7 +251,7 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
         add = "addloss" + str(alfa)
     else:
         add = ""
-    out_root_path = "../../onion_data/model_train_noregi_Nposi/"
+    
 
     if Module == Onion_input:
         out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_input_{add}"
@@ -329,8 +333,8 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
     parser = argparse.ArgumentParser(description='Train or predict with specified parameters.')
-    parser.add_argument('--dataset', type=str, help='dataset name', default="EXP2A")
-    parser.add_argument('--model', help='model name', default=Onion_PI_up)
+    parser.add_argument('--dataset', type=str, help='dataset name', default="phantom2A")
+    parser.add_argument('--model', help='model name', default = "Onion_input")
     parser.add_argument('--addloss', action='store_true', help='Add loss to training', default=False)
     parser.add_argument('--pv', action='store_true', help='Visualize predictions', default=False)
     parser.add_argument('--randomnumseed', type=int, help='Use random seed for reproducibility', default=42)
@@ -349,7 +353,7 @@ if __name__ == '__main__':
                lr=args.lr,
                device_num=args.device_num,
                alfa=args.alfa)
-    # tmp_runner(dataset="phantom2A", Module=Onion_PI_up, addloss=False, predict_visualize=False, randomnumseed=42)
+    # tmp_runner(dataset="phantom2A", Module="Onion_PI_up", addloss=False, predict_visualize=False, randomnumseed=42)
 '''
     dataset name: phantom2A  phantomEAST  EXP2A  EXPEAST
     model name:  

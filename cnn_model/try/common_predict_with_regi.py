@@ -1,6 +1,6 @@
 import torch 
 from dataset import OnionDataset
-from onion_model_with_regi import *
+from cnn_model.try.onion_model_with_regi import *
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import json

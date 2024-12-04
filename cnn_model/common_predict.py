@@ -8,6 +8,7 @@ import os
 import torch.nn as nn
 import numpy as np
 from post_process import visualize_up
+from pathlib import Path
 
 # 获取当前源程序所在的目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -39,7 +40,8 @@ def predict(config: Config):
     results = []
     label2results = []
     inputs = []
-    os.makedirs(out_dir+'/test', exist_ok=True)
+    out_dir_file = out_dir+'/test_new'
+    os.makedirs(out_dir_file, exist_ok=True)
     loss_fn = nn.MSELoss()
     for input, posi,posi_origin, label in tqdm(test_loader, desc="Testing"):
         input,  posi,posi_origin, label = input.to(device), posi.to(device),posi_origin.to(device), label.to(device)
@@ -85,10 +87,41 @@ def predict(config: Config):
 
     visualize_up(preds, labels, inputs, results, label2results, config.out_dir)
 
-    # json.dump(preds, open(f"{out_dir}/test/preds.json", 'w'), indent=2)
-    # json.dump(labels, open(f"{out_dir}/test/labels.json", 'w'), indent=2)
-    json.dump(results, open(f"{out_dir}/test/results.json", 'w'), indent=2)
-    json.dump(label2results, open(f"{out_dir}/test/label2results.json", 'w'), indent=2)
-    json.dump(inputs, open(f"{out_dir}/test/inputs.json", 'w'), indent=2)
-    json.dump(config.as_dict(), open(f"{out_dir}/test/config.json", 'w'), indent=4)
+    json.dump(preds[:1000], open(f"{out_dir_file}/preds_1000.json", 'w'), indent=2)
+    json.dump(labels[:1000], open(f"{out_dir_file}/labels_1000.json", 'w'), indent=2)
+    json.dump(results, open(f"{out_dir_file}/results.json", 'w'), indent=2)
+    json.dump(label2results, open(f"{out_dir_file}/label2results.json", 'w'), indent=2)
+    json.dump(inputs, open(f"{out_dir_file}/inputs.json", 'w'), indent=2)
+    json.dump(config.as_dict(), open(f"{out_dir_file}/config.json", 'w'), indent=4)
     print("finish")
+
+
+if __name__ == "__main__":
+    print("start")
+    # case_path = "../../onion_train_data/train_results_EAST/"
+    case_path = "../../onion_train_data/train_results_2A/"
+    ###########################  遍历文件夹时用
+    # # 创建Path对象
+    # path = Path(case_path)
+    # # 获取该层级的所有文件夹，不会递归到子文件夹中
+    # folders = [f.name for f in path.iterdir() if f.is_dir()]
+    # folders = folders[17:]
+    # for file_name in folders:
+    #     config_path = case_path+file_name+"/test/config.json"
+    #     # 使用 json 模块加载 JSON 文件
+    #     with open(config_path, 'r') as file:
+    #         info = json.load(file)
+    #     # info_list = list(info.values())[0]
+    #     config = Config(**info,randomnumseed=42)
+    #     config.out_dir = case_path + file_name
+    #     predict(config)
+        #############################
+    file_name = "phantom2A_42_Onion_input_"
+    config_path = case_path+file_name+"/test/config.json"
+    # 使用 json 模块加载 JSON 文件
+    with open(config_path, 'r') as file:
+        info = json.load(file)
+    # info_list = list(info.values())[0]
+    config = Config(**info,randomnumseed=42)
+    config.out_dir = case_path + file_name
+    predict(config)
