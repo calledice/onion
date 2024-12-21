@@ -48,11 +48,11 @@ def plot_scatter(input,result,label2results,ave_label2result_error,title,save_pa
     plt.figure()
     error = np.array(ave_label2result_error) * abs(np.max(input))
     plt.scatter(range(len(input)), input, color='b', marker='^', s=15, alpha=0.8)
-    plt.scatter(range(len(result)), result, color='g', marker='o', s=15, alpha=0.5)
+    # plt.scatter(range(len(result)), result, color='g', marker='o', s=15, alpha=0.5)
     plt.scatter(range(len(label2results)), label2results, color='r', marker='o', s=15, alpha=0.5)
-    plt.errorbar(range(len(input)), input, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
-    # plt.legend(labels=['SXR data','Target profile@BP'])
-    plt.legend(labels=['SXR data',"Reconstuction profile@BP",'Target profile@BP'])
+    # plt.errorbar(range(len(input)), input, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
+    plt.legend(labels=['SXR data','Target profile@BP'])
+    # plt.legend(labels=['SXR data',"Reconstuction profile@BP",'Target profile@BP'])
     plt.xlabel('$\t{Channel}$',fontsize=16)
     plt.ylabel('$\t{I}_{SXR}(a.u.)$',fontsize=16)
     plt.title(title,fontsize=16)
@@ -123,7 +123,7 @@ def visualize_up(preds,labels,inputs,results,label2results,case_file):
     title_label = 'Target profile'
     title_error = 'Relative error'
     title_data = "SXR data and BPs"
-    save_path = case_file+"/figures_new"
+    save_path = case_file+"/figures"
     os.makedirs(save_path,exist_ok=True)
     ave_error_list = []
     ave_label2result_error_list = []# 由label获得的弦积分结果与input的偏差

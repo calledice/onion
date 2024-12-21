@@ -78,7 +78,7 @@ def predict(config: Config):
         # break # 只测试了一个batch，如果要预测所有测试集则删除这个break
 
     print(sum(losses) / len(losses))
-    json.dump(losses, open(f"{out_dir}/test/testing_loss.json", 'w'), indent=2)
+    json.dump(losses, open(f"{out_dir_file}/testing_loss.json", 'w'), indent=2)
     preds = torch.concat(preds, dim=0).tolist()
     labels = torch.concat(labels, dim=0).tolist()
     results = torch.concat(results, dim=0).tolist()
@@ -98,16 +98,16 @@ def predict(config: Config):
 
 if __name__ == "__main__":
     print("start")
-    # case_path = "../../onion_train_data/train_results_EAST/"
-    case_path = "../../onion_train_data/train_results_2A/"
+    case_path = "../../onion_train_data/train_results_EAST/"
+    # case_path = "../../onion_train_data/train_results_2A/"
     ###########################  遍历文件夹时用
     # # 创建Path对象
     # path = Path(case_path)
     # # 获取该层级的所有文件夹，不会递归到子文件夹中
     # folders = [f.name for f in path.iterdir() if f.is_dir()]
-    # folders = folders[17:]
+    # # folders = folders[17:]
     # for file_name in folders:
-    #     config_path = case_path+file_name+"/test/config.json"
+    #     config_path = case_path+file_name+"/test_new/config.json"
     #     # 使用 json 模块加载 JSON 文件
     #     with open(config_path, 'r') as file:
     #         info = json.load(file)
@@ -115,8 +115,8 @@ if __name__ == "__main__":
     #     config = Config(**info,randomnumseed=42)
     #     config.out_dir = case_path + file_name
     #     predict(config)
-        #############################
-    file_name = "phantom2A_42_Onion_input_"
+        ############################# 单个时用
+    file_name = "phantomEAST_42_Onion_input_"
     config_path = case_path+file_name+"/test/config.json"
     # 使用 json 模块加载 JSON 文件
     with open(config_path, 'r') as file:

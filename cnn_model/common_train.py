@@ -184,7 +184,8 @@ def plot_loss(train_losses, val_losses, out_dir):
     plt.legend()
     plt.savefig(f'{out_dir}/train/loss_curve.png',dpi=300, bbox_inches='tight')
     # 显示图形
-    plt.show()
+    # plt.show()
+    plt.close()
 
 
 def run(Module, config: Config):
