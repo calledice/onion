@@ -177,11 +177,14 @@ def plot_loss(train_losses, val_losses, out_dir):
     # 绘制第二条曲线
     plt.plot(iters, val_losses, label='Validation loss', color='red')
     # 添加标题和标签
+    plt.legend(fontsize=16)
     plt.title('Loss curve')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
+    plt.xlabel('Epochs',fontsize=16)
+    plt.ylabel('Loss',fontsize=16)
     # 显示图例
-    plt.legend()
+    ax = plt.gca()
+    # ax.set_aspect(1.0)
+    ax.tick_params(axis='both', which='major', labelsize=16)
     plt.savefig(f'{out_dir}/train/loss_curve.png',dpi=300, bbox_inches='tight')
     # 显示图形
     # plt.show()
