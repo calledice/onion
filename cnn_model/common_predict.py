@@ -44,7 +44,7 @@ def predict(config: Config):
     os.makedirs(out_dir_file, exist_ok=True)
     loss_fn = nn.MSELoss()
     for input, posi,posi_origin, label in tqdm(test_loader, desc="Testing"):
-        input,  posi,posi_origin, label = input.to(device), posi.to(device),posi_origin.to(device), label.to(device)
+        input,  posi, posi_origin, label = input.to(device), posi.to(device),posi_origin.to(device), label.to(device)
         if config.with_PI:
             pred = model(input, posi)
         else:
@@ -98,7 +98,7 @@ def predict(config: Config):
 
 if __name__ == "__main__":
     print("start")
-    case_path = "../../onion_train_data/train_results_EAST/"
+    case_path = "../../onion_train_data/train_results_2A/"
     # case_path = "../../onion_train_data/train_results_2A/"
     ###########################  遍历文件夹时用
     # # 创建Path对象
@@ -116,8 +116,8 @@ if __name__ == "__main__":
     #     config.out_dir = case_path + file_name
     #     predict(config)
         ############################# 单个时用
-    file_name = "phantomEAST_42_Onion_input_"
-    config_path = case_path+file_name+"/test/config.json"
+    file_name = "EXP2A_42_ResOnion_input_adam"
+    config_path = case_path+file_name+"/test_new/config.json"
     # 使用 json 模块加载 JSON 文件
     with open(config_path, 'r') as file:
         info = json.load(file)

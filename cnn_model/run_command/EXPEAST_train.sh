@@ -1,18 +1,21 @@
 #!/bin/bash
 
 # 定义日志文件路径
-LOG_FILE="../../onion_data/model_train_f/EXPEAST_training-50.log"
+LOG_FILE="../../onion_data/model_train_f/EXPEAST_training-50-cos.log"
 # 定义要运行的命令
 COMMANDS=(
 #    "python common_train.py --dataset EXPEAST --model Onion_input --randomnumseed 42 --lr 0.0001 --device_num 1"
-#    "python common_train.py --dataset EXPEAST --model ResOnion_input --randomnumseed 42 --lr 0.0001 --device_num 1"
+   # "python ../common_train.py --dataset EXPEAST --model ResOnion_input --randomnumseed 42  --device_num 0"
+   "python ../common_train.py --dataset EXPEAST --model ResOnion_input --randomnumseed 42  --device_num 0 --scheduler"
 #    "python common_train.py --dataset EXPEAST --model Onion_input_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
 #    "python common_train.py --dataset EXPEAST --model ResOnion_input_softplus --randomnumseed 42 --lr 0.0001 --device_num 1"
 
 #    "python common_train.py --dataset EXPEAST --model Onion_PI_softplus --randomnumseed 42 --lr 0.0001 --device_num 0"
-    "python common_train.py --dataset EXPEAST --model ResOnion_PI_softplus --randomnumseed 42 --lr 0.0001 --device_num 0"
-    "python common_train.py --dataset EXPEAST --model Onion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 0"
-    "python common_train.py --dataset EXPEAST --model ResOnion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 1"
+    # "python common_train.py --dataset EXPEAST --model ResOnion_PI_softplus --randomnumseed 42 --lr 0.0001 --device_num 0"
+    # "python common_train.py --dataset EXPEAST --model Onion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 0"
+    # "python common_train.py --dataset EXPEAST --model ResOnion_PI_softplus --addloss --randomnumseed 42 --lr 0.0001 --device_num 1"
+    "python ../common_train.py --dataset EXPEAST --model Onion_input --randomnumseed 42 --device_num 0 --scheduler"
+    "python ../common_train.py --dataset EXPEAST --model Onion_input --randomnumseed 42 --device_num 0"
 
 )
 

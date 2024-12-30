@@ -53,9 +53,12 @@ def train(model, train_loader, val_loader, config: Config):
     optim = torch.optim.Adam(params=model.parameters(), lr=config.lr)
     # 创建余弦退火学习率调度器
     T_max = 50  # 一个周期的长度
-    scheduler = CosineAnnealingLR(optim, T_max=T_max, eta_min=0.00001)
+    if config.scheduler:
+        scheduler = CosineAnnealingLR(optim, T_max=T_max, eta_min=0.00001)
+    
     train_losses = []
     val_losses = []
+    training_lrs = []
     lambda_l2 = config.lambda_l2
     p = config.p
     for epoch in range(epochs):
@@ -103,14 +106,20 @@ def train(model, train_loader, val_loader, config: Config):
             loss.backward()
             optim.step()
             losses.append(loss.item())
-        scheduler.step()
-        # 打印当前的学习率
-        current_lr = optim.param_groups[0]['lr']
-        print(f'Epoch {epoch + 1}: Learning Rate = {current_lr}')
+        if config.scheduler:
+            scheduler.step()
+            
         train_loss = sum(losses) / len(losses)
         print(f"epoch{epoch} training loss: {train_loss}\n")
-        current_lr = scheduler.get_last_lr()[0]
+        
+        # 打印当前的学习率
+        if config.scheduler:
+            current_lr = scheduler.get_last_lr()[0]
+        else:
+            current_lr = optim.param_groups[0]['lr']
+        training_lrs.append(current_lr)
         print(f"epoch{epoch} Learning Rate: {current_lr}\n")
+        
         json.dump(losses, open(f"{out_dir}/train/training_loss{epoch}.json", 'w'))
         train_losses.append(train_loss)
 
@@ -164,6 +173,7 @@ def train(model, train_loader, val_loader, config: Config):
             early_stop -= 1
             if early_stop <= 0:
                 break
+    json.dump(training_lrs, open(f"{out_dir}/train/training_lrs.json", 'w'))
     return train_losses, val_losses
 
 
@@ -177,11 +187,14 @@ def plot_loss(train_losses, val_losses, out_dir):
     # 绘制第二条曲线
     plt.plot(iters, val_losses, label='Validation loss', color='red')
     # 添加标题和标签
+    plt.legend(fontsize=16)
     plt.title('Loss curve')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
+    plt.xlabel('Epochs',fontsize=16)
+    plt.ylabel('Loss',fontsize=16)
     # 显示图例
-    plt.legend()
+    ax = plt.gca()
+    # ax.set_aspect(1.0)
+    ax.tick_params(axis='both', which='major', labelsize=16)
     plt.savefig(f'{out_dir}/train/loss_curve.png',dpi=300, bbox_inches='tight')
     # 显示图形
     # plt.show()
@@ -223,7 +236,8 @@ def run(Module, config: Config):
 
 
 def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnumseed=None, lr=0.0001, device_num="0",
-               alfa=1.0):
+               alfa=1.0, scheduler=False):
+    
     name_dataset = dataset
     if name_dataset == "phantom2A":
         train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
@@ -248,66 +262,68 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
     else:
         print("dataset is not included")
 
+    extra = ""
     if addloss:
-        add = "addloss" + str(alfa)
-    else:
-        add = ""
-    
+        extra += "_extraloss" + str(alfa)
 
     if Module == Onion_input:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_input_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_input{extra}"
         with_PI = False
     elif Module == Onion_input_softplus:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_input_{add}_softplus"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_input{extra}_softplus"
         with_PI = False
     elif Module == Onion_PI:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI{extra}"
         with_PI = True
     elif Module == Onion_PI_up:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_up_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_up{extra}"
         with_PI = True
     elif Module == Onion_PI_uptime:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_uptime_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_uptime{extra}"
         with_PI = True
     elif Module == Onion_PI_uptime_softplus:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_uptime_softplus_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_uptime_softplus{extra}"
         with_PI = True
     elif Module == Onion_PI_softplus:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_{add}_softplus"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI{extra}_softplus"
         with_PI = True
     elif Module == ResOnion_PI_up:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_up_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_up{extra}"
         with_PI = True
     elif Module == ResOnion_PI_uptime:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_uptime_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_uptime{extra}"
         with_PI = True
     elif Module == ResOnion_PI_uptime_softplus:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_uptime_softplus_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_uptime_softplus{extra}"
         with_PI = True
     elif Module == ResOnion_input:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_input_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_input{extra}"
         with_PI = False
     elif Module == ResOnion_input_softplus:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_input_{add}_softplus"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_input{extra}_softplus"
         with_PI = False
     elif Module == ResOnion_PI:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_{add}"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI{extra}"
         with_PI = True
     elif Module == ResOnion_PI_softplus:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_{add}_softplus"
+        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI{extra}_softplus"
         with_PI = True
     else:
         print("模型不在列表中")
         exit(1)
     print(f"with_PI: {with_PI} /n")
     print(f"addloss: {addloss} /n")
-    config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=-1, epochs=50,
-                    batch_size=256, lambda_l2=0.0001, p=2, lr=lr, device_num=device_num, alfa=alfa)
 
     seed_everything(randomnumseed)
 
     print(out_dir)
-
+    config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=-1, epochs=50,
+                    batch_size=256, lambda_l2=0.0001, p=2, lr=lr, device_num=device_num, alfa=alfa)
+    config.scheduler = scheduler
+    if config.scheduler:
+        config.out_dir += '_adam_scheduler'
+    else:
+        config.out_dir += '_adam'
     if predict_visualize:
         print("start predict")
         predict(config)
@@ -322,11 +338,11 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
         end_time = time.time()
         # 计算训练总耗时
         training_time = (end_time - start_time) / 60
-        with open(f"{out_dir}/train/best_epoch.txt", 'a') as f:
+        with open(f"{config.out_dir}/train/best_epoch.txt", 'a') as f:
             f.write(f"training time:{training_time} min \n")
         print(f"Total training time: {training_time:.2f} mins")
         predict(config)
-        # visualize(out_dir)
+        # visualize(config.out_dir)
 
 
 if __name__ == '__main__':
@@ -342,6 +358,7 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, help='learning rate', default=0.0001)
     parser.add_argument('--alfa', type=float, help='co_loss2', default=0.618)
     parser.add_argument('--device_num', type=str, help='device', default="0")
+    parser.add_argument('--scheduler', action='store_true', help='Whether introduce scheduler', default=False)
     args = parser.parse_args()
     args.model = globals()[args.model]
 
@@ -353,7 +370,8 @@ if __name__ == '__main__':
                randomnumseed=args.randomnumseed,
                lr=args.lr,
                device_num=args.device_num,
-               alfa=args.alfa)
+               alfa=args.alfa,
+               scheduler=args.scheduler)
     # tmp_runner(dataset="phantom2A", Module="Onion_PI_up", addloss=False, predict_visualize=False, randomnumseed=42)
 '''
     dataset name: phantom2A  phantomEAST  EXP2A  EXPEAST
@@ -374,3 +392,4 @@ if __name__ == '__main__':
       nohup ./EXPEAST_train.sh > ../../onion_data/model_train_f/EXPEAST_training-50.log 2>&1 &
       nohup ./run.sh > ../../onion_data/model_train_noregi_Nposi/up_training-50-0.log 2>&1 &
 '''
+
