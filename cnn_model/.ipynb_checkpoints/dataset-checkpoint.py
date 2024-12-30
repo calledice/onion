@@ -3,8 +3,6 @@ import torch
 from torch.utils.data import Dataset
 import numpy as np
 import h5py
-import matplotlib.pyplot as plt
-from tqdm import tqdm
 import torch.nn.functional as F
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
@@ -38,7 +36,8 @@ class OnionDataset(Dataset):
 
         self.posi = torch.tensor(posi, dtype=torch.float32)
 
-        # 对posi做归一化操作  没用到
+
+        # 对posi做归一化操作  用到了
         self.posi_norm = F.normalize(self.posi, p=2)
         self.posi_norm = self.posi_norm.reshape(self.posi_norm.shape[0], z, r)
         self.posi = self.posi.reshape(self.posi.shape[0], z, r)
