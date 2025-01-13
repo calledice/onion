@@ -5,6 +5,11 @@ import random
 import h5py
 import matplotlib.pyplot as plt
 import scipy.io as sio
+import sys
+original_cwd = os.getcwd()
+sys.path.append("..")
+from cnn_model.dataset_evaluation import dataset_evaluation, load_h5
+os.chdir(original_cwd)  # 改变回原始的工作目录
 
 class BeamDef:
     def __init__(self, beams):
@@ -218,7 +223,27 @@ def plot_data(data):
     plt.savefig("."+"/see_label_pcolor")
     plt.show()
 
-def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,numgridz,c_matrix):
+def add_gaussian_noise(data, percentage_std=0.02):
+    """
+    给定的数据添加指定百分比的标准差的高斯噪声。
+    
+    参数:
+    - data: ndarray, 需要添加噪声的数据数组。
+    - percentage_std: float, 噪声的标准差占原始数据的百分比，默认是2% (0.02)。
+    
+    返回:
+    - noisy_data: ndarray, 添加了高斯噪声后的数据。
+    """
+    # 计算每个数据点的2%作为标准差
+    std = percentage_std * np.abs(data)
+    # 生成与data形状相同的随机噪声，均值为0，标准差根据上述计算
+    noise = np.random.normal(loc=0.0, scale=std, size=data.shape)
+    # 将噪声加到原始数据上
+    noisy_data = data + noise
+    
+    return noisy_data
+
+def generate_dataset(name,mode,noise,num_rz_shape,num_region_maxvalue,num_value,numgridr,numgridz,c_matrix):
     os.makedirs("./phantomdata", exist_ok=True)
     c_matrix_list = []
     region_list = []
@@ -257,6 +282,7 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
                 # plt.colorbar()
                 # plt.show()
                 input = input_generate(c_matrix, np.matrix(label).T)
+                input = add_gaussian_noise(input,noise)
                 new_columns = np.array([[l, numgridr, numgridz]], dtype=np.float64)
                 # 将id和网格数量拼接，用于后续可视化
                 input_contact = np.column_stack((np.array(input.T), new_columns))
@@ -293,8 +319,8 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
         file.write(f'train_num: {len(train_inputs)}\n')
         file.write(f'valid_num: {len(val_inputs)}\n')
         file.write(f'test_num: {len(test_inputs)}\n')
-
-    with h5py.File(f"./phantomdata/HL-2A_{name[0]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data0:
+    
+    with h5py.File(f"./phantomdata/{name}_{mode[0]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data0:
         data_input_group = data0.create_group("x")
         data_label_group = data0.create_group("y")
         data_posi_group = data0.create_group("posi")
@@ -305,7 +331,7 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
         for j in range(len(train_inputs)):
             data_input_group.create_dataset(str(j), data=train_inputs[j])
             data_label_group.create_dataset(str(j), data=train_labels[j])
-    with h5py.File(f"./phantomdata/HL-2A_{name[1]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data1:
+    with h5py.File(f"./phantomdata/{name}_{mode[1]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data1:
         data_input_group = data1.create_group("x")
         data_label_group = data1.create_group("y")
         data_posi_group = data1.create_group("posi")
@@ -316,7 +342,7 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
         for j in range(len(val_inputs)):
             data_input_group.create_dataset(str(j), data=val_inputs[j])
             data_label_group.create_dataset(str(j), data=val_labels[j])
-    with h5py.File(f"./phantomdata/HL-2A_{name[2]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data2:
+    with h5py.File(f"./phantomdata/{name}_{mode[2]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data2:
         data_input_group = data2.create_group("x")
         data_label_group = data2.create_group("y")
         data_posi_group = data2.create_group("posi")
@@ -333,7 +359,10 @@ def generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,nu
 
 if __name__ == '__main__':
     # 定义列名称
-    name = ['train','valid','test']
+    device = "HL-2A"
+    noise = 0.15
+    name = device + f"-{noise}"
+    mode = ['train','valid','test']
     num_rz_shape = 1
     num_region_maxvalue = 100
     num_value = 1000
@@ -351,7 +380,18 @@ if __name__ == '__main__':
     # plt.colorbar()
     # plt.show()
 
-    generate_dataset(name,num_rz_shape,num_region_maxvalue,num_value,numgridr,numgridz,c_matrix)
+    generate_dataset(name,mode,noise,num_rz_shape,num_region_maxvalue,num_value,numgridr,numgridz,c_matrix)
+
+    file_path = "./phantomdata/"
+    dataset_name = f"{name}_{mode[1]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5"
+    dataset_path = file_path+dataset_name
+    # 创建Path对象
+    inputs_list, outputs_list, R_matrix = load_h5(dataset_path)
+    label2results_list = []
+    for i in range(len(outputs_list)):
+        label2results_list.append(R_matrix@outputs_list[i])
+    save_file = file_path
+    dataset_evaluation(inputs_list,label2results_list,save_file,dataset_name)
 
 
 

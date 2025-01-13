@@ -188,7 +188,7 @@ def plot_loss(train_losses, val_losses, out_dir):
     plt.plot(iters, val_losses, label='Validation loss', color='red')
     # 添加标题和标签
     plt.legend(fontsize=16)
-    plt.title('Loss curve')
+    plt.title('Loss curve',fontsize=16)
     plt.xlabel('Epochs',fontsize=16)
     plt.ylabel('Loss',fontsize=16)
     # 显示图例

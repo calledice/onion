@@ -27,8 +27,7 @@ class OnionDataset(Dataset):
         ]  # 收集输入数据
         self.info_list = [tuple(x[str(i)][:][-3:].flatten()) for i in range(len(x))]  # 收集输入数据
         self.outputs_list = [
-            torch.tensor(y[str(i)][:], dtype=torch.float32) for i in range(len(y))
-        ]  # 收集输出数据
+            torch.tensor(y[str(i)][:], dtype=torch.float32) for i in range(len(y))]  # 收集输出数据
         # self.posi_list = [posi[str(i)][:] for i in range(len(posi))]  # 收集posi信息
 
         r = int(self.info_list[0][1])
