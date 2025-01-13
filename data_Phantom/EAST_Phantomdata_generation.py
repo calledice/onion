@@ -359,7 +359,7 @@ def generate_dataset(name,mode,noise,num_rz_shape,num_region_maxvalue,num_value,
 
 if __name__ == '__main__':
     # 定义列名称
-    device = "HL-2A"
+    device = "EAST"
     noise = 0.15
     name = device + f"-{noise}"
     mode = ['train','valid','test']
