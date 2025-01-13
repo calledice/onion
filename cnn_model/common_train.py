@@ -249,6 +249,11 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
         val_path = "../data_Phantom/phantomdata/EAST_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/EAST_test_database_1_100_1000.h5"
         out_root_path = "../../onion_train_data/train_results_EAST/"
+    elif name_dataset == "phantom2A-0.15":
+        train_path = "../data_Phantom/phantomdata/HL-2A-0.15_train_database_1_100_1000.h5"
+        val_path = "../data_Phantom/phantomdata/HL-2A-0.15_valid_database_1_100_1000.h5"
+        test_path = "../data_Phantom/phantomdata/HL-2A-0.15_test_database_1_100_1000.h5"
+        out_root_path = "../../onion_train_data/train_results_2A-0.15/"
     elif name_dataset == "EXP2A":
         train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
         val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
@@ -374,17 +379,17 @@ if __name__ == '__main__':
                scheduler=args.scheduler)
     # tmp_runner(dataset="phantom2A", Module="Onion_PI_up", addloss=False, predict_visualize=False, randomnumseed=42)
 '''
-    dataset name: phantom2A  phantomEAST  EXP2A  EXPEAST
+    dataset name: phantom2A phantom2A-0.15 phantomEAST  EXP2A  EXPEAST
     model name:  
         Onion_input
         Onion_input_softplus
-        Onion_PI
-        Onion_PI_softplus
+        Onion_PI_uptime
+        Onion_PI_uptime_softplus
         ResOnion_input
         ResOnion_input_softplus
-        ResOnion_PI
-        ResOnion_PI_softplus
-    python common_train.py --dataset EXP2A --model ResOnion_PI_up
+        ResOnion_PI_uptime
+        ResOnion_PI_uptime_softplus
+    python common_train.py --dataset EXP2A --model Onion_PI_uptime
     
       nohup ./phantom2A_train.sh > ../../onion_data/model_train_0.0001/phantom2A_training-50-all.log 2>&1 & 2878317
       nohup ./phantomEAST_train.sh > ../../onion_data/model_train_f/phantomEAST_training-50-1.log 2>&1 & 3921141
