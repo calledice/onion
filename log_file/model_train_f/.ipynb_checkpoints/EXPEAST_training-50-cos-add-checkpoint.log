@@ -1,5 +1,0 @@
-Running command: python ../common_train.py --dataset EXPEAST --model Onion_PI_uptime --randomnumseed 42  --device_num 0
-with_PI: True /n
-addloss: False /n
-../../onion_train_data/train_results_EAST/EXPEAST_42_Onion_PI_uptime
-start train
