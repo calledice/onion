@@ -7,3 +7,4 @@
 /cnn_model/output/
 /cnn_model/__pycache__/
 .vscode/
+.ipynb_checkpoints/
