@@ -2,9 +2,8 @@ import torch
 from dataset import OnionDataset
 from torch.utils.data import Dataset, DataLoader
 from post_process import visualize
-from onion_model import Onion_input, Onion_PI, Onion_PI_up, Onion_PI_upadd, ResOnion_input, ResOnion_PI, ResOnion_PI_up, \
-    ResOnion_PI_upadd, Onion_PI_uptime, Onion_PI_uptime_softplus, ResOnion_PI_uptime, ResOnion_PI_uptime_softplus, \
-    Onion_input_softplus, Onion_PI_softplus, ResOnion_input_softplus, ResOnion_PI_softplus, Config
+from onion_model import Onion_input ,ResOnion_input, Onion_PI_uptime, Onion_PI_uptime_softplus, ResOnion_PI_uptime, ResOnion_PI_uptime_softplus, \
+    Onion_input_softplus, ResOnion_input_softplus, Config
 from common_predict import predict
 import matplotlib.pyplot as plt
 from torch.optim.lr_scheduler import CosineAnnealingLR
@@ -254,6 +253,11 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
         val_path = "../data_Phantom/phantomdata/HL-2A-0.15_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/HL-2A-0.15_test_database_1_100_1000.h5"
         out_root_path = "../../onion_train_data/train_results_2A-0.15/"
+    elif name_dataset == "phantomEAST-0.2":
+        train_path = "../data_Phantom/phantomdata/EAST-0.2_train_database_1_100_1000.h5"
+        val_path = "../data_Phantom/phantomdata/EAST-0.2_valid_database_1_100_1000.h5"
+        test_path = "../data_Phantom/phantomdata/EAST-0.2_test_database_1_100_1000.h5"
+        out_root_path = "../../onion_train_data/train_results_EAST-0.2/"
     elif name_dataset == "EXP2A":
         train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
         val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
@@ -277,23 +281,11 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
     elif Module == Onion_input_softplus:
         out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_input{extra}_softplus"
         with_PI = False
-    elif Module == Onion_PI:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI{extra}"
-        with_PI = True
-    elif Module == Onion_PI_up:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_up{extra}"
-        with_PI = True
     elif Module == Onion_PI_uptime:
         out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_uptime{extra}"
         with_PI = True
     elif Module == Onion_PI_uptime_softplus:
         out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI_uptime_softplus{extra}"
-        with_PI = True
-    elif Module == Onion_PI_softplus:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_Onion_PI{extra}_softplus"
-        with_PI = True
-    elif Module == ResOnion_PI_up:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_up{extra}"
         with_PI = True
     elif Module == ResOnion_PI_uptime:
         out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI_uptime{extra}"
@@ -307,12 +299,6 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
     elif Module == ResOnion_input_softplus:
         out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_input{extra}_softplus"
         with_PI = False
-    elif Module == ResOnion_PI:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI{extra}"
-        with_PI = True
-    elif Module == ResOnion_PI_softplus:
-        out_dir = out_root_path + f"{name_dataset}_{randomnumseed}_ResOnion_PI{extra}_softplus"
-        with_PI = True
     else:
         print("模型不在列表中")
         exit(1)

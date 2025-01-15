@@ -10,16 +10,16 @@ mkdir -p "$LOG_DIR"
 # LOG_FILE="../../onion_train_data/train_results_2A-0.15/phantom2A-0.15_training-50-1.log"
 # 定义要运行的命令
 COMMANDS=(
-   "python common_train.py --dataset phantom2A-0.15 --model Onion_input --randomnumseed 42 --device_num 0 --scheduler"
-   "python common_train.py --dataset phantom2A-0.15 --model Onion_input_softplus --randomnumseed 42 --device_num 0 --scheduler"
-   "python common_train.py --dataset phantom2A-0.15 --model Onion_PI_uptime --randomnumseed 42 --device_num 0 --scheduler"
-   "python common_train.py --dataset phantom2A-0.15 --model ResOnion_input --randomnumseed 42 --device_num 0 --scheduler"
-   "python common_train.py --dataset phantom2A-0.15 --model ResOnion_input_softplus --randomnumseed 42 --device_num 0 --scheduler"
-   "python common_train.py --dataset phantom2A-0.15 --model ResOnion_PI_uptime --randomnumseed 42  --device_num 0 --scheduler"
-   "python common_train.py --dataset phantom2A-0.15 --model Onion_PI_softplus --randomnumseed 42 --device_num 0"
-   "python common_train.py --dataset phantom2A-0.15 --model Onion_PI_softplus --addloss --randomnumseed 42 --device_num 0"
-   "python common_train.py --dataset phantom2A-0.15 --model ResOnion_PI_softplus  --randomnumseed 42 --device_num 0"
-   "python common_train.py --dataset phantom2A-0.15 --model ResOnion_PI_softplus --addloss --randomnumseed 42 --device_num 0"
+   # "python common_train.py --dataset phantom2A-0.15 --model Onion_input --randomnumseed 42 --device_num 0 --scheduler"
+   # "python common_train.py --dataset phantom2A-0.15 --model Onion_input_softplus --randomnumseed 42 --device_num 0 --scheduler"
+   # "python common_train.py --dataset phantom2A-0.15 --model Onion_PI_uptime --randomnumseed 42 --device_num 0 --scheduler"
+   # "python common_train.py --dataset phantom2A-0.15 --model ResOnion_input --randomnumseed 42 --device_num 0 --scheduler"
+   # "python common_train.py --dataset phantom2A-0.15 --model ResOnion_input_softplus --randomnumseed 42 --device_num 0 --scheduler"
+   # "python common_train.py --dataset phantom2A-0.15 --model ResOnion_PI_uptime --randomnumseed 42  --device_num 0 --scheduler"
+   "python common_train.py --dataset phantom2A-0.15 --model Onion_PI_uptime_softplus --randomnumseed 42 --device_num 0 --scheduler"
+   "python common_train.py --dataset phantom2A-0.15 --model Onion_PI_uptime_softplus --addloss --randomnumseed 42 --device_num 0 --scheduler"
+   "python common_train.py --dataset phantom2A-0.15 --model ResOnion_PI_uptime_softplus  --randomnumseed 42 --device_num 0 --scheduler"
+   "python common_train.py --dataset phantom2A-0.15 --model ResOnion_PI_uptime_softplus --addloss --randomnumseed 42 --device_num 0 --scheduler"
 )
 
 # 遍历命令数组并依次执行每个命令
