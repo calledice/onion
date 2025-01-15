@@ -1,21 +1,21 @@
 #!/bin/bash
 
 # 定义日志文件路径
-LOG_FILE="../../onion_train_data/train_results_2A/phantom2A_training-50-3.log"
+LOG_FILE="../../onion_data/model_train_add/phantom2A_training-50-all.log"
 # 定义要运行的命令
 COMMANDS=(
-#    "python common_train.py --dataset phantom2A --model Onion_input --randomnumseed 42 --device_num 1"
-#    "python common_train.py --dataset phantom2A --model Onion_input_softplus --randomnumseed 42 --device_num 1"
-#    "python common_train.py --dataset phantom2A --model Onion_input_softplus --addloss --randomnumseed 42 --device_num 1"
-    "python common_train.py --dataset phantom2A --model Onion_PI_uptime --randomnumseed 42 --device_num 0"
-    # "python common_train.py --dataset phantom2A --model Onion_PI_softplus --randomnumseed 42 --device_num 1"
-    # "python common_train.py --dataset phantom2A --model Onion_PI_softplus --addloss  --randomnumseed 42 --device_num 1"
-    "python common_train.py --dataset phantom2A --model ResOnion_input --randomnumseed 42 --device_num 0"
-    # "python common_train.py --dataset phantom2A --model ResOnion_input_softplus --randomnumseed 42 --device_num 1"
-#    "python common_train.py --dataset phantom2A --model ResOnion_input_softplus --addloss --randomnumseed 42 --device_num 1"
-    "python common_train.py --dataset phantom2A --model ResOnion_PI_uptime --randomnumseed 42  --device_num 0"
-    # "python common_train.py --dataset phantom2A --model ResOnion_PI_softplus  --randomnumseed 42 --device_num 1"
-    # "python common_train.py --dataset phantom2A --model ResOnion_PI_softplus --addloss --randomnumseed 42 --device_num 1"
+#    "python common_train.py --dataset phantom2A --model "Onion_input" --device_num 1"
+#    "python common_train.py --dataset phantom2A --model "Onion_input_softplus"  --device_num 1"
+#    "python common_train.py --dataset phantom2A --model "Onion_input_softplus" --addloss  --device_num 1"
+    "python common_train.py --dataset phantom2A --model "Onion_PI" --device_num 1"
+    # "python common_train.py --dataset phantom2A --model "Onion_PI_softplus" --device_num 1"
+    # "python common_train.py --dataset phantom2A --model "Onion_PI_softplus" --addloss --device_num 1"
+    "python common_train.py --dataset phantom2A --model "ResOnion_input"  --device_num 1"
+    # "python common_train.py --dataset phantom2A --model "ResOnion_input_softplus" --device_num 1"
+#    "python common_train.py --dataset phantom2A --model "ResOnion_input_softplus" --addloss --device_num 1"
+    "python common_train.py --dataset phantom2A --model "ResOnion_PI" --device_num 1"
+    # "python common_train.py --dataset phantom2A --model "ResOnion_PI_softplus"  --device_num 1"
+    # "python common_train.py --dataset phantom2A --model "ResOnion_PI_softplus"  --device_num 1"
 
 )
 
