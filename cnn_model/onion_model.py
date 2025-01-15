@@ -81,16 +81,18 @@ class ResidualBasic(nn.Module):
         self.features = nn.Sequential(
             nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(channels, channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(channels),
         )
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU(inplace=False)
 
     def forward(self, x):
-        x = self.features(x) + x
-        x = self.relu(x)
-        return x
+        residual = x
+        out = self.features(x)
+        out = out + residual
+        out = self.relu(out)
+        return out
 
 class Residualscale(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -98,7 +100,7 @@ class Residualscale(nn.Module):
         self.feature_r = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), stride=2, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), stride=1, padding=1),
             nn.BatchNorm2d(out_channels)
         )
@@ -106,7 +108,7 @@ class Residualscale(nn.Module):
             nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), stride=2, padding=0),
             nn.BatchNorm2d(out_channels),
         )
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU()
 
     def forward(self, x):
         x_scale = self.feature_x(x)
@@ -124,32 +126,32 @@ class Residualscale(nn.Module):
 #         self.net = nn.Sequential(
 #             nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2*channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2,stride=2),
 
 #             nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4*channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2,stride=2),
 
 #             nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8*channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.AdaptiveMaxPool2d(output_size=(3, 3))
 #         )
 
@@ -158,10 +160,10 @@ class Residualscale(nn.Module):
 
 #         self.fc = nn.Sequential(
 #             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Dropout(0.5),
 #             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True)
+#             nn.ReLU()
 #         )
 
 #     def forward(self, input, posi):
@@ -182,57 +184,57 @@ class Residualscale(nn.Module):
 #         self.net1 = nn.Sequential(
 #             nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2*channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2,stride=2),
 
 #             nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4*channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2,stride=2),
 
 #             nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8*channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.AdaptiveMaxPool2d(output_size=(3, 3))
 #         )
 #         self.net2 = nn.Sequential(
 #             nn.Conv2d(in_channels=channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=2 * channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2, stride=2),
 
 #             nn.Conv2d(in_channels=2 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2, stride=2),
 
 #             nn.Conv2d(in_channels=4 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.AdaptiveMaxPool2d(output_size=(3, 3))
 #         )
 
@@ -241,10 +243,10 @@ class Residualscale(nn.Module):
 
 #         self.fc = nn.Sequential(
 #             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Dropout(0.5),
 #             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True)
+#             nn.ReLU()
 #         )
 
 #     def forward(self, input, posi):
@@ -267,57 +269,57 @@ class Residualscale(nn.Module):
 #         self.net1 = nn.Sequential(
 #             nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2*channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2,stride=2),
 
 #             nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4*channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2,stride=2),
 
 #             nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8*channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.AdaptiveMaxPool2d(output_size=(3, 3))
 #         )
 #         self.net2 = nn.Sequential(
 #             nn.Conv2d(in_channels=channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=2 * channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2, stride=2),
 
 #             nn.Conv2d(in_channels=2 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2, stride=2),
 
 #             nn.Conv2d(in_channels=4 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.AdaptiveMaxPool2d(output_size=(3, 3))
 #         )
 
@@ -326,10 +328,10 @@ class Residualscale(nn.Module):
 
 #         self.fc = nn.Sequential(
 #             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Dropout(0.5),
 #             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True)
+#             nn.ReLU()
 #         )
 
 #     def forward(self, input, posi):
@@ -352,57 +354,57 @@ class Onion_PI_uptime(nn.Module):
         self.net1 = nn.Sequential(
             nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2*channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2,stride=2),
 
             nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4*channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2,stride=2),
 
             nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8*channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
         self.net2 = nn.Sequential(
             nn.Conv2d(in_channels=channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=2 * channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=2 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=4 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
 
@@ -411,10 +413,10 @@ class Onion_PI_uptime(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True)
+            nn.ReLU()
         )
 
     def forward(self, input, posi):
@@ -437,57 +439,57 @@ class Onion_PI_uptime_softplus(nn.Module):
         self.net1 = nn.Sequential(
             nn.Conv2d(in_channels=channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=2*channels, out_channels=2*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2*channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2,stride=2),
 
             nn.Conv2d(in_channels=2*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4*channels, out_channels=4*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4*channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2,stride=2),
 
             nn.Conv2d(in_channels=4*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8*channels, out_channels=8*channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8*channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
         self.net2 = nn.Sequential(
             nn.Conv2d(in_channels=channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=2 * channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=2 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=4 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
 
@@ -521,32 +523,32 @@ class Onion_PI_uptime_softplus(nn.Module):
 #         self.net = nn.Sequential(
 #             nn.Conv2d(in_channels=channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=2 * channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2, stride=2),
 
 #             nn.Conv2d(in_channels=2 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2, stride=2),
 
 #             nn.Conv2d(in_channels=4 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.AdaptiveMaxPool2d(output_size=(3, 3))
 #         )
 
@@ -578,32 +580,32 @@ class Onion_input(nn.Module):
         self.net = nn.Sequential(
             nn.Conv2d(in_channels=channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=2 * channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=2 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=4 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
 
@@ -612,10 +614,10 @@ class Onion_input(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=conv_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True)
+            nn.ReLU()
         )
 
     def forward(self, input):
@@ -634,32 +636,32 @@ class Onion_input_softplus(nn.Module):
         self.net = nn.Sequential(
             nn.Conv2d(in_channels=channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=2 * channels, out_channels=2 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=2 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4 * channels, out_channels=4 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=4 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8 * channels, out_channels=8 * channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
 
@@ -701,10 +703,10 @@ class Onion_input_softplus(nn.Module):
 #         self.flatten = nn.Flatten(start_dim=1)
 #         self.fc = nn.Sequential(
 #             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Dropout(0.5),
 #             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True)
+#             nn.ReLU()
 #         )
 
 #     def forward(self, input, posi):
@@ -748,36 +750,36 @@ class Onion_input_softplus(nn.Module):
 #         self.net2 = nn.Sequential(
 #             nn.Conv2d(in_channels=channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=2 * channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2, stride=2),
 
 #             nn.Conv2d(in_channels=2 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2, stride=2),
 
 #             nn.Conv2d(in_channels=4 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.AdaptiveMaxPool2d(output_size=(3, 3))
 #         )
 #         fc_in_dim = 8 * channels * 3 * 3 + 8 * channels_pi * 3 * 3   # (40,3,3)  (41,3,3)   (81,3,3)
 #         fc_out_dim = max_r * max_z
 #         self.fc = nn.Sequential(
 #             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Dropout(0.5),
 #             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True)
+#             nn.ReLU()
 #         )
 #     def forward(self, input, posi):
 #         z = self.conv_upsample(input)
@@ -828,36 +830,36 @@ class Onion_input_softplus(nn.Module):
 #         self.net2 = nn.Sequential(
 #             nn.Conv2d(in_channels=channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=2 * channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=2 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2, stride=2),
 
 #             nn.Conv2d(in_channels=2 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=4 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=4 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.MaxPool2d(kernel_size=2, stride=2),
 
 #             nn.Conv2d(in_channels=4 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Conv2d(in_channels=8 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
 #             nn.BatchNorm2d(num_features=8 * channels_pi),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.AdaptiveMaxPool2d(output_size=(3, 3))
 #         )
 #         fc_in_dim = 8 * channels_pi * 3 * 3   # (40,3,3)  (41,3,3)   (81,3,3)
 #         fc_out_dim = max_r * max_z
 #         self.fc = nn.Sequential(
 #             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True),
+#             nn.ReLU(),
 #             nn.Dropout(0.5),
 #             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-#             nn.ReLU(inplace=True)
+#             nn.ReLU()
 #         )
 #     def forward(self, input, posi):
 #         z = self.conv_upsample(input)
@@ -908,36 +910,36 @@ class ResOnion_PI_uptime(nn.Module):
         self.net2 = nn.Sequential(
             nn.Conv2d(in_channels=channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=2 * channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=2 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=4 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
         fc_in_dim = 8 * channels_pi * 3 * 3   # (40,3,3)  (41,3,3)   (81,3,3)
         fc_out_dim = max_r * max_z
         self.fc = nn.Sequential(
             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True)
+            nn.ReLU()
         )
     def forward(self, input, posi):
         z = self.conv_upsample(input)
@@ -945,17 +947,17 @@ class ResOnion_PI_uptime(nn.Module):
 
         conv_pi = self.net2(pi)
 
-        for net in self.res1:
-            z = net(z)
+        for net1 in self.res1:
+            z = net1(z)
         z = self.res2scale(z)
-        for net in self.res2:
-            z = net(z)
+        for net2 in self.res2:
+            z = net2(z)
         z = self.res3scale(z)
-        for net in self.res3:
-            z = net(z)
+        for net3 in self.res3:
+            z = net3(z)
         z = self.res4scale(z)
-        for net in self.res4:
-            z = net(z)
+        for net4 in self.res4:
+            z = net4(z.clone())
 
         z = self.admaxpool(z)
 
@@ -988,26 +990,26 @@ class ResOnion_PI_uptime_softplus(nn.Module):
         self.net2 = nn.Sequential(
             nn.Conv2d(in_channels=channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=2 * channels_pi, out_channels=2 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=2 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=2 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=4 * channels_pi, out_channels=4 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=4 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(in_channels=4 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels=8 * channels_pi, out_channels=8 * channels_pi, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(num_features=8 * channels_pi),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.AdaptiveMaxPool2d(output_size=(3, 3))
         )
         fc_in_dim = 8 * channels_pi * 3 * 3   # (40,3,3)  (41,3,3)   (81,3,3)
@@ -1109,10 +1111,10 @@ class ResOnion_input(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=fc_in_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(in_features=fc_out_dim, out_features=fc_out_dim),
-            nn.ReLU(inplace=True)
+            nn.ReLU()
         )
 
     def forward(self, input):

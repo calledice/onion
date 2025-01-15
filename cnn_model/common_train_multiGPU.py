@@ -18,6 +18,10 @@ import random
 import argparse
 from contextlib import redirect_stdout
 from torchinfo import summary
+import torch.distributed as dist
+from torch.utils.data import DistributedSampler
+from torch.nn.parallel import DistributedDataParallel as DDP
+torch.autograd.set_detect_anomaly(True)
 
 # 获取当前源程序所在的目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -35,147 +39,6 @@ def seed_everything(seed=42):
     torch.cuda.manual_seed_all(seed)  # 为所有GPU设置随机种子
     torch.backends.cudnn.deterministic = True  # 设置cuDNN为确定性模式
     torch.backends.cudnn.benchmark = False  # 禁止使用cuDNN的benchmark功能
-
-
-def train(model, train_loader, val_loader, config: Config):
-    '''
-    with_PI: 判断是不是没有regi和posi的模型
-    '''
-    out_dir = config.out_dir
-    epochs = config.epochs
-    early_stop = config.early_stop
-    device = config.device
-    alfa = config.alfa
-    os.makedirs(f'{out_dir}/train', exist_ok=True)
-    min_val_loss = float('inf')
-    loss_fn = nn.MSELoss()
-    optim = torch.optim.Adam(params=model.parameters(), lr=config.lr)
-    # 创建余弦退火学习率调度器
-    T_max = 50  # 一个周期的长度
-    if config.scheduler:
-        scheduler = CosineAnnealingLR(optim, T_max=T_max, eta_min=0.00001)
-    
-    train_losses = []
-    val_losses = []
-    training_lrs = []
-    lambda_l2 = config.lambda_l2
-    p = config.p
-    for epoch in range(epochs):
-        # 训练阶段
-        model.train()
-        print(f"epoch: {epoch}")
-        losses = []
-        for input, posi, posi_origin, label in tqdm(train_loader, desc="Training"):
-            # plt.imshow(np.array(label[0].reshape(36, 32)), cmap='gray', interpolation='nearest')
-            # # 显示颜色条
-            # plt.colorbar()
-            # plt.show()
-            input, posi, posi_origin, label = input.to(device), posi.to(device), posi_origin.to(device), label.to(
-                device)
-            if config.with_PI:
-                pred = model(input, posi)
-                if epoch == 0:
-                    with open(f'{out_dir}/model_structure.txt', 'w') as f:
-                        with redirect_stdout(f):
-                            summary(model, input_data=[input, posi])
-
-            else:
-                pred = model(input)
-                if epoch == 0:
-                    with open(f'{out_dir}/model_structure.txt', 'w') as f:
-                        with redirect_stdout(f):
-                            summary(model, input_data=input)
-            pred_temp = pred.unsqueeze(-1)
-            result = torch.bmm(posi_origin.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
-
-            optim.zero_grad()
-            if config.addloss:
-                loss_1 = loss_fn(pred, label)
-                loss_2 = loss_fn(input, result)
-                alpha = alfa * loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0  # 0.618
-                beta = 1.0
-                # alpha = loss_1.item() / (loss_1.item() + loss_2.item())
-                # beta = loss_2.item() / (loss_1.item() + loss_2.item())
-                l2_reg = torch.tensor(0., device=device)
-                for param in model.parameters():
-                    l2_reg += torch.norm(param, p)
-                loss = beta * loss_1 + alpha * loss_2 + lambda_l2 * l2_reg
-            else:
-                loss = loss_fn(pred, label)
-            loss.backward()
-            optim.step()
-            losses.append(loss.item())
-        if config.scheduler:
-            scheduler.step()
-            
-        train_loss = sum(losses) / len(losses)
-        print(f"epoch{epoch} training loss: {train_loss}\n")
-        
-        # 打印当前的学习率
-        if config.scheduler:
-            current_lr = scheduler.get_last_lr()[0]
-        else:
-            current_lr = optim.param_groups[0]['lr']
-        training_lrs.append(current_lr)
-        print(f"epoch{epoch} Learning Rate: {current_lr}\n")
-        
-        json.dump(losses, open(f"{out_dir}/train/training_loss{epoch}.json", 'w'))
-        train_losses.append(train_loss)
-
-        # 验证阶段
-        model.eval()
-        best_epoch = -1
-        losses = []
-        preds = []
-        labels = []
-        loss_fn = nn.MSELoss()
-        with torch.no_grad():
-            for input, posi, posi_origin, label in tqdm(val_loader, desc="Validating"):
-                input, posi, posi_origin, label = input.to(device), posi.to(device), posi_origin.to(device), label.to(
-                    device)
-                if config.with_PI:
-                    pred = model(input, posi)
-                else:
-                    pred = model(input)
-                pred_temp = pred.unsqueeze(-1)
-                result = torch.bmm(posi_origin.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
-                if config.addloss:
-                    loss_1 = loss_fn(pred, label)
-                    loss_2 = loss_fn(input, result)
-                    alpha = alfa * loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0  # 0.618
-                    beta = 1.0
-                    # beta = loss_1.item() / (loss_1.item() + loss_2.item())
-                    # alpha = loss_2.item() / (loss_1.item() + loss_2.item())
-                    l2_reg = torch.tensor(0., device=device)
-                    for param in model.parameters():
-                        l2_reg += torch.norm(param, p)
-                    loss = beta * loss_1 + alpha * loss_2 + lambda_l2 * l2_reg
-                else:
-                    loss = loss_fn(pred, label)
-                preds.append(pred.detach().reshape(-1, config.max_r, config.max_z))
-                labels.append(label.detach().reshape(-1, config.max_r, config.max_z))
-                losses.append(loss.detach().item())
-        val_loss = sum(losses) / len(losses)
-
-        print(f"epoch{epoch} min loss: {min_val_loss}")
-        print(f"epoch{epoch} validation loss: {val_loss}")
-
-        if val_loss < min_val_loss:
-            min_val_loss = val_loss
-            torch.save(model, f"{out_dir}/train/model_best.pth")
-            with open(f"{out_dir}/train/best_epoch.txt", 'w') as f:
-                f.write(str(epoch))
-            if early_stop > 0:
-                early_stop = config.early_stop
-        json.dump(losses, open(f"{out_dir}/train/val_loss{epoch}.json", 'w'))
-        val_losses.append(val_loss)
-        if early_stop >= 0:
-            early_stop -= 1
-            if early_stop <= 0:
-                break
-    json.dump(training_lrs, open(f"{out_dir}/train/training_lrs.json", 'w'))
-    return train_losses, val_losses
-
 
 def plot_loss(train_losses, val_losses, out_dir):
     import matplotlib.pyplot as plt
@@ -200,25 +63,190 @@ def plot_loss(train_losses, val_losses, out_dir):
     # plt.show()
     plt.close()
 
+def train(model, train_loader, val_loader, config: Config,train_sampler,val_sampler,rank):
+    '''
+    with_PI: 判断是不是没有regi和posi的模型
+    '''
+    out_dir = config.out_dir
+    epochs = config.epochs
+    early_stop = config.early_stop
+    device = torch.device(f"cuda:{rank}")
+    alfa = config.alfa
+    # os.makedirs(f'{out_dir}/train', exist_ok=True)
+    min_val_loss = float('inf')
+    loss_fn = nn.MSELoss()
+    optim = torch.optim.Adam(params=model.parameters(), lr=config.lr)
+    # 创建余弦退火学习率调度器
+    T_max = 50  # 一个周期的长度
+    if config.scheduler:
+        scheduler = CosineAnnealingLR(optim, T_max=T_max, eta_min=0.00001)
+    
+    train_losses = []
+    val_losses = []
+    training_lrs = []
+    lambda_l2 = config.lambda_l2
+    p = config.p
+    
+    for epoch in range(epochs):
+        train_sampler.set_epoch(epoch)
+        val_sampler.set_epoch(epoch)
+        dist.barrier()
+        # 训练阶段
+        model.train()
+        print(f"Rank {rank}, epoch: {epoch}") if rank == 0 else None
+        # print(f"epoch: {epoch}")
+        losses = []
+        for input, posi, posi_origin, label in tqdm(train_loader, desc="Training", disable=rank != 0):
+            # plt.imshow(np.array(label[0].reshape(36, 32)), cmap='gray', interpolation='nearest')
+            # # 显示颜色条
+            # plt.colorbar()
+            # plt.show()
+            input, posi, posi_origin, label = input.to(device), posi.to(device), posi_origin.to(device), label.to(
+                device)
+            if config.with_PI:
+                pred = model(input, posi)
+                if epoch == 0:
+                    with open(f'{out_dir}/model_structure.txt', 'w') as f:
+                        with redirect_stdout(f):
+                            summary(model, input_data=[input, posi])
+            else:
+                pred = model(input)
+                if epoch == 0:
+                    with open(f'{out_dir}/model_structure.txt', 'w') as f:
+                        with redirect_stdout(f):
+                            summary(model, input_data=input)
+            pred_temp = pred.unsqueeze(-1).to(device)  # 确保 pred_temp 在正确设备上
+            result = torch.bmm(posi_origin.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
+
+            optim.zero_grad()
+            if config.addloss:
+                loss_1 = loss_fn(pred, label)
+                loss_2 = loss_fn(input, result)
+                alpha = alfa * loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0  # 0.618
+                beta = 1.0
+                # alpha = loss_1.item() / (loss_1.item() + loss_2.item())
+                # beta = loss_2.item() / (loss_1.item() + loss_2.item())
+                l2_reg = torch.tensor(0., device=device)
+                for param in model.parameters():
+                    l2_reg = l2_reg + torch.norm(param.clone(), p)
+                loss = beta * loss_1 + alpha * loss_2 + lambda_l2 * l2_reg
+            else:
+                loss = loss_fn(pred, label)
+            loss.backward()
+            optim.step()
+            losses.append(loss.item())
+        if config.scheduler:
+            scheduler.step()
+            
+        train_loss = sum(losses) / len(losses)
+        print(f"epoch{epoch} training loss: {train_loss}\n")
+        
+        # 打印当前的学习率
+        if config.scheduler:
+            current_lr = scheduler.get_last_lr()[0]
+        else:
+            current_lr = optim.param_groups[0]['lr']
+        training_lrs.append(current_lr)
+        print(f"epoch{epoch} Learning Rate: {current_lr}\n")
+        if rank == 0:
+            print(f"Epoch {epoch} Learning Rate: {current_lr}\n")
+        
+        if rank == 0:
+            json.dump(losses, open(f"{out_dir}/train/training_loss{epoch}.json", 'w'))
+            train_losses.append(train_loss)
+        dist.barrier()
+        # 验证阶段
+        model.eval()
+        losses = []
+        with torch.no_grad():
+            for input, posi, posi_origin, label in tqdm(val_loader, desc="Validating", disable=rank != 0):
+                input, posi, posi_origin, label = input.to(device), posi.to(device), posi_origin.to(device), label.to(
+                    device)
+                if config.with_PI:
+                    pred = model(input, posi)
+                else:
+                    pred = model(input)
+                pred_temp = pred.unsqueeze(-1)
+                result = torch.bmm(posi_origin.view(len(posi), len(posi[0]), -1), pred_temp).squeeze(-1)
+                if config.addloss:
+                    loss_1 = loss_fn(pred, label)
+                    loss_2 = loss_fn(input, result)
+                    alpha = alfa * loss_1.item() / loss_2.item() if loss_2 > 0 else 10.0  # 0.618
+                    beta = 1.0
+                    # beta = loss_1.item() / (loss_1.item() + loss_2.item())
+                    # alpha = loss_2.item() / (loss_1.item() + loss_2.item())
+                    l2_reg = torch.tensor(0., device=device)
+                    for param in model.parameters():
+                        l2_reg = l2_reg + torch.norm(param, p)
+                    loss = beta * loss_1 + alpha * loss_2 + lambda_l2 * l2_reg
+                else:
+                    loss = loss_fn(pred, label)
+                reduced_loss = torch.tensor(loss).to(rank)
+                dist.reduce(reduced_loss, dst=0)
+                if rank == 0:
+                    reduced_loss /= dist.get_world_size()
+                losses.append(reduced_loss.detach().item())
+                # preds.append(pred.detach().reshape(-1, config.max_r, config.max_z))
+                # labels.append(label.detach().reshape(-1, config.max_r, config.max_z))
+                
+        val_loss = sum(losses) / len(losses)
+        if rank == 0:
+            print(f"Epoch {epoch} validation loss: {val_loss}")
+            print(f"Epoch {epoch} min loss: {min_val_loss}")
+
+            if val_loss < min_val_loss:
+                min_val_loss = val_loss
+                torch.save(model, f"{out_dir}/train/model_best.pth")
+                with open(f"{out_dir}/train/best_epoch.txt", 'w') as f:
+                    f.write(str(epoch))
+                early_stop = config.early_stop
+            
+            json.dump(losses, open(f"{out_dir}/train/val_loss{epoch}.json", 'w'))
+            val_losses.append(val_loss)
+            
+            if early_stop >= 0:
+                early_stop -= 1
+                if early_stop <= 0:
+                    break
+    if rank == 0:
+        json.dump(training_lrs, open(f"{out_dir}/train/training_lrs.json", 'w'))
+
+    return train_losses, val_losses
+
 
 def run(Module, config: Config):
     train_path = config.train_path
     val_path = config.val_path
     test_path = config.test_path
     out_dir = config.out_dir
-    device = config.device
-    os.environ['CUDA_VISIBLE_DEVICES'] = config.device_num
+    # device = config.device
+    # 动态生成要使用的 GPU ID 列表字符串，例如 "0,1,2,3"
+    gpu_ids = ','.join(str(i) for i in range(int(config.device_num)))
+    # 设置环境变量 CUDA_VISIBLE_DEVICES
+    os.environ['CUDA_VISIBLE_DEVICES'] = gpu_ids
+    # 初始化进程组
+    if not dist.is_initialized():
+        dist.init_process_group(backend='nccl', init_method='env://')
+    
+    rank = int(os.environ.get('RANK', '0'))
+    world_size = int(os.environ.get('WORLD_SIZE', '1'))
 
     start_time = time.time()
     train_set = OnionDataset(train_path)
     val_set = OnionDataset(val_path)
 
-    train_loader = DataLoader(train_set, batch_size=config.batch_size, shuffle=True)
-    val_loader = DataLoader(val_set, batch_size=config.batch_size, shuffle=True)
+    train_sampler = DistributedSampler(train_set)
+    val_sampler = DistributedSampler(val_set)
+    train_loader = DataLoader(train_set, batch_size=config.batch_size, shuffle=False, sampler=train_sampler)
+    # train_loader = DataLoader(train_set, batch_size=config.batch_size, shuffle=True)
+    val_sampler = DistributedSampler(val_set)
+    val_loader = DataLoader(val_set, batch_size=config.batch_size, shuffle=False, sampler=val_sampler)
+    # val_loader = DataLoader(val_set, batch_size=config.batch_size, shuffle=True)
 
     end_time = time.time()
     elapsed_time = end_time - start_time
-    print(f"加载验证集耗时: {elapsed_time / 60.0:.2f} min")
+    if rank == 0:
+        print(f"加载验证集耗时: {elapsed_time / 60.0:.2f} min")
 
     # 临时加的，为了不做padding
     n = len(train_set.inputs_list[0])
@@ -227,15 +255,25 @@ def run(Module, config: Config):
     config.max_n = n
     config.max_r = r
     config.max_z = z
-    print(f"max_n: {n}, max_r: {r}, max_z: {z}")
+    if rank == 0:
+        print(f"max_n: {n}, max_r: {r}, max_z: {z}")
     onion = Module(n, r, z)
-    onion.to(device)
+    # onion.to(device)
+    # 创建并封装模型
+    onion = Module(n, r, z).to(rank)
+    onion = torch.nn.SyncBatchNorm.convert_sync_batchnorm(onion)
+    onion = DDP(onion, device_ids=[rank])
 
-    train_losses, val_losses = train(onion, train_loader, val_loader, config)
-    plot_loss(train_losses, val_losses, out_dir)
+    train_losses, val_losses = train(onion, train_loader, val_loader, config,train_sampler,val_sampler,rank)
+    # 只有主进程绘制损失图
+    if rank == 0:
+        plot_loss(train_losses, val_losses, config.out_dir)
+
+    # 清理分布式环境
+    dist.destroy_process_group()
 
 
-def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnumseed=None, lr=0.0001, device_num="0",
+def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnumseed=None, lr=0.0001, device_num="4",
                alfa=1.0, scheduler=False):
     
     name_dataset = dataset
@@ -243,32 +281,32 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
         train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
-        out_root_path = "../data/onion_train_data/train_results_2A/"
+        out_root_path = "../../data/onion_train_data/train_results_2A/"
     elif name_dataset == "phantomEAST":
         train_path = "../data_Phantom/phantomdata/EAST_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/EAST_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/EAST_test_database_1_100_1000.h5"
-        out_root_path = "../data/onion_train_data/train_results_EAST/"
+        out_root_path = "../../data/onion_train_data/train_results_EAST/"
     elif name_dataset == "phantom2A-0.15":
         train_path = "../data_Phantom/phantomdata/HL-2A-0.15_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/HL-2A-0.15_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/HL-2A-0.15_test_database_1_100_1000.h5"
-        out_root_path = "../data/onion_train_data/train_results_2A-0.15/"
+        out_root_path = "../../data/onion_train_data/train_results_2A-0.15/"
     elif name_dataset == "phantomEAST-0.2":
         train_path = "../data_Phantom/phantomdata/EAST-0.2_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/EAST-0.2_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/EAST-0.2_test_database_1_100_1000.h5"
-        out_root_path = "../data/onion_train_data/train_results_EAST-0.2/"
+        out_root_path = "../../data/onion_train_data/train_results_EAST-0.2/"
     elif name_dataset == "EXP2A":
         train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
         val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
         test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
-        out_root_path = "../data/onion_train_data/train_results_2A/"
+        out_root_path = "../../data/onion_train_data/train_results_2A/"
     elif name_dataset == "EXPEAST":
         train_path = "../data_East/data/EAST_train_database.h5"
         val_path = "../data_East/data/EAST_valid_database.h5"
         test_path = "../data_East/data/EAST_test_database.h5"
-        out_root_path = "../data/onion_train_data/train_results_EAST/"
+        out_root_path = "../../data/onion_train_data/train_results_EAST/"
     else:
         print("dataset is not included")
 
@@ -312,6 +350,7 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
     config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=-1, epochs=50,
                     batch_size=256, lambda_l2=0.0001, p=2, lr=lr, device_num=device_num, alfa=alfa)
     config.scheduler = scheduler
+
     if config.scheduler:
         config.out_dir += '_adam_scheduler'
     else:
@@ -319,7 +358,8 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
 
     os.makedirs(f'{config.out_dir}/train', exist_ok=True)
     json.dump(config.as_dict(), open(f"{config.out_dir}/config.json", 'w'), indent=4)
-    
+
+
     if predict_visualize:
         print("start predict")
         predict(config)
@@ -337,7 +377,8 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
         with open(f"{config.out_dir}/train/best_epoch.txt", 'a') as f:
             f.write(f"training time:{training_time} min \n")
         print(f"Total training time: {training_time:.2f} mins")
-        predict(config)
+        
+        # predict(config)
         # visualize(config.out_dir)
 
 
@@ -346,15 +387,15 @@ if __name__ == '__main__':
     数据集路径和超参数设置均在tmp_runner函数中的config中设置
     '''
     parser = argparse.ArgumentParser(description='Train or predict with specified parameters.')
-    parser.add_argument('--dataset', type=str, help='dataset name', default="phantom2A")
-    parser.add_argument('--model', help='model name', default = "Onion_input")
+    parser.add_argument('--dataset', type=str, help='dataset name', default="phantomEAST-0.2")
+    parser.add_argument('--model', help='model name', default = "ResOnion_PI_uptime")
     parser.add_argument('--addloss', action='store_true', help='Add loss to training', default=False)
     parser.add_argument('--pv', action='store_true', help='Visualize predictions', default=False)
     parser.add_argument('--randomnumseed', type=int, help='Use random seed for reproducibility', default=42)
     parser.add_argument('--lr', type=float, help='learning rate', default=0.0001)
     parser.add_argument('--alfa', type=float, help='co_loss2', default=0.618)
-    parser.add_argument('--device_num', type=str, help='device', default="0")
-    parser.add_argument('--scheduler', action='store_true', help='Whether introduce scheduler', default=False)
+    parser.add_argument('--device_num', type=str, help='device', default="4")
+    parser.add_argument('--scheduler', action='store_true', help='Whether introduce scheduler', default=True)
     args = parser.parse_args()
     args.model = globals()[args.model]
 
@@ -380,7 +421,7 @@ if __name__ == '__main__':
         ResOnion_input_softplus
         ResOnion_PI_uptime
         ResOnion_PI_uptime_softplus
-    python common_train.py --dataset EXP2A --model Onion_PI_uptime
+    torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model ResOnion_PI_uptime --randomnumseed 42 --device_num 4 --scheduler
     
       nohup ./phantom2A_train.sh > ../../onion_data/model_train_0.0001/phantom2A_training-50-all.log 2>&1 & 2878317
       nohup ./phantomEAST_train.sh > ../../onion_data/model_train_f/phantomEAST_training-50-1.log 2>&1 & 3921141
