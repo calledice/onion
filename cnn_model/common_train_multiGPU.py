@@ -197,6 +197,7 @@ def train(model, train_loader, val_loader, config: Config,train_sampler,val_samp
             if val_loss < min_val_loss:
                 min_val_loss = val_loss
                 torch.save(model, f"{out_dir}/train/model_best.pth")
+                # torch.save(model.module.state_dict(), f'{out_dir}/train/model_best.pth')
                 with open(f"{out_dir}/train/best_epoch.txt", 'w') as f:
                     f.write(str(epoch))
                 early_stop = config.early_stop

@@ -309,9 +309,11 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
     seed_everything(randomnumseed)
 
     print(out_dir)
+
     config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=-1, epochs=50,
-                    batch_size=256, lambda_l2=0.0001, p=2, lr=lr, device_num=device_num, alfa=alfa)
-    config.scheduler = scheduler
+                    batch_size=256, lambda_l2=0.0001, p=2, lr=lr, device_num=device_num, alfa=alfa,scheduler=scheduler,Module=Module)
+    # config.scheduler = scheduler
+
     if config.scheduler:
         config.out_dir += '_adam_scheduler'
     else:

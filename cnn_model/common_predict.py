@@ -31,8 +31,23 @@ def predict(config: Config):
     lambda_l2 = config.lambda_l2
     p = config.p
     device = config.device
-    os.environ['CUDA_VISIBLE_DEVICES'] = config.device_num
-    model = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cuda'))
+    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+
+    model = globals()[config.Module]
+    config.device_num = "0"
+    # 加载模型
+    # 加载状态字典
+    state_dict = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cuda'))
+
+    # 加载状态字典到模型
+    model.load_state_dict(state_dict)
+    # model = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cuda'))
+
+    # # 如果模型是 DDP 包装的，去除 DDP 包装
+    # if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+    #     model = model.module
+
+
     model.eval()
     losses = []
     preds = []
@@ -98,7 +113,7 @@ def predict(config: Config):
 
 if __name__ == "__main__":
     print("start")
-    case_path = "../../onion_train_data/train_results_2A/"
+    case_path = "../../onion_train_data/train_results_EAST/train_results_EAST-0.2/"
     # case_path = "../../onion_train_data/train_results_2A/"
     ###########################  遍历文件夹时用
     # # 创建Path对象
@@ -107,7 +122,7 @@ if __name__ == "__main__":
     # folders = [f.name for f in path.iterdir() if f.is_dir()]
     # # folders = folders[17:]
     # for file_name in folders:
-    #     config_path = case_path+file_name+"/test_new/config.json"
+    #     config_path = case_path+file_name+"/config.json"
     #     # 使用 json 模块加载 JSON 文件
     #     with open(config_path, 'r') as file:
     #         info = json.load(file)
@@ -116,8 +131,8 @@ if __name__ == "__main__":
     #     config.out_dir = case_path + file_name
     #     predict(config)
         ############################# 单个时用
-    file_name = "EXP2A_42_ResOnion_input_adam"
-    config_path = case_path+file_name+"/test_new/config.json"
+    file_name = "phantomEAST-0.2_42_Onion_PI_uptime_adam_scheduler"
+    config_path = case_path+file_name+"/config.json"
     # 使用 json 模块加载 JSON 文件
     with open(config_path, 'r') as file:
         info = json.load(file)
