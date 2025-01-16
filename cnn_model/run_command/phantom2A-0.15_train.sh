@@ -16,10 +16,10 @@ COMMANDS=(
    "python common_train.py --dataset phantom2A-0.15 --model ResOnion_input --randomnumseed 42 --device_num 4 --scheduler"
    "python common_train.py --dataset phantom2A-0.15 --model ResOnion_input_softplus --randomnumseed 42 --device_num 4 --scheduler"
    # "python common_train.py --dataset phantom2A-0.15 --model ResOnion_PI_uptime --randomnumseed 42  --device_num 0 --scheduler"
-#    "python common_train.py --dataset phantom2A-0.15 --model Onion_PI_uptime_softplus --randomnumseed 42 --device_num 4 --scheduler"
-#    "python common_train.py --dataset phantom2A-0.15 --model Onion_PI_uptime_softplus --addloss --randomnumseed 42 --device_num 4 --scheduler"
-#    "python common_train.py --dataset phantom2A-0.15 --model ResOnion_PI_uptime_softplus  --randomnumseed 42 --device_num 4 --scheduler"
-#    "python common_train.py --dataset phantom2A-0.15 --model ResOnion_PI_uptime_softplus --addloss --randomnumseed 42 --device_num 4 --scheduler"
+   "python common_train.py --dataset phantom2A-0.15 --model Onion_PI_uptime_softplus --randomnumseed 42 --device_num 4 --scheduler"
+   "python common_train.py --dataset phantom2A-0.15 --model Onion_PI_uptime_softplus --addloss --randomnumseed 42 --device_num 4 --scheduler"
+   "python common_train.py --dataset phantom2A-0.15 --model ResOnion_PI_uptime_softplus  --randomnumseed 42 --device_num 4 --scheduler"
+   "python common_train.py --dataset phantom2A-0.15 --model ResOnion_PI_uptime_softplus --addloss --randomnumseed 42 --device_num 4 --scheduler"
 )
 
 # 遍历命令数组并依次执行每个命令
