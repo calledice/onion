@@ -44,21 +44,23 @@ class Config:
         self.Module = Module
 
     def as_dict(self):
-        return {
-            "train_path": self.train_path,
-            "val_path": self.val_path,
-            "test_path": self.test_path,
-            "out_dir": self.out_dir,
-            "with_PI": self.with_PI,
-            "addloss": self.addloss,
-            "epochs": self.epochs,
-            "batch_size": self.batch_size,
-            "lambda_l2": self.lambda_l2,
-            "p": self.p,
-            "lr": self.lr,
-            "device_num": self.device_num,
-            "alfa": self.alfa
-        }
+        data = self.__dict__.copy()  # 动态捕获所有属性
+        return data
+        # return {
+        #     "train_path": self.train_path,
+        #     "val_path": self.val_path,
+        #     "test_path": self.test_path,
+        #     "out_dir": self.out_dir,
+        #     "with_PI": self.with_PI,
+        #     "addloss": self.addloss,
+        #     "epochs": self.epochs,
+        #     "batch_size": self.batch_size,
+        #     "lambda_l2": self.lambda_l2,
+        #     "p": self.p,
+        #     "lr": self.lr,
+        #     "device_num": self.device_num,
+        #     "alfa": self.alfa
+        # }
 
 class ConvEmbModel(nn.Module):
     """

@@ -9,6 +9,7 @@ import torch.nn as nn
 import numpy as np
 from post_process import visualize_up
 from pathlib import Path
+import pickle
 
 # 获取当前源程序所在的目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -16,7 +17,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 # 切换工作目录到源程序所在的目录
 os.chdir(script_dir)
 
-def predict(config: Config):
+def predict(config: Config,train_on_one):
     dataset = OnionDataset(config.test_path)
 
     # 临时加的，为了不做padding
@@ -32,21 +33,13 @@ def predict(config: Config):
     p = config.p
     device = config.device
     os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-
-    model = globals()[config.Module]
-    config.device_num = "0"
-    # 加载模型
-    # 加载状态字典
-    state_dict = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cuda'))
-
-    # 加载状态字典到模型
-    model.load_state_dict(state_dict)
-    # model = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cuda'))
-
-    # # 如果模型是 DDP 包装的，去除 DDP 包装
-    # if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-    #     model = model.module
-
+    if train_on_one:
+        model = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cuda'))
+    else:
+        model_class = globals()[config.Module]
+        model = model_class(n=config.max_n, max_r=config.max_r, max_z=config.max_z)
+        state_dict = torch.load(f'{out_dir}/train/model_best_srate_dict.pth', map_location=torch.device('cuda'))
+        model.load_state_dict(state_dict)
 
     model.eval()
     losses = []
@@ -113,30 +106,57 @@ def predict(config: Config):
 
 if __name__ == "__main__":
     print("start")
-    case_path = "../../onion_train_data/train_results_EAST/train_results_EAST-0.2/"
+    train_on_one = False
+    case_path = "/home/cc/data/onion_train_data/train_results_EAST-0.2/"
+    # case_path ="/home/cc/data/onion_train_data/train_results_2A-0.15/"
+    # /home/cc/data/onion_train_data/train_results_EAST-0.2
     # case_path = "../../onion_train_data/train_results_2A/"
     ###########################  遍历文件夹时用
-    # # 创建Path对象
-    # path = Path(case_path)
+    # 创建Path对象
+    path = Path(case_path)
     # # 获取该层级的所有文件夹，不会递归到子文件夹中
     # folders = [f.name for f in path.iterdir() if f.is_dir()]
     # # folders = folders[17:]
     # for file_name in folders:
-    #     config_path = case_path+file_name+"/config.json"
-    #     # 使用 json 模块加载 JSON 文件
-    #     with open(config_path, 'r') as file:
-    #         info = json.load(file)
-    #     # info_list = list(info.values())[0]
-    #     config = Config(**info,randomnumseed=42)
+    #     if traingpu:
+    #         config_path = case_path+file_name+"/config.json"
+    #         # 使用 json 模块加载 JSON 文件
+    #         with open(config_path, 'r') as file:
+    #             info = json.load(file)
+    #     else:
+    #         config_path = case_path+file_name+"/config.pkl"
+    #         with open(config_path, 'rb') as f:
+    #             info = pickle.load(f)
+
+    #         # 如果 info 是 Config 对象，直接修改属性
+    #     if isinstance(info, Config):
+    #         info.randomnumseed = 42
+    #         config = info
+    #     else:
+    #         # 如果 info 是字典，创建新的 Config 实例
+    #         config = Config(**info, randomnumseed=42)
+            
     #     config.out_dir = case_path + file_name
     #     predict(config)
         ############################# 单个时用
-    file_name = "phantomEAST-0.2_42_Onion_PI_uptime_adam_scheduler"
-    config_path = case_path+file_name+"/config.json"
-    # 使用 json 模块加载 JSON 文件
-    with open(config_path, 'r') as file:
-        info = json.load(file)
-    # info_list = list(info.values())[0]
-    config = Config(**info,randomnumseed=42)
+    file_name = "phantomEAST-0.2_42_ResOnion_PI_uptime_adam_scheduler"
+    if train_on_one:
+        config_path = case_path+file_name+"/config.json"
+        # 使用 json 模块加载 JSON 文件
+        with open(config_path, 'r') as file:
+            info = json.load(file)
+    else:
+        config_path = case_path+file_name+"/config.pkl"
+        with open(config_path, 'rb') as f:
+            info = pickle.load(f)
+
+    # 如果 info 是 Config 对象，直接修改属性
+    if isinstance(info, Config):
+        info.randomnumseed = 42
+        config = info
+    else:
+        # 如果 info 是字典，创建新的 Config 实例
+        config = Config(**info, randomnumseed=42)
+
     config.out_dir = case_path + file_name
-    predict(config)
+    predict(config,train_on_one)

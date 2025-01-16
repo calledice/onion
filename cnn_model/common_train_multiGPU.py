@@ -21,7 +21,9 @@ from torchinfo import summary
 import torch.distributed as dist
 from torch.utils.data import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
+import pickle
 torch.autograd.set_detect_anomaly(True)
+
 
 # 获取当前源程序所在的目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -196,8 +198,8 @@ def train(model, train_loader, val_loader, config: Config,train_sampler,val_samp
 
             if val_loss < min_val_loss:
                 min_val_loss = val_loss
-                torch.save(model, f"{out_dir}/train/model_best.pth")
-                # torch.save(model.module.state_dict(), f'{out_dir}/train/model_best.pth')
+                # torch.save(model, f"{out_dir}/train/model_best.pth")
+                torch.save(model.module.state_dict(), f'{out_dir}/train/model_best_srate_dict.pth')
                 with open(f"{out_dir}/train/best_epoch.txt", 'w') as f:
                     f.write(str(epoch))
                 early_stop = config.early_stop
@@ -263,7 +265,7 @@ def run(Module, config: Config):
     # 创建并封装模型
     onion = Module(n, r, z).to(rank)
     onion = torch.nn.SyncBatchNorm.convert_sync_batchnorm(onion)
-    onion = DDP(onion, device_ids=[rank],find_unused_parameters=True)
+    onion = DDP(onion, device_ids=[rank],find_unused_parameters=False,bucket_cap_mb=25)
 
     train_losses, val_losses = train(onion, train_loader, val_loader, config,train_sampler,val_sampler,rank)
     # 只有主进程绘制损失图
@@ -283,31 +285,37 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
         val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
         out_root_path = "../../data/onion_train_data/train_results_2A/"
+        n,maxr,maxz = 40,32,36
     elif name_dataset == "phantomEAST":
         train_path = "../data_Phantom/phantomdata/EAST_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/EAST_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/EAST_test_database_1_100_1000.h5"
         out_root_path = "../../data/onion_train_data/train_results_EAST/"
+        n,maxr,maxz = 92,50,75
     elif name_dataset == "phantom2A-0.15":
         train_path = "../data_Phantom/phantomdata/HL-2A-0.15_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/HL-2A-0.15_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/HL-2A-0.15_test_database_1_100_1000.h5"
         out_root_path = "../../data/onion_train_data/train_results_2A-0.15/"
+        n,maxr,maxz = 40,32,36
     elif name_dataset == "phantomEAST-0.2":
         train_path = "../data_Phantom/phantomdata/EAST-0.2_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/EAST-0.2_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/EAST-0.2_test_database_1_100_1000.h5"
         out_root_path = "../../data/onion_train_data/train_results_EAST-0.2/"
+        n,maxr,maxz = 92,50,75
     elif name_dataset == "EXP2A":
         train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
         val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
         test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
         out_root_path = "../../data/onion_train_data/train_results_2A/"
+        n,maxr,maxz = 40,32,36
     elif name_dataset == "EXPEAST":
         train_path = "../data_East/data/EAST_train_database.h5"
         val_path = "../data_East/data/EAST_valid_database.h5"
         test_path = "../data_East/data/EAST_test_database.h5"
         out_root_path = "../../data/onion_train_data/train_results_EAST/"
+        n,maxr,maxz = 92,50,75
     else:
         print("dataset is not included")
 
@@ -348,9 +356,10 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
     seed_everything(randomnumseed)
 
     print(out_dir)
+
     config = Config(train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, early_stop=-1, epochs=50,
-                    batch_size=256, lambda_l2=0.0001, p=2, lr=lr, device_num=device_num, alfa=alfa)
-    config.scheduler = scheduler
+                    batch_size=256, lambda_l2=0.0001, p=2, lr=lr, device_num=device_num, alfa=alfa,scheduler=scheduler,Module=args.model_name,max_n=n,max_r=maxr,max_z=maxz )
+    # config.scheduler = scheduler
 
     if config.scheduler:
         config.out_dir += '_adam_scheduler'
@@ -358,7 +367,11 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
         config.out_dir += '_adam'
 
     os.makedirs(f'{config.out_dir}/train', exist_ok=True)
-    json.dump(config.as_dict(), open(f"{config.out_dir}/config.json", 'w'), indent=4)
+
+    # json.dump(config.as_dict(), open(f"{config.out_dir}/config.json", 'w'), indent=4)
+    # 保存配置
+    with open(f"{config.out_dir}/config.pkl", 'wb') as f:
+        pickle.dump(config, f)
 
 
     if predict_visualize:
@@ -389,7 +402,7 @@ if __name__ == '__main__':
     '''
     parser = argparse.ArgumentParser(description='Train or predict with specified parameters.')
     parser.add_argument('--dataset', type=str, help='dataset name', default="phantomEAST-0.2")
-    parser.add_argument('--model', help='model name', default = "ResOnion_PI_uptime")
+    parser.add_argument('--model_name', help='model name', default = "ResOnion_PI_uptime")
     parser.add_argument('--addloss', action='store_true', help='Add loss to training', default=False)
     parser.add_argument('--pv', action='store_true', help='Visualize predictions', default=False)
     parser.add_argument('--randomnumseed', type=int, help='Use random seed for reproducibility', default=42)
@@ -398,7 +411,7 @@ if __name__ == '__main__':
     parser.add_argument('--device_num', type=str, help='device', default="4")
     parser.add_argument('--scheduler', action='store_true', help='Whether introduce scheduler', default=True)
     args = parser.parse_args()
-    args.model = globals()[args.model]
+    args.model = globals()[args.model_name]
 
     # 调用 tmp_runner 函数并传入参数
     tmp_runner(dataset=args.dataset,

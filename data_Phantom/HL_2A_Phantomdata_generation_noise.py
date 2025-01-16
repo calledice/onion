@@ -223,7 +223,7 @@ def plot_data(data):
     plt.savefig("."+"/see_label_pcolor")
     plt.show()
 
-def add_gaussian_noise(data, percentage_std=0.02):
+def add_gaussian_noise(data, percentage_std=0.02, noise_on="input"):
     """
     给定的数据添加指定百分比的标准差的高斯噪声。
     
@@ -242,13 +242,86 @@ def add_gaussian_noise(data, percentage_std=0.02):
     noisy_data = data + noise
     
     return noisy_data
+def makeh5(input_list,label_list,c_matrix_list,region_list,gt_list):
+    # 合并输入和标签
+    combined = list(zip(input_list, label_list,gt_list))
+    # 设置随机种子以保证实验的可重复性
+    np.random.seed(42)
+    # 打乱合并后的列表
+    np.random.shuffle(combined)
+    # 解压回原来的列表
+    shuffled_inputs, shuffled_labels,shuffled_gts = zip(*combined)
+    # 转换成numpy数组以便更容易处理
+    shuffled_inputs = list(shuffled_inputs)
+    shuffled_labels = list(shuffled_labels)
+    shuffled_gts=list(shuffled_gts)
+    # 数据集大小
+    data_size = len(shuffled_inputs)
+    # 划分比例
+    train_split = 0.7
+    val_split = 0.2
+    test_split = 0.1
+    # 计算分割索引
+    train_end = int(train_split * data_size)
+    val_end = int((train_split + val_split) * data_size)
+    # 分割数据集
+    train_inputs, train_labels,train_gts = shuffled_inputs[:train_end], shuffled_labels[:train_end], shuffled_gts[:train_end]
+    val_inputs, val_labels, val_gts = shuffled_inputs[train_end:val_end], shuffled_labels[train_end:val_end],shuffled_gts[train_end:val_end]
+    test_inputs, test_labels, test_gts = shuffled_inputs[val_end:], shuffled_labels[val_end:],shuffled_gts[val_end:]
+    with open('HL-2A_Phan_info.txt','w') as file:
+        file.write(f'train_num: {len(train_inputs)}\n')
+        file.write(f'valid_num: {len(val_inputs)}\n')
+        file.write(f'test_num: {len(test_inputs)}\n')
+    
+    with h5py.File(f"./phantomdata/{name}_{mode[0]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data0:
+        data_input_group = data0.create_group("x")
+        data_label_group = data0.create_group("y")
+        data_posi_group = data0.create_group("posi")
+        data_region_group = data0.create_group("regi")
+        data_gt_group = data0.create_group("gt")
+        for i in range(len(c_matrix_list)):
+            data_posi_group.create_dataset(str(i), data=c_matrix_list[i])
+            data_region_group.create_dataset(str(i), data=region_list[i])
+        for j in range(len(train_inputs)):
+            data_input_group.create_dataset(str(j), data=train_inputs[j])
+            data_label_group.create_dataset(str(j), data=train_labels[j])
+            data_gt_group.create_dataset(str(j), data=train_gts[j])
+    with h5py.File(f"./phantomdata/{name}_{mode[1]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data1:
+        data_input_group = data1.create_group("x")
+        data_label_group = data1.create_group("y")
+        data_posi_group = data1.create_group("posi")
+        data_region_group = data1.create_group("regi")
+        data_gt_group = data1.create_group("gt")
+        for i in range(len(c_matrix_list)):
+            data_posi_group.create_dataset(str(i), data=c_matrix_list[i])
+            data_region_group.create_dataset(str(i), data=region_list[i])
+        for j in range(len(val_inputs)):
+            data_input_group.create_dataset(str(j), data=val_inputs[j])
+            data_label_group.create_dataset(str(j), data=val_labels[j])
+            data_gt_group.create_dataset(str(j), data=val_gts[j])
+    with h5py.File(f"./phantomdata/{name}_{mode[2]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data2:
+        data_input_group = data2.create_group("x")
+        data_label_group = data2.create_group("y")
+        data_posi_group = data2.create_group("posi")
+        data_region_group = data2.create_group("regi")
+        data_gt_group = data2.create_group("gt")
+        for i in range(len(c_matrix_list)):
+            data_posi_group.create_dataset(str(i), data=c_matrix_list[i])
+            data_region_group.create_dataset(str(i), data=region_list[i])
+        for j in range(len(test_inputs)):
+            data_input_group.create_dataset(str(j), data=test_inputs[j])
+            data_label_group.create_dataset(str(j), data=test_labels[j])
+            data_gt_group.create_dataset(str(j), data=test_gts[j])
+    print("finish")
 
-def generate_dataset(name,mode,noise,num_rz_shape,num_region_maxvalue,num_value,numgridr,numgridz,c_matrix):
+def generate_dataset(name,mode,noise,noise_on,num_rz_shape,num_region_maxvalue,num_value,numgridr,numgridz,c_matrix):
     os.makedirs("./phantomdata", exist_ok=True)
     c_matrix_list = []
     region_list = []
     input_list = []
     label_list = []
+    label_noise_list = []
+    input_nosie_list = []
     l = 0
     for i in range(num_rz_shape):
         print(f'start {i} case:')
@@ -282,90 +355,42 @@ def generate_dataset(name,mode,noise,num_rz_shape,num_region_maxvalue,num_value,
                 # plt.colorbar()
                 # plt.show()
                 input = input_generate(c_matrix, np.matrix(label).T)
-                input = add_gaussian_noise(input,noise)
-                new_columns = np.array([[l, numgridr, numgridz]], dtype=np.float64)
-                # 将id和网格数量拼接，用于后续可视化
-                input_contact = np.column_stack((np.array(input.T), new_columns))
-                input_list.append(input_contact[0])#(n,)
-                label_list.append(label)#(r*z,)
+                if noise_on == "input":
+                    input_noise = add_gaussian_noise(input,noise,noise_on)
+                    new_columns = np.array([[l, numgridr, numgridz]], dtype=np.float64)
+                    # 将id和网格数量拼接，用于后续可视化
+                    input_contact = np.column_stack((np.array(input_noise.T), new_columns))
+                    input_nosie_list.append(input_contact[0])#(n,)
+                    label_list.append(label)#(r*z,)
+                    input_list.append(input.T)
+                else:
+                    label_noise = add_gaussian_noise(label,noise,noise_on)
+                    new_columns = np.array([[l, numgridr, numgridz]], dtype=np.float64)
+                    # 将id和网格数量拼接，用于后续可视化
+                    input_contact = np.column_stack((np.array(input.T), new_columns))
+                    input_list.append(input_contact[0])#(n,)
+                    label_list.append(label)#(r*z,)
+                    label_noise_list.append(label_noise)
             l += 1
     assert len(input_list) == len(label_list), "输入列表和标签列表长度必须相同"
-
-    # 合并输入和标签
-    combined = list(zip(input_list, label_list))
-    # 设置随机种子以保证实验的可重复性
-    np.random.seed(42)
-    # 打乱合并后的列表
-    np.random.shuffle(combined)
-    # 解压回原来的列表
-    shuffled_inputs, shuffled_labels = zip(*combined)
-    # 转换成numpy数组以便更容易处理
-    shuffled_inputs = list(shuffled_inputs)
-    shuffled_labels = list(shuffled_labels)
-    # 数据集大小
-    data_size = len(shuffled_inputs)
-    # 划分比例
-    train_split = 0.7
-    val_split = 0.2
-    test_split = 0.1
-    # 计算分割索引
-    train_end = int(train_split * data_size)
-    val_end = int((train_split + val_split) * data_size)
-    # 分割数据集
-    train_inputs, train_labels = shuffled_inputs[:train_end], shuffled_labels[:train_end]
-    val_inputs, val_labels = shuffled_inputs[train_end:val_end], shuffled_labels[train_end:val_end]
-    test_inputs, test_labels = shuffled_inputs[val_end:], shuffled_labels[val_end:]
-    with open('HL-2A_Phan_info.txt','w') as file:
-        file.write(f'train_num: {len(train_inputs)}\n')
-        file.write(f'valid_num: {len(val_inputs)}\n')
-        file.write(f'test_num: {len(test_inputs)}\n')
+    if noise_on == "input":
+        makeh5(input_noise,label_list,c_matrix_list,region_list,input_list)
+    else:
+        makeh5(input_list,label_noise_list,c_matrix_list,region_list,label_list)
     
-    with h5py.File(f"./phantomdata/{name}_{mode[0]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data0:
-        data_input_group = data0.create_group("x")
-        data_label_group = data0.create_group("y")
-        data_posi_group = data0.create_group("posi")
-        data_region_group = data0.create_group("regi")
-        for i in range(len(c_matrix_list)):
-            data_posi_group.create_dataset(str(i), data=c_matrix_list[i])
-            data_region_group.create_dataset(str(i), data=region_list[i])
-        for j in range(len(train_inputs)):
-            data_input_group.create_dataset(str(j), data=train_inputs[j])
-            data_label_group.create_dataset(str(j), data=train_labels[j])
-    with h5py.File(f"./phantomdata/{name}_{mode[1]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data1:
-        data_input_group = data1.create_group("x")
-        data_label_group = data1.create_group("y")
-        data_posi_group = data1.create_group("posi")
-        data_region_group = data1.create_group("regi")
-        for i in range(len(c_matrix_list)):
-            data_posi_group.create_dataset(str(i), data=c_matrix_list[i])
-            data_region_group.create_dataset(str(i), data=region_list[i])
-        for j in range(len(val_inputs)):
-            data_input_group.create_dataset(str(j), data=val_inputs[j])
-            data_label_group.create_dataset(str(j), data=val_labels[j])
-    with h5py.File(f"./phantomdata/{name}_{mode[2]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5", 'a') as data2:
-        data_input_group = data2.create_group("x")
-        data_label_group = data2.create_group("y")
-        data_posi_group = data2.create_group("posi")
-        data_region_group = data2.create_group("regi")
-        for i in range(len(c_matrix_list)):
-            data_posi_group.create_dataset(str(i), data=c_matrix_list[i])
-            data_region_group.create_dataset(str(i), data=region_list[i])
-        for j in range(len(test_inputs)):
-            data_input_group.create_dataset(str(j), data=test_inputs[j])
-            data_label_group.create_dataset(str(j), data=test_labels[j])
-    print("finish")
 ##################################################################
 
 
 if __name__ == '__main__':
     # 定义列名称
     device = "HL-2A"
-    noise = 0.15
-    name = device + f"-{noise}"
+    noise = 0.25
+    noise_on = "label"
+    name = device + f"-{noise_on}-{noise}"
     mode = ['train','valid','test']
     num_rz_shape = 1
-    num_region_maxvalue = 100
-    num_value = 1000
+    num_region_maxvalue = 10
+    num_value = 100
     c_matrix = np.matrix(np.loadtxt('../data_HL_2A/0_cMatrix.txt')/1000)
     numgridr = 32
     numgridz = 36
@@ -380,9 +405,7 @@ if __name__ == '__main__':
     # plt.colorbar()
     # plt.show()
 
-    #只能实现给input加noise，还不完善
-
-    generate_dataset(name,mode,noise,num_rz_shape,num_region_maxvalue,num_value,numgridr,numgridz,c_matrix)
+    generate_dataset(name,mode,noise,noise_on,num_rz_shape,num_region_maxvalue,num_value,numgridr,numgridz,c_matrix)
 
     file_path = "./phantomdata/"
     dataset_name = f"{name}_{mode[1]}_database_{num_rz_shape}_{num_region_maxvalue}_{num_value}.h5"

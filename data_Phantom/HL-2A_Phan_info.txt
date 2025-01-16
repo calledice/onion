@@ -1,3 +1,3 @@
-train_num: 70000
-valid_num: 19999
-test_num: 10001
+train_num: 700
+valid_num: 199
+test_num: 101
