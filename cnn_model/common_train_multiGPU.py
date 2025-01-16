@@ -181,7 +181,7 @@ def train(model, train_loader, val_loader, config: Config,train_sampler,val_samp
                     loss = beta * loss_1 + alpha * loss_2 + lambda_l2 * l2_reg
                 else:
                     loss = loss_fn(pred, label)
-                reduced_loss = torch.tensor(loss).to(rank)
+                reduced_loss = loss.clone().detach().to(rank)
                 dist.reduce(reduced_loss, dst=0)
                 if rank == 0:
                     reduced_loss /= dist.get_world_size()
@@ -262,7 +262,7 @@ def run(Module, config: Config):
     # 创建并封装模型
     onion = Module(n, r, z).to(rank)
     onion = torch.nn.SyncBatchNorm.convert_sync_batchnorm(onion)
-    onion = DDP(onion, device_ids=[rank])
+    onion = DDP(onion, device_ids=[rank],find_unused_parameters=True)
 
     train_losses, val_losses = train(onion, train_loader, val_loader, config,train_sampler,val_sampler,rank)
     # 只有主进程绘制损失图

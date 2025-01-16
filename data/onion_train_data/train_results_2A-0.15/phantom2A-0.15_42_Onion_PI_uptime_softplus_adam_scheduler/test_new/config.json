@@ -1,0 +1,15 @@
+{
+    "train_path": "../data_Phantom/phantomdata/HL-2A-0.15_train_database_1_100_1000.h5",
+    "val_path": "../data_Phantom/phantomdata/HL-2A-0.15_valid_database_1_100_1000.h5",
+    "test_path": "../data_Phantom/phantomdata/HL-2A-0.15_test_database_1_100_1000.h5",
+    "out_dir": "../data/onion_train_data/train_results_2A-0.15/phantom2A-0.15_42_Onion_PI_uptime_softplus_adam_scheduler",
+    "with_PI": true,
+    "addloss": false,
+    "epochs": 50,
+    "batch_size": 256,
+    "lambda_l2": 0.0001,
+    "p": 2,
+    "lr": 0.0001,
+    "device_num": "4",
+    "alfa": 0.618
+}

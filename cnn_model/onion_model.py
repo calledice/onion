@@ -1104,9 +1104,9 @@ class ResOnion_input(nn.Module):
         self.res4 = nn.ModuleList([ResidualBasic(8 * channels) for _ in range(1)])
         self.admaxpool = nn.AdaptiveMaxPool2d((3,3))
 
-        final_r = math.ceil(math.ceil(math.ceil(max_r / 2) / 2) / 2)
-        final_z = math.ceil(math.ceil(math.ceil(max_z / 2) / 2) / 2)
-        fc_in_dim = 8 * channels * final_r * final_z
+        # final_r = math.ceil(math.ceil(math.ceil(max_r / 2) / 2) / 2)
+        # final_z = math.ceil(math.ceil(math.ceil(max_z / 2) / 2) / 2)
+        fc_in_dim = 8 * channels * 3 * 3
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
@@ -1151,9 +1151,9 @@ class ResOnion_input_softplus(nn.Module):
         self.res4 = nn.ModuleList([ResidualBasic(8 * channels) for _ in range(1)])
         self.admaxpool = nn.AdaptiveMaxPool2d((3,3))
 
-        final_r = math.ceil(math.ceil(math.ceil(max_r / 2) / 2) / 2)
-        final_z = math.ceil(math.ceil(math.ceil(max_z / 2) / 2) / 2)
-        fc_in_dim = 8 * channels * final_r * final_z
+        # final_r = math.ceil(math.ceil(math.ceil(max_r / 2) / 2) / 2)
+        # final_z = math.ceil(math.ceil(math.ceil(max_z / 2) / 2) / 2)
+        fc_in_dim = 8 * channels * 3 * 3
         fc_out_dim = max_r * max_z
 
         self.fc = nn.Sequential(
