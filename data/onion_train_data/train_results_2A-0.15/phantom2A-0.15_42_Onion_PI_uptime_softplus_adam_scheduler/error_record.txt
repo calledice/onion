@@ -1,3 +1,0 @@
-ave_error_all = 0.01018975150364352
-ave_label2result_all = 0.05280029703328006
-ave_pre2result_error_all = 0.05214981328687355

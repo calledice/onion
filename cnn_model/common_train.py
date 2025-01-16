@@ -243,32 +243,32 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
         train_path = "../data_Phantom/phantomdata/HL-2A_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/HL-2A_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/HL-2A_test_database_1_100_1000.h5"
-        out_root_path = "../data/onion_train_data/train_results_2A/"
+        out_root_path = "../../data/onion_train_data/train_results_2A/"
     elif name_dataset == "phantomEAST":
         train_path = "../data_Phantom/phantomdata/EAST_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/EAST_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/EAST_test_database_1_100_1000.h5"
-        out_root_path = "../data/onion_train_data/train_results_EAST/"
+        out_root_path = "../../data/onion_train_data/train_results_EAST/"
     elif name_dataset == "phantom2A-0.15":
         train_path = "../data_Phantom/phantomdata/HL-2A-0.15_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/HL-2A-0.15_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/HL-2A-0.15_test_database_1_100_1000.h5"
-        out_root_path = "../data/onion_train_data/train_results_2A-0.15/"
+        out_root_path = "../../data/onion_train_data/train_results_2A-0.15/"
     elif name_dataset == "phantomEAST-0.2":
         train_path = "../data_Phantom/phantomdata/EAST-0.2_train_database_1_100_1000.h5"
         val_path = "../data_Phantom/phantomdata/EAST-0.2_valid_database_1_100_1000.h5"
         test_path = "../data_Phantom/phantomdata/EAST-0.2_test_database_1_100_1000.h5"
-        out_root_path = "../data/onion_train_data/train_results_EAST-0.2/"
+        out_root_path = "../../data/onion_train_data/train_results_EAST-0.2/"
     elif name_dataset == "EXP2A":
         train_path = "../data_HL_2A/data/HL_2A_train_database.h5"
         val_path = "../data_HL_2A/data/HL_2A_val_database.h5"
         test_path = "../data_HL_2A/data/HL_2A_test_database.h5"
-        out_root_path = "../data/onion_train_data/train_results_2A/"
+        out_root_path = "../../data/onion_train_data/train_results_2A/"
     elif name_dataset == "EXPEAST":
         train_path = "../data_East/data/EAST_train_database.h5"
         val_path = "../data_East/data/EAST_valid_database.h5"
         test_path = "../data_East/data/EAST_test_database.h5"
-        out_root_path = "../data/onion_train_data/train_results_EAST/"
+        out_root_path = "../../data/onion_train_data/train_results_EAST/"
     else:
         print("dataset is not included")
 
