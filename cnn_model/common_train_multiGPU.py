@@ -265,7 +265,7 @@ def run(Module, config: Config):
     # 创建并封装模型
     onion = Module(n, r, z).to(rank)
     onion = torch.nn.SyncBatchNorm.convert_sync_batchnorm(onion)
-    onion = DDP(onion, device_ids=[rank],find_unused_parameters=False,bucket_cap_mb=25)
+    onion = DDP(onion, device_ids=[rank],find_unused_parameters=True,bucket_cap_mb=25)
 
     train_losses, val_losses = train(onion, train_loader, val_loader, config,train_sampler,val_sampler,rank)
     # 只有主进程绘制损失图

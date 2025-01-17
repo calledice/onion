@@ -22,12 +22,12 @@ COMMANDS=(
 #    "python common_train_multiGPU.py --dataset phantomEAST-0.2 --model ResOnion_input --randomnumseed 42 --device_num 0 --scheduler"
 #    "python common_train_multiGPU.py --dataset phantomEAST-0.2 --model ResOnion_input_softplus --randomnumseed 42 --device_num 0 --scheduler"
 
-   "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name ResOnion_PI_uptime --randomnumseed 42  --device_num 4 --scheduler"
+#    "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name ResOnion_PI_uptime --randomnumseed 42  --device_num 4 --scheduler"
    "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name ResOnion_PI_uptime_softplus  --randomnumseed 42 --device_num 4 --scheduler"
    "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name ResOnion_PI_uptime_softplus --addloss --randomnumseed 42 --device_num 4 --scheduler"
-   "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name Onion_PI_uptime_softplus --randomnumseed 42 --device_num 4 --scheduler"
-   "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name Onion_PI_uptime_softplus --addloss --randomnumseed 42 --device_num 4 --scheduler"
-   "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name Onion_PI_uptime --randomnumseed 42 --device_num 4 --scheduler"
+#    "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name Onion_PI_uptime_softplus --randomnumseed 42 --device_num 4 --scheduler"
+#    "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name Onion_PI_uptime_softplus --addloss --randomnumseed 42 --device_num 4 --scheduler"
+#    "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name Onion_PI_uptime --randomnumseed 42 --device_num 4 --scheduler"
    "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name ResOnion_input --randomnumseed 42 --device_num 4 --scheduler"
    "torchrun --nnodes=1 --nproc_per_node=4 common_train_multiGPU.py --dataset phantomEAST-0.2 --model_name ResOnion_input_softplus --randomnumseed 42 --device_num 4 --scheduler"
    
