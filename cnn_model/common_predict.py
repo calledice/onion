@@ -32,13 +32,13 @@ def predict(config: Config,train_on_one):
     lambda_l2 = config.lambda_l2
     p = config.p
     device = config.device
-    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+    os.environ['CUDA_VISIBLE_DEVICES'] = "6"
     if train_on_one:
-        model = torch.load(f'{out_dir}/train/model_best.pth', map_location=torch.device('cuda'))
+        model = torch.load(f'{out_dir}/train/model_best.pth', map_location=device)
     else:
         model_class = globals()[config.Module]
-        model = model_class(n=config.max_n, max_r=config.max_r, max_z=config.max_z)
-        state_dict = torch.load(f'{out_dir}/train/model_best_srate_dict.pth', map_location=torch.device('cuda'))
+        model = model_class(n=config.max_n, max_r=config.max_r, max_z=config.max_z).to(device)
+        state_dict = torch.load(f'{out_dir}/train/model_best_srate_dict.pth', map_location=device)
         model.load_state_dict(state_dict)
 
     model.eval()
@@ -100,7 +100,7 @@ def predict(config: Config,train_on_one):
     json.dump(results, open(f"{out_dir_file}/results.json", 'w'), indent=2)
     json.dump(label2results, open(f"{out_dir_file}/label2results.json", 'w'), indent=2)
     json.dump(inputs, open(f"{out_dir_file}/inputs.json", 'w'), indent=2)
-    json.dump(config.as_dict(), open(f"{out_dir_file}/config.json", 'w'), indent=4)
+    # json.dump(config.as_dict(), open(f"{out_dir_file}/config.json", 'w'), indent=4)
     print("finish")
 
 
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     #     config.out_dir = case_path + file_name
     #     predict(config)
         ############################# 单个时用
-    file_name = "phantomEAST-0.2_42_ResOnion_PI_uptime_adam_scheduler"
+    file_name = "phantomEAST-0.2_42_ResOnion_PI_uptime_softplus_extraloss0.618_adam_scheduler"
     if train_on_one:
         config_path = case_path+file_name+"/config.json"
         # 使用 json 模块加载 JSON 文件
