@@ -376,7 +376,7 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
 
     if predict_visualize:
         print("start predict")
-        predict(config,train_on_one=False)
+        # predict(config,train_on_one=False)
         # print("start visualize")
         # visualize(out_dir)
     else:
@@ -392,7 +392,7 @@ def tmp_runner(dataset, Module, addloss=True, predict_visualize=False, randomnum
             f.write(f"training time:{training_time} min \n")
         print(f"Total training time: {training_time:.2f} mins")
         
-        predict(config,train_on_one=False)
+        # predict(config,train_on_one=False)
         # visualize(config.out_dir)
 
 

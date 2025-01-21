@@ -137,9 +137,9 @@ if __name__ == "__main__":
     #         config = Config(**info, randomnumseed=42)
             
     #     config.out_dir = case_path + file_name
-    #     predict(config)
+    #     predict(config,train_on_one)
         ############################# 单个时用
-    file_name = "phantomEAST-0.2_42_ResOnion_PI_uptime_softplus_extraloss0.618_adam_scheduler"
+    file_name = "phantomEAST-0.2_42_ResOnion_input_softplus_adam_scheduler"
     if train_on_one:
         config_path = case_path+file_name+"/config.json"
         # 使用 json 模块加载 JSON 文件
