@@ -33,7 +33,7 @@ def plot_data(data,title, save_path,i,max_val):
     else:
         plt.figure()
         # cs = plt.pcolor(data, cmap='jet')
-        cs1 = plt.pcolor(data, cmap='jet',vmin=0.0,vmax=0.035)
+        cs1 = plt.pcolor(data, cmap='jet',vmin=0.0,vmax=max_val)
         cbar = plt.colorbar(cs1)
         cbar.set_label(r'$\epsilon_1$', fontsize=16)
         cbar.ax.tick_params(labelsize=16) 
@@ -50,11 +50,11 @@ def plot_scatter(input,result,label2results,ave_label2result_error,title,save_pa
     plt.figure()
     error = np.array(ave_label2result_error) * abs(np.max(input))
     plt.scatter(range(len(input)), input, color='b', marker='^', s=15, alpha=0.8)
-    # plt.scatter(range(len(result)), result, color='g', marker='o', s=15, alpha=0.5)
+    plt.scatter(range(len(result)), result, color='g', marker='o', s=15, alpha=0.5)
     plt.scatter(range(len(label2results)), label2results, color='r', marker='o', s=15, alpha=0.5)
     # plt.errorbar(range(len(input)), input, yerr=error, fmt='none', ecolor='r', capsize=5, alpha=0.5)
-    plt.legend(labels=['SXR data','Target profile@BP'])
-    # plt.legend(labels=['SXR data',"Reconstuction profile@BP",'Target profile@BP'])
+    # plt.legend(labels=['SXR data','Target profile@BP'])
+    plt.legend(labels=['SXR data',"Reconstuction profile@BP",'Target profile@BP'])
     plt.xlabel('$\t{Channel}$',fontsize=16)
     plt.ylabel('$\t{I}_{SXR}(a.u.)$',fontsize=16)
     plt.title(title,fontsize=16)
@@ -146,22 +146,28 @@ def visualize_up(preds,labels,inputs,results,label2results,case_file):
     title_label = 'Target profile'
     title_error = 'Relative error'
     title_data = "SXR data and BPs"
-    save_path = case_file+"/figures_new_0.035"
+    save_path = case_file+"/figures_new"
     os.makedirs(save_path,exist_ok=True)
     ave_error_list = []
+    ave_error_list_non = [] #无归一化结果
     ave_label2result_error2_list = []# 由label获得的弦积分结果与input的偏差
     ave_pre2result_error2_list = []# 由pre获得的弦积分结果与input的偏差
+    ave_pre2result_error2_list_non = []# 由pre获得的弦积分结果与input的偏差,无归一化结果
     error_record_path = case_file+"/error_record.txt"
     for i in tqdm(range(len(preds)), desc='Visualizing'):
-        relative_error1 = abs(np.matrix(preds[i])-np.matrix(labels[i]))/np.max(np.matrix(labels[i]))
+        relative_error1 = abs(np.matrix(preds[i])-np.matrix(labels[i]))/np.max(np.matrix(labels[i]))# E1
+        relative_error1_non = abs(np.matrix(preds[i])-np.matrix(labels[i]))# E1_non
         ave_label2result_error2 = abs(np.array(label2results[i])-np.array(inputs[i]))/np.max(np.array(inputs[i]))# E2
         ave_pre2result_error2 = abs(np.array(results[i])-np.array(inputs[i]))/np.max(np.array(inputs[i]))# E2
+        ave_pre2result_error2_non = abs(np.array(results[i])-np.array(inputs[i]))# E2_non
         # ave_label2result_error2 = abs(np.array(label2results[i])-np.array(inputs[i]))/np.array(inputs[i])# E2-up
         # ave_pre2result_error2 = abs(np.array(results[i])-np.array(inputs[i]))/np.array(inputs[i])# E2-up
         ave_error_list.append(np.average(relative_error1))
         ave_label2result_error2_list.append(np.average(ave_label2result_error2))
         ave_pre2result_error2_list.append(np.average(ave_pre2result_error2))
-        if i < 10:
+        ave_error_list_non.append(np.average(relative_error1_non))
+        ave_pre2result_error2_list_non.append(np.average(ave_pre2result_error2_non))
+        if i == 109833:
             max_val = max(np.max(preds[i]),np.max(labels[i]))
             plot_data(np.matrix(preds[i]),title_pred,save_path,i,max_val)
             plot_data(np.matrix(labels[i]),title_label,save_path,i,max_val)
@@ -169,18 +175,26 @@ def visualize_up(preds,labels,inputs,results,label2results,case_file):
             plot_data(relative_error1,title_error,save_path,i,max_val_error)
             plot_scatter(inputs[i],results[i],label2results[i],ave_label2result_error2,title_data,save_path,i)
     ave_error_all = np.average(ave_error_list)
+    ave_error_all_non = np.average(ave_error_list_non)
     ave_label2result_error_all = np.average(ave_label2result_error2_list)
+    # print(min(ave_label2result_error2_list))
+    # print(ave_label2result_error2_list.index(min(ave_label2result_error2_list)))
     ave_pre2result_error_all = np.average(ave_pre2result_error2_list)
+    ave_pre2result_error_all_non = np.average(ave_pre2result_error2_list_non)
     # error_all = np.sum(ave_error_list)
 
     with open(error_record_path,"a") as file:
         file.write(f"ave_error_all = {ave_error_all}\n")
         file.write(f"ave_label2result_all = {ave_label2result_error_all}\n")
         file.write(f"ave_pre2result_error_all = {ave_pre2result_error_all}\n")
+        file.write(f"ave_error_all_non = {ave_error_all_non}\n")
+        file.write(f"ave_pre2result_error_all_non = {ave_pre2result_error_all_non}\n")
         # file.write(f"error_all = {error_all}")
     print(f"ave_error_all = {ave_error_all}")
     print(f"ave_label2result_all = {ave_label2result_error_all}")
     print(f"ave_pre2result_error_all = {ave_pre2result_error_all}")
+    print(f"ave_error_all_non = {ave_error_all_non}")
+    print(f"ave_pre2result_error_all_non = {ave_pre2result_error_all_non}")
     # print(f"error_all = {error_all}")
     print("good")
 
@@ -222,7 +236,8 @@ def parse_json_file(json_file):
     return data
 if __name__ == "__main__": #重新画图
     
-    case_path = "../../onion_train_data/train_results_2A/"
+    # case_path = "../../onion_train_data/train_results_2A/"
+    case_path = "../../onion_train_data/train_results_EAST/"
     # # 批量重新画图
     # path = Path(case_path)
     # # 获取该层级的所有文件夹，不会递归到子文件夹中
@@ -243,14 +258,15 @@ if __name__ == "__main__": #重新画图
     #     print("Files loaded successfully.")
     #     visualize_up(preds,labels,inputs,results,label2results,case_file)
     # 单个重新画图
-    name = "EXP2A_42_ResOnion_input__softplus"
+    name = "EXPEAST_42_Onion_input_"
     print(f"start {name}")
+    test_file = "/test_new_all"
     case_file = case_path + name
-    pred_path = case_file+"/test/preds.json"
-    label_path = case_file+"/test/labels.json"
-    input_path = case_file+"/test/inputs.json"
-    result_path = case_file+"/test/results.json"# pre2result
-    label2result_path = case_file+"/test/label2results.json"# label2results
+    pred_path = case_file+test_file+"/preds.json"
+    label_path = case_file+test_file+"/labels.json"
+    input_path = case_file+test_file+"/inputs.json"
+    result_path = case_file+test_file+"/results.json"# pre2result
+    label2result_path = case_file+test_file+"/label2results.json"# label2results
 
     preds = json.load(open(pred_path, 'r'))
     labels = json.load(open(label_path, 'r'))
