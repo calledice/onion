@@ -32,7 +32,7 @@ def predict(config: Config,train_on_one):
     lambda_l2 = config.lambda_l2
     p = config.p
     device = config.device
-    os.environ['CUDA_VISIBLE_DEVICES'] = "6"
+    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
     if train_on_one:
         model = torch.load(f'{out_dir}/train/model_best.pth', map_location=device)
     else:
@@ -48,7 +48,7 @@ def predict(config: Config,train_on_one):
     results = []
     label2results = []
     inputs = []
-    out_dir_file = out_dir+'/test_new'
+    out_dir_file = out_dir+'/test_new_all'
     os.makedirs(out_dir_file, exist_ok=True)
     loss_fn = nn.MSELoss()
     for input, posi,posi_origin, label in tqdm(test_loader, desc="Testing"):
@@ -95,8 +95,8 @@ def predict(config: Config,train_on_one):
 
     visualize_up(preds, labels, inputs, results, label2results, config.out_dir)
 
-    json.dump(preds[:1000], open(f"{out_dir_file}/preds_1000.json", 'w'), indent=2)
-    json.dump(labels[:1000], open(f"{out_dir_file}/labels_1000.json", 'w'), indent=2)
+    # json.dump(preds, open(f"{out_dir_file}/preds.json", 'w'), indent=2)
+    # json.dump(labels, open(f"{out_dir_file}/labels.json", 'w'), indent=2)
     json.dump(results, open(f"{out_dir_file}/results.json", 'w'), indent=2)
     json.dump(label2results, open(f"{out_dir_file}/label2results.json", 'w'), indent=2)
     json.dump(inputs, open(f"{out_dir_file}/inputs.json", 'w'), indent=2)
@@ -106,11 +106,12 @@ def predict(config: Config,train_on_one):
 
 if __name__ == "__main__":
     print("start")
-    train_on_one = False
-    case_path = "/home/cc/data/onion_train_data/train_results_EAST-0.2/"
+    train_on_one = True
+    # case_path = "/home/cc/data/onion_train_data/train_results_EAST-0.2/"
     # case_path ="/home/cc/data/onion_train_data/train_results_2A-0.15/"
     # /home/cc/data/onion_train_data/train_results_EAST-0.2
     # case_path = "../../onion_train_data/train_results_2A/"
+    case_path = "../../onion_train_data/train_results_EAST/"
     ###########################  遍历文件夹时用
     # 创建Path对象
     path = Path(case_path)
@@ -139,9 +140,10 @@ if __name__ == "__main__":
     #     config.out_dir = case_path + file_name
     #     predict(config,train_on_one)
         ############################# 单个时用
-    file_name = "phantomEAST-0.2_42_ResOnion_input_softplus_adam_scheduler"
+    file_name = "EXPEAST_42_ResOnion_PI_uptime_"
+    print("file_name", file_name)
     if train_on_one:
-        config_path = case_path+file_name+"/config.json"
+        config_path = case_path+file_name+"/test_new/config.json"
         # 使用 json 模块加载 JSON 文件
         with open(config_path, 'r') as file:
             info = json.load(file)

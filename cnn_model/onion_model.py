@@ -1134,7 +1134,7 @@ class ResOnion_input(nn.Module):
         for net in self.res4:
             z = net(z)
             
-        z = self.admaxpool(z)
+        # z = self.admaxpool(z)
         
         z = z.reshape(z.size(0), -1)
         z = self.fc(z)
@@ -1181,7 +1181,7 @@ class ResOnion_input_softplus(nn.Module):
         for net in self.res4:
             z = net(z)
 
-        z = self.admaxpool(z)
+        # z = self.admaxpool(z)
         
         z = z.reshape(z.size(0), -1)
         z = self.fc(z)
