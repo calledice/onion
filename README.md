@@ -47,6 +47,7 @@ This repository contains the official implementation of our Nuclear Fusion paper
 
 ```bash
 # Create and activate conda environment
+git clone --branch main --single-branch https://github.com/calledice/onion.git
 conda create -n onion python=3.10
 conda activate onion
 
@@ -100,7 +101,7 @@ To train the model, use the provided script:
 
 ```bash
 cd model
-python common_train.py --dataset EXP2A --model Onion_PI_uptime --addloss True
+python common_train.py --dataset EXP2A --model Onion_PI_uptime --addloss
 # Training Onion_PI_uptime with PILF on EXP2A dataset
 ```
 

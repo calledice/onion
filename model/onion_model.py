@@ -12,7 +12,7 @@ from contextlib import redirect_stdout
 
 class Config:
     def __init__(self, train_path, val_path, test_path, out_dir, with_PI, addloss, randomnumseed, n_layer=None,
-            n_head=None, dropout=None, bias=True, dtype=torch.float32, batch_size=256,
+            n_head=None, dropout=None, bias=True, dtype="float32", batch_size=256,
             max_n=100, max_r=100, max_z=100, lr=0.0001, epochs=50, early_stop=-1,lambda_l2 = 0.0001,p=2,device_num="0",
             alfa = 0.618, scheduler=False,Module=None):
         self.n_layer = n_layer
@@ -41,7 +41,7 @@ class Config:
         self.device_num = device_num
         self.alfa = alfa
         self.scheduler = scheduler
-        self.Module = Module
+        self.Module = Module.__name__
 
     def as_dict(self):
         data = self.__dict__.copy()  # 动态捕获所有属性
