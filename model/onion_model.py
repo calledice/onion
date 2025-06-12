@@ -28,7 +28,7 @@ class Config:
         self.epochs = epochs
         self.early_stop = early_stop
         # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device('cuda')
+        self.device = str(torch.device('cuda'  if torch.cuda.is_available()  else 'cpu'))
         self.train_path = train_path
         self.val_path = val_path
         self.test_path = test_path
