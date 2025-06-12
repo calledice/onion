@@ -8,3 +8,4 @@
 /cnn_model/__pycache__/
 .vscode/
 .ipynb_checkpoints/
+model/__pycache__

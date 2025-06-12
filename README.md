@@ -101,6 +101,8 @@ python common_train.py --dataset EXP2A --model Onion_PI_uptime --addloss
 # Training Onion_PI_uptime with PILF on EXP2A dataset
 ```
 
+For command parameters meaning, see [common_train.py](https://github.com/calledice/onion/blob/main/model/common_train.py)
+
 ### Predicting
 
 To use the model, use the provided script:
