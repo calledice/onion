@@ -7,11 +7,11 @@ The code open source work is in progress. Stay tuned ...
 Wang, C., Yang, W., Wang, H., Yang, R., Li, J., Wang, Z.J., Wei, Y., Huang, X., Hu, C., Liu, Z., Yu, X., Zou, C., Zhao, Z., 2025. Physics-informed deep learning model for line-integral diagnostics across fusion devices. Nucl. Fusion. https://doi.org/10.1088/1741-4326/ade0ce
 
 <p align="center">
-  <h2 align="center" style="margin-top: -30px;">MLLMs Know Where to Look: <br>Training-free Perception of Small Visual Details with Multimodal LLMs</h2>
+  <h2 align="center" style="margin-top: -30px;">Physics-informed deep learning model for line-integral diagnostics across fusion devices</h2>
 </p>
 
 <div style="font-family: charter;" align="center">
-    <a href="https://orcid.org/0000-0003-0716-1280" target="_blank">Cong Wang</a>,
+    <a href="https://orcid.org/0000-0003-0716-1280" target="_blank">Cong Wang</a>
 </div>
 
 <br>
