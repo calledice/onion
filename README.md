@@ -87,7 +87,9 @@ pip install -r requirements.txt
 ```
 
 data_HL_2A: https://drive.google.com/drive/folders/19asrBJbovg38PD2cYsTORK3k4s-OGqy2?usp=drive_link
+
 data_East: https://drive.google.com/drive/folders/1-5HMnZvZjBFRCO0noYpiMYR5dazIa0-M?usp=drive_link
+
 data_Phantom: https://drive.google.com/drive/folders/1hzYWzMy7emavA3ogm-fh77sukBcLx9GE?usp=drive_link
 
 ## 🚀 Quick Start
@@ -98,7 +100,8 @@ To train the model, use the provided script:
 
 ```bash
 cd model
-python common_train.py --dataset EXP2A --model Onion_PI_uptime
+python common_train.py --dataset EXP2A --model Onion_PI_uptime --addloss True
+# Training Onion_PI_uptime with PILF on EXP2A dataset
 ```
 
 ### Predicting
@@ -112,8 +115,14 @@ python common_train.py # please modify the case_path and file_name
 
 ### Models
 
-- LLaVA-1.5 (`llava`)
-- InstructBLIP (`blip`)
+- Onion_input (corresponding to VggOnion)
+- Onion_input_softplus (corresponding to VggOnion with softplus)
+- Onion_PI_uptime (corresponding to VggOnion_PI)
+- Onion_PI_uptime_softplus (corresponding to VggOnion_PI with softplus)
+- ResOnion_input (corresponding to ResOnion)
+- ResOnion_input_softplus (corresponding to ResOnion with softplus)
+- ResOnion_PI_uptime (corresponding to ResOnion_PI)
+- ResOnion_PI_uptime_softplus (corresponding to ResOnion_PI with softplus)
 
 ## 📚 Citation
 

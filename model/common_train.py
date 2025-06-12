@@ -383,11 +383,5 @@ if __name__ == '__main__':
         ResOnion_PI_uptime
         ResOnion_PI_uptime_softplus
     python common_train.py --dataset EXP2A --model Onion_PI_uptime
-    
-      nohup ./phantom2A_train.sh > ../../onion_data/model_train_0.0001/phantom2A_training-50-all.log 2>&1 & 2878317
-      nohup ./phantomEAST_train.sh > ../../onion_data/model_train_f/phantomEAST_training-50-1.log 2>&1 & 3921141
-      nohup ./EXP2A_train.sh > ../../onion_data/model_train_0.0001/EXP2A_training-50-2.log 2>&1 &
-      nohup ./EXPEAST_train.sh > ../../onion_data/model_train_f/EXPEAST_training-50.log 2>&1 &
-      nohup ./run.sh > ../../onion_data/model_train_noregi_Nposi/up_training-50-0.log 2>&1 &
 '''
 
