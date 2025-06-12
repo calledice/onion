@@ -45,34 +45,46 @@ This repository contains the official implementation of our Nuclear Fusion paper
 
 ### Setup Environment
 
-````bash
+```bash
 # Create and activate conda environment
 conda create -n onion python=3.10
 conda activate onion
 
 # Install dependencies
 pip install -r requirements.txt
+```
 
-## Dataset Preparation
+### Dataset Preparation
 
 1. Download the data_HL_2A file into the onion directory
-    ./onion/
-    --data_HL_2A/
-        --data/
-            --HL_2A_test_database.h5
-            ...
+
+```bash
+   ./onion/
+       --data_HL_2A/
+           --data/
+              --HL_2A_test_database.h5
+              ...
+```
+
 2. Download the data_East file into the onion directory
-    ./onion/
-    --data_East/
-        --data/
-            --EAST_test_database.h5
-            ...
+
+```bash
+   ./onion/
+       --data_East/
+           --data/
+               --EAST_test_database.h5
+               ...
+```
+
 3. Download the data_Phantom file into the onion directory
-    ./onion/
-    --data_Phantom/
-        --phantomdata/
-            --EAST_test_database_1_100_1000.h5
-            ...
+
+```bash
+   ./onion/
+       --data_Phantom/
+           --phantomdata/
+               --EAST_test_database_1_100_1000.h5
+               ...
+```
 
 data_HL_2A: https://drive.google.com/drive/folders/19asrBJbovg38PD2cYsTORK3k4s-OGqy2?usp=drive_link
 data_East: https://drive.google.com/drive/folders/1-5HMnZvZjBFRCO0noYpiMYR5dazIa0-M?usp=drive_link
@@ -85,16 +97,17 @@ data_Phantom: https://drive.google.com/drive/folders/1hzYWzMy7emavA3ogm-fh77sukB
 To train the model, use the provided script:
 
 ```bash
-# Format: bash run_all.sh [dataset] [model] [method]
-bash run_all.sh textvqa llava rel_att
-````
+cd model
+python common_train.py --dataset EXP2A --model Onion_PI_uptime
+```
 
 ### Predicting
 
 To use the model, use the provided script:
 
 ```bash
-python get_score.py --data_dir ./data/results --save_path ./
+cd model
+python common_train.py # please modify the case_path and file_name
 ```
 
 ### Models
